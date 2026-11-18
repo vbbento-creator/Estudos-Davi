@@ -3,61 +3,83 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0f1420">
+<meta name="theme-color" content="#5b5bf0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Estudos do Davi · P2</title>
 <style>
-:root{--bg:#0f1420;--card:#182032;--card2:#1f2940;--txt:#e8ecf4;--mut:#8f9bb3;--ac:#ff5fa2;--ok:#3ddc97;--warn:#ffc04d;--bad:#ff6b6b;--line:#2a3550}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding-bottom:80px}
-header{padding:16px 16px 8px;display:flex;justify-content:space-between;align-items:center}
-header h1{font-size:20px;margin:0}
-header small{color:var(--mut)}
-main{padding:0 12px;max-width:720px;margin:0 auto}
-nav{position:fixed;bottom:0;left:0;right:0;background:#0b0f18;border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:6px 0 calc(6px + env(safe-area-inset-bottom));z-index:5}
-nav button{background:none;border:0;color:var(--mut);font-size:12px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 8px}
+:root{--bg:#f4f6fb;--card:#fff;--txt:#1d2433;--mut:#6b7489;--line:#e6e9f2;--ac:#5b5bf0;--ok:#1fa971;--okbg:#e3f6ee;--warn:#f59e0b;--bad:#e5484d;--badbg:#fdecec;--soft:#eef0fb}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.45 "Segoe UI",system-ui,-apple-system,Roboto,sans-serif;padding-bottom:90px}
+header{padding:18px 16px 6px;display:flex;justify-content:space-between;align-items:center;max-width:760px;margin:0 auto}
+header h1{font-size:22px;margin:0}
+header .sair{background:none;border:0;color:var(--mut);font-size:14px;text-decoration:underline;cursor:pointer}
+main{padding:0 14px;max-width:760px;margin:0 auto}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:8px 0 calc(8px + env(safe-area-inset-bottom));z-index:5;box-shadow:0 -4px 16px #1d24330d}
+nav button{background:none;border:0;color:var(--mut);font-size:12px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 14px;border-radius:12px;cursor:pointer}
 nav button span{font-size:22px}
-nav button.on{color:var(--ac)}
-.card{background:var(--card);border-radius:14px;padding:14px;margin:10px 0}
-.card h2{font-size:17px;margin:0 0 8px}
-.card h3{font-size:15px;margin:10px 0 6px}
+nav button.on{color:var(--ac);background:var(--soft)}
+.card{background:var(--card);border-radius:18px;padding:16px;margin:12px 0;box-shadow:0 2px 10px #1d24330a}
+.card h2{font-size:17px;margin:0 0 10px}
 .mut{color:var(--mut);font-size:14px}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .sp{justify-content:space-between}
-.btn{background:var(--ac);color:#fff;border:0;border-radius:10px;padding:10px 14px;font-size:15px;font-weight:600;cursor:pointer}
-.btn.sec{background:var(--card2);color:var(--txt)}
-.btn.ok{background:var(--ok);color:#06281a}
+.btn{background:var(--ac);color:#fff;border:0;border-radius:14px;padding:13px 16px;font-size:16px;font-weight:700;cursor:pointer;width:100%}
+.btn.sec{background:var(--soft);color:var(--ac)}
+.btn.ok{background:var(--ok)}
+.btn.min{width:auto;padding:8px 12px;font-size:14px}
 .btn:disabled{opacity:.45}
-input,select,textarea{background:var(--card2);color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:10px;font-size:16px;width:100%}
+input,select,textarea{background:#fff;color:var(--txt);border:1.5px solid var(--line);border-radius:12px;padding:11px;font-size:16px;width:100%;font-family:inherit}
 textarea{min-height:70px;resize:vertical}
-label.ck{display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer}
-label.ck input{width:22px;height:22px;accent-color:var(--ok)}
-.bar{height:8px;background:var(--card2);border-radius:6px;overflow:hidden;margin-top:6px}
-.bar i{display:block;height:100%;background:var(--ok)}
-.tag{display:inline-block;font-size:12px;padding:2px 8px;border-radius:20px;background:var(--card2);color:var(--mut)}
+.bar{height:10px;background:var(--soft);border-radius:8px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:8px;background:var(--ok);transition:width .3s}
+.tag{display:inline-block;font-size:12px;font-weight:700;padding:3px 9px;border-radius:20px;background:var(--soft);color:var(--mut)}
+.tag.ok{background:var(--okbg);color:var(--ok)}
 .tag.hoje{background:var(--ac);color:#fff}
-.tag.ok{background:#164d37;color:var(--ok)}
-.dom{display:flex;gap:6px}
-.dom button{flex:1;background:var(--card2);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:6px 0;font-weight:700}
-.dom button.on{background:var(--ac);border-color:var(--ac)}
-.topico{border-top:1px solid var(--line);padding:10px 0}
-.alt{display:block;width:100%;text-align:left;background:var(--card2);color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:12px;margin:6px 0;font-size:15px}
-.alt.certa{border-color:var(--ok);background:#163d2e}
-.alt.errada{border-color:var(--bad);background:#4a1f25}
-.alt.sel{border-color:var(--ac)}
-.nivel{display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
-.nivel b{font-size:22px}
-.big{font-size:28px;font-weight:800}
-.dia{border-left:3px solid var(--line);padding-left:10px;margin:10px 0}
+.hello{font-size:15px;color:var(--mut);margin:0 0 4px}
+.hero{background:linear-gradient(135deg,#5b5bf0,#8b5cf6);color:#fff}
+.hero .mut{color:#e4e2ff}
+.big{font-size:30px;font-weight:800;line-height:1.1}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+.mcard{background:#fff;border-radius:18px;padding:14px;box-shadow:0 2px 10px #1d24330a;cursor:pointer;border-top:6px solid var(--c);display:flex;flex-direction:column;gap:6px}
+.mcard .em{font-size:28px}
+.mcard b{font-size:15px}
+.mhead{border-radius:18px;padding:18px;color:#fff;background:var(--c);margin:12px 0}
+.mhead .em{font-size:34px}
+.voltar{background:none;border:0;color:var(--ac);font-weight:700;font-size:15px;padding:8px 0;cursor:pointer}
+.topico{background:#fff;border-radius:16px;padding:14px;margin:10px 0;box-shadow:0 2px 10px #1d24330a}
+.topico .tt{font-weight:700;margin-bottom:10px}
+.pills{display:flex;gap:8px}
+.pill{flex:1;border:2px solid var(--line);background:#fff;border-radius:14px;padding:11px 6px;font-size:15px;font-weight:700;color:var(--mut);cursor:pointer}
+.pill.on{border-color:var(--ok);background:var(--okbg);color:var(--ok)}
+.dom{display:flex;gap:6px;margin-top:6px}
+.dom button{flex:1;background:#fff;border:2px solid var(--line);border-radius:12px;padding:6px 0;font-size:22px;cursor:pointer;filter:grayscale(1);opacity:.6}
+.dom button.on{filter:none;opacity:1;border-color:var(--ac);background:var(--soft)}
+.lbl{font-size:13px;color:var(--mut);margin-top:12px}
+details summary{cursor:pointer;color:var(--ac);font-weight:600;font-size:14px;margin-top:10px}
+.alt{display:block;width:100%;text-align:left;background:#fff;color:var(--txt);border:2px solid var(--line);border-radius:14px;padding:13px;margin:8px 0;font-size:15px;cursor:pointer}
+.alt.certa{border-color:var(--ok);background:var(--okbg)}
+.alt.errada{border-color:var(--bad);background:var(--badbg)}
+.alt.sel{border-color:var(--ac);background:var(--soft)}
+.trilha{display:flex;gap:6px;margin:10px 0}
+.trilha div{flex:1;text-align:center;padding:10px 4px;border-radius:14px;background:#ffffff26;font-size:13px;font-weight:700}
+.trilha div.on{background:#fff;color:var(--ac)}
+.trilha div span{display:block;font-size:22px}
+.falta{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-top:1px solid #ffffff33;cursor:pointer}
+.ck{display:flex;align-items:center;gap:10px;padding:8px 0;cursor:pointer;border-top:1px solid var(--line)}
+.ck:first-of-type{border-top:0}
+.ck input{width:22px;height:22px;accent-color:var(--ok);flex:none}
+.dia{margin:12px 0;padding-left:12px;border-left:4px solid var(--line)}
 .dia.hoje{border-color:var(--ac)}
-.dia.passado{opacity:.55}
-.modal{position:fixed;inset:0;background:#000a;display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
+.dia.passado{opacity:.5}
+.modal{position:fixed;inset:0;background:#1d243380;display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
 .modal .card{width:100%;max-width:420px}
-.toast{position:fixed;top:12px;left:50%;transform:translateX(-50%);background:var(--card2);padding:10px 16px;border-radius:10px;z-index:20;box-shadow:0 4px 20px #0008}
+.toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:#1d2433;color:#fff;padding:10px 18px;border-radius:12px;z-index:20;font-weight:600}
 table{width:100%;border-collapse:collapse;font-size:14px}
-td,th{padding:6px 4px;border-bottom:1px solid var(--line);text-align:left}
-details summary{cursor:pointer;color:var(--mut)}
-#login{max-width:380px;margin:12vh auto;padding:0 16px}
+td,th{padding:8px 4px;border-bottom:1px solid var(--line);text-align:left}
+.nivel{display:flex;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+.nivel b.ic{font-size:26px}
+#login{max-width:380px;margin:12vh auto;padding:24px}
+@media(min-width:620px){.grid{grid-template-columns:1fr 1fr 1fr}}
 </style>
 </head>
 <body>
@@ -110,7 +132,7 @@ const HORAS = { bronze:5, prata:9, ouro:14 };
 const P2_MATS = MATERIAS.map(m => m.id);
 
 // ---------------- ESTADO ----------------
-const S = { user:null, perfil:null, aba:'hoje', prog:{}, tent:[], lib:{}, notas:{}, gta:[], quiz:null, prova:null, aberta:null };
+const S = { user:null, perfil:null, aba:'hoje', prog:{}, tent:[], lib:{}, notas:{}, gta:[], quiz:null, prova:null, aberta:null, materia:null };
 const $app = document.getElementById('app');
 const h = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const hojeISO = () => new Date().toLocaleDateString('sv-SE', { timeZone:'America/Sao_Paulo' });
@@ -180,27 +202,31 @@ function calcDinheiro(){
 }
 
 // ---------------- TELAS ----------------
+const COR = { portugues:'#e5484d', ingles:'#3b82f6', fisica:'#6d4aff', biologia:'#1fa971', redacao:'#f59e0b', espanhol:'#f97316', matematica:'#0ea5e9', quimica:'#14b8a6', geografia:'#84cc16', historia:'#a16207', arte:'#ec4899', musica:'#8b5cf6' };
+const DOM = [['😵','Não sei nada'],['😕','Sei pouco'],['😐','Mais ou menos'],['🙂','Sei bem'],['😎','Explico pra alguém']];
+
 function render(){
   if (!S.user) return telaLogin();
-  const abas = [['hoje','🏠','Hoje'],['materias','📚','Matérias'],['treino','🎯','Treino'],['premios','🎮','Prêmios']];
+  const abas = [['hoje','🏠','Hoje'],['materias','📚','Matérias'],['premios','🎮','Prêmios']];
   if (ehResp()) abas.push(['painel','🛡️','Painel']);
   let corpo = '';
   if (S.prova) corpo = telaProva();
   else if (S.quiz) corpo = telaQuiz();
-  else corpo = ({ hoje:telaHoje, materias:telaMaterias, treino:telaTreino, premios:telaPremios, painel:telaPainel })[S.aba]();
+  else if (S.aba === 'materias' && S.materia) corpo = telaMateria(S.materia);
+  else corpo = ({ hoje:telaHoje, materias:telaMaterias, premios:telaPremios, painel:telaPainel })[S.aba]();
+  const foco = S.quiz || S.prova;
   $app.innerHTML = `
-    <header><div><h1>📘 Estudos · P2</h1><small>${h(S.perfil?.nome || '')}</small></div>
-    <button class="btn sec" data-a="sair">Sair</button></header>
+    <header><h1>📘 Estudos P2</h1>${foco ? '' : '<button class="sair" data-a="sair">sair</button>'}</header>
     <main>${corpo}</main>
-    ${S.quiz || S.prova ? '' : `<nav>${abas.map(([id,ic,nm]) => `<button data-a="aba" data-v="${id}" class="${S.aba===id?'on':''}"><span>${ic}</span>${nm}</button>`).join('')}</nav>`}`;
+    ${foco ? '' : `<nav>${abas.map(([id,ic,nm]) => `<button data-a="aba" data-v="${id}" class="${S.aba===id?'on':''}"><span>${ic}</span>${nm}</button>`).join('')}</nav>`}`;
 }
 
 function telaLogin(){
   $app.innerHTML = `<div id="login" class="card">
-    <h2>📘 Estudos · P2</h2><p class="mut">Entre com seu e-mail e senha.</p>
+    <div class="big">📘</div><h2>Estudos P2</h2><p class="mut">Entre com seu e-mail e senha.</p>
     <input id="lemail" type="email" placeholder="e-mail" autocomplete="username"><br><br>
     <input id="lsenha" type="password" placeholder="senha" autocomplete="current-password"><br><br>
-    <button class="btn" data-a="entrar" style="width:100%">Entrar</button></div>`;
+    <button class="btn" data-a="entrar">Entrar</button></div>`;
 }
 
 function proximaProva(){
@@ -212,127 +238,139 @@ function proximaProva(){
   return { d, dias, mats:futuras.filter(m => m.prova===d) };
 }
 
-function blocoDia(dia, destaque){
+function blocoDia(dia){
   const hoje = hojeISO();
   const cls = dia.d===hoje ? 'hoje' : dia.d < hoje ? 'passado' : '';
-  return `<div class="dia ${cls}"><div class="row sp"><b>${h(dia.t)}</b><span class="tag ${dia.d===hoje?'hoje':''}">${fmtData(dia.d)}</span></div>
+  return `<div class="dia ${cls}"><div class="row sp"><b>${h(dia.t)}</b><span class="tag ${dia.d===hoje?'hoje':''}">${dia.d===hoje?'HOJE':fmtData(dia.d)}</span></div>
     ${dia.itens.map((it, i) => { const k=`crono:${dia.d}:${i}`; return `<label class="ck"><input type="checkbox" data-a="crono" data-k="${k}" ${S.prog[k]?.feito?'checked':''}> ${h(it)}</label>`; }).join('')}</div>`;
 }
 
+function oQueFalta(g){
+  const itens = [];
+  if (!g.bronze) g.bronzeDet.forEach(x => { if (!x.ok){ const p = progMat(x.mid); itens.push([x.mid, `Marcar estudo + exercícios: ${p.ok}/${p.total} tópicos`]); } });
+  else if (!g.prata) g.prataDet.forEach(x => { if (x.v < 70) itens.push([x.mid, `Treino com 70%+ (melhor: ${x.v>=0?x.v+'%':'nenhum'})`]); });
+  else if (!g.ouro) g.ouroDet.forEach(x => { if (x.v < 80) itens.push([x.mid, `Prova valendo com 80%+ (precisa em 3 das 4)`]); });
+  return itens;
+}
+
 function telaHoje(){
-  const hoje = hojeISO();
-  const pp = proximaProva();
-  const g = calcGTA();
+  const hoje = hojeISO(); const pp = proximaProva(); const g = calcGTA();
   const diaHoje = CRONO.find(d => d.d===hoje) || CRONO.find(d => d.d > hoje);
   const faltaGta = PRAZO_GTA - new Date();
-  let gtaTxt = '';
+  let gta = '';
   if (faltaGta > 0){
     const hh = Math.floor(faltaGta/36e5), mm = Math.floor(faltaGta%36e5/6e4);
-    const prox = !g.bronze ? 'Bronze (5h): checklist completo nas 4 matérias' : !g.prata ? 'Prata (9h): treino 70%+ nas 4' : !g.ouro ? 'Ouro (14h): prova valendo 80%+ em 3 das 4' : 'Você já está no OURO 🥇';
-    gtaTxt = `<div class="card"><h2>🎮 Meta GTA</h2><div class="row sp"><span>Faltam <b>${hh}h${String(mm).padStart(2,'0')}</b></span><span class="big">${g.horas}h</span></div><p class="mut">Próximo: ${h(prox)}</p></div>`;
+    gta = `<div class="card hero"><div class="row sp"><h2 style="margin:0">🎮 Missão GTA</h2><span class="mut">faltam ${hh}h${String(mm).padStart(2,'0')}</span></div>
+      <div class="trilha"><div class="${g.bronze?'on':''}"><span>🥉</span>5h</div><div class="${g.prata?'on':''}"><span>🥈</span>9h</div><div class="${g.ouro?'on':''}"><span>🥇</span>14h</div></div>
+      <div class="mut" style="margin-bottom:4px">${g.ouro ? 'Você bateu o OURO! 14h garantidas 🔥' : 'Pra subir de nível, falta:'}</div>
+      ${oQueFalta(g).map(([mid, t]) => `<div class="falta" data-a="mat" data-v="${mid}"><span>${MAT[mid].emoji} <b>${h(MAT[mid].nome)}</b><br><small>${h(t)}</small></span><span>›</span></div>`).join('')}</div>`;
   }
-  return `
-    ${pp ? `<div class="card"><h2>⏳ Próxima prova</h2><div class="big">${pp.dias===0?'HOJE':pp.dias===1?'Amanhã':pp.dias+' dias'}</div><p class="mut">${fmtData(pp.d)} · ${pp.mats.map(m=>m.emoji+' '+h(m.nome)).join(' + ')}</p></div>` : ''}
-    ${gtaTxt}
-    <div class="card"><h2>📅 ${diaHoje?.d===hoje ? 'Plano de hoje' : 'Próximo dia do plano'}</h2>${diaHoje ? blocoDia(diaHoje) : '<p class="mut">Cronograma encerrado 🎉</p>'}</div>
-    <div class="card"><details><summary>Ver cronograma completo</summary>${CRONO.map(d => blocoDia(d)).join('')}</details></div>`;
+  return `<p class="hello">E aí, ${h(S.perfil?.nome || '')}! 👋</p>
+    ${pp ? `<div class="card"><div class="row sp"><div><div class="mut">Próxima prova</div><div class="big">${pp.dias===0?'HOJE':pp.dias===1?'Amanhã':'em '+pp.dias+' dias'}</div></div><span class="tag">${fmtData(pp.d)}</span></div>
+      <div class="row" style="margin-top:10px">${pp.mats.map(m => `<button class="btn sec min" data-a="mat" data-v="${m.id}">${m.emoji} ${h(m.nome)}</button>`).join('')}</div></div>` : ''}
+    ${gta}
+    <div class="card"><h2>📅 ${diaHoje?.d===hoje ? 'O que fazer hoje' : 'Próximo dia do plano'}</h2>${diaHoje ? blocoDia(diaHoje) : '<p class="mut">Cronograma encerrado 🎉</p>'}
+      <details><summary>Ver cronograma completo</summary>${CRONO.map(blocoDia).join('')}</details></div>`;
 }
 
 function telaMaterias(){
   const hoje = hojeISO();
-  return MATERIAS.map(m => {
-    const p = progMat(m.id); const aberta = S.aberta === m.id;
-    const feita = m.prova < hoje;
-    let corpo = '';
-    if (aberta){
-      corpo = m.topicos.map((t, i) => {
-        const k = chT(m.id, i); const r = S.prog[k] || {};
-        return `<div class="topico"><b>${h(t)}</b>
-          <label class="ck"><input type="checkbox" data-a="ck" data-k="${k}" data-f="estudou" ${r.estudou?'checked':''}> Estudei</label>
-          <label class="ck"><input type="checkbox" data-a="ck" data-k="${k}" data-f="exercicios" ${r.exercicios?'checked':''}> Fiz os exercícios</label>
-          <div class="mut">Quanto eu domino? (1 = nada · 5 = explico pra alguém)</div>
-          <div class="dom">${[1,2,3,4,5].map(n => `<button data-a="dom" data-k="${k}" data-v="${n}" class="${r.dominio===n?'on':''}">${n}</button>`).join('')}</div>
-          <textarea data-a="duv" data-k="${k}" placeholder="O que não entendi (opcional)">${h(r.duvida)}</textarea></div>`;
-      }).join('');
-      if (m.id === 'redacao'){
-        const r = S.prog['redacao:texto'] || {};
-        corpo += `<div class="topico"><b>✍️ Minha redação (cole aqui para correção)</b><textarea data-a="duv" data-k="redacao:texto" style="min-height:180px" placeholder="Cole aqui seu artigo de opinião">${h(r.duvida)}</textarea></div>`;
-      }
-    }
-    return `<div class="card"><div class="row sp" data-a="abrir" data-v="${m.id}" style="cursor:pointer">
-      <div><b>${m.emoji} ${h(m.nome)}</b><div class="mut">Prova ${fmtData(m.prova)} ${feita?'· já foi':''}</div></div>
-      <span class="tag ${p.ok===p.total?'ok':''}">${p.ok}/${p.total}</span></div>
-      <div class="bar"><i style="width:${100*p.ok/p.total}%"></i></div>${corpo}</div>`;
-  }).join('');
+  const lista = [...MATERIAS].sort((a,b) => a.prova.localeCompare(b.prova));
+  return `<p class="hello">Toque numa matéria pra estudar, treinar ou fazer a prova.</p><div class="grid">${lista.map(m => {
+    const p = progMat(m.id); const tr = melhor(m.id,'treino'); const pv = melhor(m.id,'prova');
+    return `<div class="mcard" style="--c:${COR[m.id]}" data-a="mat" data-v="${m.id}">
+      <div class="row sp"><span class="em">${m.emoji}</span><span class="tag ${m.prova===hoje?'hoje':''}">${m.prova<hoje?'✔ foi':fmtData(m.prova)}</span></div>
+      <b>${h(m.nome)}</b>
+      <div class="bar"><i style="width:${100*p.ok/p.total}%;background:${COR[m.id]}"></i></div>
+      <div class="mut" style="font-size:12px">${p.ok}/${p.total} tópicos ${tr>=0?'· 🎯 '+tr+'%':''} ${pv>=0?'· 🏛️ '+pv+'%':''}</div></div>`;
+  }).join('')}</div>`;
 }
 
-function telaTreino(){
-  const lista = MATERIAS.filter(m => m.id !== 'redacao');
-  const agora = new Date();
-  return `<div class="card"><h2>🎯 Me testa</h2><p class="mut">Treino livre: 10 questões sorteadas, com gabarito comentado. Pode refazer à vontade. Vale para a meta com 70%+.</p>
-    <select id="tmat">${lista.map(m => `<option value="${m.id}">${m.emoji} ${h(m.nome)}</option>`).join('')}</select><br><br>
-    <button class="btn" data-a="treinar" style="width:100%">Começar treino</button></div>
-    <div class="card"><h2>🏛️ Prova valendo</h2><p class="mut">Só com o pai ou a mãe do lado. Abre com a senha de um deles, tem tempo e só pode ser feita uma vez.</p>
-    ${lista.map(m => {
-      const l = S.lib[m.id]; const aberta = l && new Date(l.ate) > agora;
-      const feita = melhor(m.id, 'prova');
-      return `<div class="topico row sp"><span>${m.emoji} ${h(m.nome)} ${feita>=0?`<span class="tag ok">${feita}%</span>`:''}</span>
-        ${aberta ? `<button class="btn ok" data-a="iniciarProva" data-v="${m.id}">Começar</button>` : `<button class="btn sec" data-a="liberar" data-v="${m.id}">Liberar</button>`}</div>`;
-    }).join('')}</div>
-    <div class="card"><h2>📈 Últimos resultados</h2>${S.tent.slice(0,10).map(t => `<div class="row sp topico"><span>${MAT[t.materia]?.emoji||''} ${h(MAT[t.materia]?.nome||t.materia)} · ${t.tipo==='prova'?'🏛️ prova':'🎯 treino'}</span><b>${t.pct}%</b></div>`).join('') || '<p class="mut">Nada ainda.</p>'}</div>`;
+function telaMateria(mid){
+  const m = MAT[mid]; const p = progMat(mid);
+  const topicos = m.topicos.map((t, i) => {
+    const k = chT(mid, i); const r = S.prog[k] || {};
+    return `<div class="topico"><div class="tt">${i+1}. ${h(t)}</div>
+      <div class="pills"><button class="pill ${r.estudou?'on':''}" data-a="tg" data-k="${k}" data-f="estudou">📖 ${r.estudou?'Estudei ✓':'Estudei'}</button>
+      <button class="pill ${r.exercicios?'on':''}" data-a="tg" data-k="${k}" data-f="exercicios">✏️ ${r.exercicios?'Fiz exercícios ✓':'Fiz exercícios'}</button></div>
+      <div class="lbl">Quanto eu domino? ${r.dominio ? '· <b>'+DOM[r.dominio-1][1]+'</b>' : ''}</div>
+      <div class="dom">${DOM.map(([e], n) => `<button data-a="dom" data-k="${k}" data-v="${n+1}" class="${r.dominio===n+1?'on':''}" title="${DOM[n][1]}">${e}</button>`).join('')}</div>
+      <details ${r.duvida?'open':''}><summary>❓ Tenho uma dúvida</summary><textarea data-a="duv" data-k="${k}" placeholder="Escreva o que não entendeu">${h(r.duvida)}</textarea></details></div>`;
+  }).join('');
+  let extra = '';
+  if (mid === 'redacao'){
+    const r = S.prog['redacao:texto'] || {};
+    extra = `<div class="topico"><div class="tt">✍️ Minha redação</div><p class="mut">Cole aqui seu artigo de opinião para o pai mandar corrigir.</p><textarea data-a="duv" data-k="redacao:texto" style="min-height:200px">${h(r.duvida)}</textarea></div>`;
+  }
+  let acoes = '';
+  if (mid !== 'redacao'){
+    const l = S.lib[mid]; const aberta = l && new Date(l.ate) > new Date();
+    const tr = melhor(mid,'treino'); const pv = melhor(mid,'prova');
+    acoes = `<div class="card"><h2>🎯 Treino livre</h2><p class="mut">10 questões sorteadas com gabarito comentado. Refaça quantas vezes quiser. ${tr>=0?'Seu melhor: <b>'+tr+'%</b>':''}</p>
+      <button class="btn" data-a="treinar" data-v="${mid}">Me testa!</button></div>
+      <div class="card"><h2>🏛️ Prova valendo</h2><p class="mut">Só com o pai ou a mãe do lado. Tem tempo e é uma vez só. ${pv>=0?'Resultado: <b>'+pv+'%</b>':''}</p>
+      ${pv>=0 && !aberta ? '<span class="tag ok">Prova feita ✓</span>' : aberta ? `<button class="btn ok" data-a="iniciarProva" data-v="${mid}">Começar prova agora</button>` : `<button class="btn sec" data-a="liberar" data-v="${mid}">🔐 Liberar prova (pai/mãe)</button>`}</div>`;
+  }
+  return `<button class="voltar" data-a="voltarMats">‹ Matérias</button>
+    <div class="mhead" style="--c:${COR[mid]}"><div class="row sp"><span class="em">${m.emoji}</span><span class="tag" style="background:#ffffff33;color:#fff">Prova ${fmtData(m.prova)}</span></div>
+    <div class="big" style="margin-top:6px">${h(m.nome)}</div><div style="opacity:.9">${p.ok} de ${p.total} tópicos concluídos</div>
+    <div class="bar" style="background:#ffffff40;margin-top:8px"><i style="width:${100*p.ok/p.total}%;background:#fff"></i></div></div>
+    ${topicos}${extra}${acoes}`;
 }
 
 function telaQuiz(){
   const q = S.quiz; const it = q.lista[q.i];
   if (!it){
-    return `<div class="card"><h2>Resultado</h2><div class="big">${q.acertos}/${q.lista.length} · ${Math.round(100*q.acertos/q.lista.length)}%</div>
-      <p class="mut">${q.acertos/q.lista.length >= .7 ? 'Mandou bem! 🔥' : 'Bora revisar e tentar de novo 💪'}</p>
-      <button class="btn" data-a="fecharQuiz" style="width:100%">Voltar</button></div>`;
+    const pct = Math.round(100*q.acertos/q.lista.length);
+    return `<div class="card" style="text-align:center"><div class="big">${pct>=70?'🔥':'💪'}</div><h2>${q.acertos} de ${q.lista.length} · ${pct}%</h2>
+      <p class="mut">${pct>=70 ? 'Mandou bem! Isso conta pra meta.' : 'Revisa os tópicos e tenta de novo. Precisa de 70%.'}</p>
+      <button class="btn" data-a="fecharQuiz">Voltar pra matéria</button></div>`;
   }
-  return `<div class="card"><div class="row sp"><span class="mut">${MAT[q.materia].emoji} ${h(MAT[q.materia].nome)}</span><span class="tag">${q.i+1}/${q.lista.length}</span></div>
+  return `<div class="card"><div class="row sp"><span class="tag">${MAT[q.materia].emoji} ${h(MAT[q.materia].nome)}</span><span class="tag">${q.i+1} de ${q.lista.length}</span></div>
+    <div class="bar" style="margin:12px 0"><i style="width:${100*q.i/q.lista.length}%;background:var(--ac)"></i></div>
     ${it.topico ? `<div class="mut">${h(it.topico)}</div>` : ''}
-    <h3>${h(it.enunciado)}</h3>
+    <h2 style="margin-top:6px">${h(it.enunciado)}</h2>
     ${it.alternativas.map((a, i) => {
       let c = ''; if (q.resp != null){ if (i===it.correta) c='certa'; else if (i===q.resp) c='errada'; }
-      return `<button class="alt ${c}" data-a="resp" data-v="${i}" ${q.resp!=null?'disabled':''}>${'ABCDE'[i]}) ${h(a)}</button>`;
+      return `<button class="alt ${c}" data-a="resp" data-v="${i}" ${q.resp!=null?'disabled':''}><b>${'ABCDE'[i]})</b> ${h(a)}</button>`;
     }).join('')}
-    ${q.resp != null ? `<p>${q.resp===it.correta?'✅ Certo!':'❌ Errou.'} ${h(it.explicacao||'')}</p><button class="btn" data-a="proxima" style="width:100%">Próxima</button>` : ''}
-    <br><button class="btn sec" data-a="fecharQuiz">Sair do treino</button></div>`;
+    ${q.resp != null ? `<p><b>${q.resp===it.correta?'✅ Acertou!':'❌ Errou.'}</b> ${h(it.explicacao||'')}</p><button class="btn" data-a="proxima">${q.i+1===q.lista.length?'Ver resultado':'Próxima →'}</button>` : ''}
+    <br><button class="voltar" data-a="fecharQuiz">Sair do treino</button></div>`;
 }
 
 function telaProva(){
   const p = S.prova;
   if (p.resultado){
     const r = p.resultado;
-    return `<div class="card"><h2>🏛️ Resultado da prova</h2><div class="big">${r.acertos}/${r.total} · ${r.pct}%</div></div>
+    return `<div class="card" style="text-align:center"><div class="big">${r.pct>=80?'🏆':'📚'}</div><h2>${r.acertos} de ${r.total} · ${r.pct}%</h2></div>
       ${r.detalhes.map((d, n) => `<div class="card"><b>${n+1}. ${h(d.enunciado)}</b>
-        ${d.alternativas.map((a, i) => `<div class="alt ${i===d.correta?'certa':i===d.resposta?'errada':''}">${'ABCDE'[i]}) ${h(a)}</div>`).join('')}
+        ${d.alternativas.map((a, i) => `<div class="alt ${i===d.correta?'certa':i===d.resposta?'errada':''}"><b>${'ABCDE'[i]})</b> ${h(a)}</div>`).join('')}
         <p class="mut">${h(d.explicacao||'')}</p></div>`).join('')}
-      <button class="btn" data-a="fecharProva" style="width:100%">Voltar</button>`;
+      <button class="btn" data-a="fecharProva">Voltar</button>`;
   }
   const falta = Math.max(0, new Date(p.ate) - new Date());
-  const mm = Math.floor(falta/6e4), ss = Math.floor(falta%6e4/1e3);
-  return `<div class="card"><div class="row sp"><b>🏛️ ${h(MAT[p.materia].nome)}</b><span class="big" id="relogio">${mm}:${String(ss).padStart(2,'0')}</span></div>
-    <p class="mut">Responda tudo e envie antes do tempo acabar. Sem consulta! 👀</p></div>
+  return `<div class="card hero" style="position:sticky;top:8px;z-index:3"><div class="row sp"><b>🏛️ Prova · ${h(MAT[p.materia].nome)}</b><span class="big" id="relogio">${Math.floor(falta/6e4)}:${String(Math.floor(falta%6e4/1e3)).padStart(2,'0')}</span></div>
+    <div class="mut">${Object.keys(p.resp).length} de ${p.lista.length} respondidas · sem consulta 👀</div></div>
     ${p.lista.map((q, n) => `<div class="card"><b>${n+1}. ${h(q.enunciado)}</b>
-      ${q.alternativas.map((a, i) => `<button class="alt ${p.resp[q.id]===i?'sel':''}" data-a="marcar" data-q="${h(q.id)}" data-v="${i}">${'ABCDE'[i]}) ${h(a)}</button>`).join('')}</div>`).join('')}
-    <button class="btn" data-a="enviarProva" style="width:100%">Enviar prova (${Object.keys(p.resp).length}/${p.lista.length} respondidas)</button>`;
+      ${q.alternativas.map((a, i) => `<button class="alt ${p.resp[q.id]===i?'sel':''}" data-a="marcar" data-q="${h(q.id)}" data-v="${i}"><b>${'ABCDE'[i]})</b> ${h(a)}</button>`).join('')}</div>`).join('')}
+    <button class="btn ok" data-a="enviarProva">Enviar prova</button>`;
 }
 
 function telaPremios(){
   const g = calcGTA(); const d = calcDinheiro();
-  const nv = (ok, ic, nome, hrs, det) => `<div class="nivel"><b>${ok?ic:'⬜'}</b><div style="flex:1"><b>${nome} · ${hrs}h</b><div class="mut">${det}</div></div></div>`;
+  const nv = (ok, ic, nome, hrs, det) => `<div class="nivel"><b class="ic">${ok?ic:'🔒'}</b><div style="flex:1"><b>${nome} · ${hrs}h</b><div class="mut">${det}</div></div>${ok?'<span class="tag ok">conquistado</span>':''}</div>`;
   const nm = mid => MAT[mid].emoji;
-  return `<div class="card"><h2>🎮 GTA no fim de semana</h2>
-    <div class="row sp"><span class="mut">Prazo: quinta 19/11 às 22h</span><span class="big">${g.horas}h</span></div>
-    ${nv(g.bronze,'🥉','Bronze',5,'Checklist completo: '+g.bronzeDet.map(x=>nm(x.mid)+(x.ok?'✅':'⏳')).join(' '))}
-    ${nv(g.prata,'🥈','Prata',9,'Treino 70%+: '+g.prataDet.map(x=>nm(x.mid)+(x.v>=0?x.v+'%':'—')).join(' '))}
-    ${nv(g.ouro,'🥇','Ouro',14,'Prova 80%+ em 3 das 4: '+g.ouroDet.map(x=>nm(x.mid)+(x.v>=0?x.v+'%':'—')).join(' '))}
-    <div class="nivel"><b>⏱️</b><div style="flex:1">Usadas: <b>${g.usadas}h</b> · Saldo: <b>${Math.max(0,g.saldo)}h</b><div class="mut">Sexta a domingo · máx. 6h por dia · domingo até 18h</div></div></div></div>
-    <div class="card"><h2>💰 Notas da P2</h2><p class="mut">R$ 7 por matéria com nota 8+ · bônus de R$ 9 se nenhuma ficar abaixo de 7</p>
-    <table>${d.linhas.map(l => `<tr><td>${MAT[l.mid].emoji} ${h(MAT[l.mid].nome)}</td><td>${l.n ?? '—'}</td><td>${l.v?'R$ '+l.v:''}</td></tr>`).join('')}
-    <tr><td>⭐ Bônus nenhuma abaixo de 7</td><td></td><td>${d.bonus?'R$ 9':d.todas?'—':'aguardando'}</td></tr></table>
-    <div class="row sp" style="margin-top:8px"><b>Total</b><span class="big">R$ ${d.total}</span></div></div>`;
+  return `<div class="card hero"><div class="mut">GTA no fim de semana</div><div class="big">${g.horas}h conquistadas</div>
+    <div class="mut">Usadas ${g.usadas}h · Saldo ${Math.max(0,g.saldo)}h · prazo quinta 19/11 às 22h</div></div>
+    <div class="card"><h2>🎮 Níveis</h2>
+    ${nv(g.bronze,'🥉','Bronze',5,'Estudo + exercícios marcados em tudo: '+g.bronzeDet.map(x=>nm(x.mid)+(x.ok?'✅':'⏳')).join(' '))}
+    ${nv(g.prata,'🥈','Prata',9,'Treino 70%+ nas 4: '+g.prataDet.map(x=>nm(x.mid)+' '+(x.v>=0?x.v+'%':'—')).join(' · '))}
+    ${nv(g.ouro,'🥇','Ouro',14,'Prova valendo 80%+ em 3 das 4: '+g.ouroDet.map(x=>nm(x.mid)+' '+(x.v>=0?x.v+'%':'—')).join(' · '))}
+    <p class="mut">Horas usadas de sexta a domingo · máx. 6h por dia · domingo até 18h</p></div>
+    <div class="card"><h2>💰 Notas da P2 · até R$ 100</h2><p class="mut">R$ 7 por matéria com nota 8 ou mais + R$ 9 se nenhuma ficar abaixo de 7</p>
+    <table>${d.linhas.map(l => `<tr><td>${MAT[l.mid].emoji} ${h(MAT[l.mid].nome)}</td><td>${l.n ?? '—'}</td><td style="text-align:right">${l.v?'<b>R$ '+l.v+'</b>':''}</td></tr>`).join('')}
+    <tr><td>⭐ Bônus</td><td></td><td style="text-align:right">${d.bonus?'<b>R$ 9</b>':d.todas?'—':'…'}</td></tr></table>
+    <div class="row sp" style="margin-top:10px"><b>Total</b><span class="big">R$ ${d.total}</span></div></div>`;
 }
 
 function telaPainel(){
@@ -344,19 +382,19 @@ function telaPainel(){
     return `<tr><td>${m.emoji} ${h(m.nome)}</td><td>${p.ok}/${p.total}</td><td>${media}</td><td>${tr>=0?tr+'%':'—'}</td><td>${pv>=0?pv+'%':'—'}</td></tr>`;
   }).join('');
   const duvidas = Object.values(S.prog).filter(r => r.duvida && r.chave !== 'redacao:texto' && !r.chave.startsWith('crono:')).map(r => {
-    const [mid, i] = r.chave.split(':'); return `<div class="topico"><b>${MAT[mid]?.emoji||''} ${h(MAT[mid]?.topicos[i]||r.chave)}</b><div class="mut">${h(r.duvida)}</div></div>`;
+    const [mid, i] = r.chave.split(':'); return `<div class="nivel"><div><b>${MAT[mid]?.emoji||''} ${h(MAT[mid]?.topicos[i]||r.chave)}</b><div class="mut">${h(r.duvida)}</div></div></div>`;
   }).join('');
-  return `<div class="card"><h2>🛡️ Visão geral</h2><table><tr><th>Matéria</th><th>Check</th><th>Domínio</th><th>Treino</th><th>Prova</th></tr>${linhas}</table></div>
-    <div class="card"><h2>❓ Dúvidas que ele anotou</h2>${duvidas || '<p class="mut">Nenhuma ainda.</p>'}</div>
-    <div class="card"><h2>📋 Relatório para o Claude</h2><p class="mut">Copia um resumo do progresso para colar na conversa e pedir questões no nível dele.</p>
-      <button class="btn sec" data-a="relatorio" style="width:100%">Copiar relatório</button></div>
-    <div class="card"><h2>⏱️ Registrar uso do GTA</h2><div class="row"><input id="gdia" type="date" value="${hojeISO()}" style="flex:2"><input id="ghoras" type="number" step="0.5" min="0.5" placeholder="horas" style="flex:1"></div><br>
-      <button class="btn" data-a="regGta" style="width:100%">Registrar</button>
-      ${S.gta.map(r => `<div class="row sp topico"><span>${fmtData(r.dia)} · ${r.horas}h</span><button class="btn sec" data-a="delGta" data-v="${r.id}">🗑️</button></div>`).join('')}</div>
-    <div class="card"><h2>💰 Lançar notas da P2</h2><table>${P2_MATS.map(mid => `<tr><td>${MAT[mid].emoji} ${h(MAT[mid].nome)}</td><td style="width:90px"><input data-a="nota" data-v="${mid}" type="number" step="0.1" min="0" max="10" value="${S.notas[mid] ?? ''}"></td></tr>`).join('')}</table></div>
-    <div class="card"><h2>📥 Importar questões</h2><p class="mut">Cole aqui o bloco que o Claude gerar e toque em Importar.</p>
+  return `<div class="card"><h2>🛡️ Como ele está</h2><table><tr><th>Matéria</th><th>Tópicos</th><th>Domínio</th><th>Treino</th><th>Prova</th></tr>${linhas}</table></div>
+    <div class="card"><h2>❓ Dúvidas anotadas</h2>${duvidas || '<p class="mut">Nenhuma ainda.</p>'}</div>
+    <div class="card"><h2>📋 Relatório para o Claude</h2><p class="mut">Copia o progresso dele para colar na conversa e pedir questões no nível certo.</p>
+      <button class="btn sec" data-a="relatorio">Copiar relatório</button></div>
+    <div class="card"><h2>⏱️ Registrar horas de GTA usadas</h2><div class="row"><input id="gdia" type="date" value="${hojeISO()}" style="flex:2"><input id="ghoras" type="number" step="0.5" min="0.5" placeholder="horas" style="flex:1"></div><br>
+      <button class="btn" data-a="regGta">Registrar</button>
+      ${S.gta.map(r => `<div class="nivel"><span style="flex:1">${fmtData(r.dia)} · ${r.horas}h</span><button class="btn sec min" data-a="delGta" data-v="${r.id}">apagar</button></div>`).join('')}</div>
+    <div class="card"><h2>💰 Lançar notas da P2</h2><table>${P2_MATS.map(mid => `<tr><td>${MAT[mid].emoji} ${h(MAT[mid].nome)}</td><td style="width:100px"><input data-a="nota" data-v="${mid}" type="number" step="0.1" min="0" max="10" value="${S.notas[mid] ?? ''}"></td></tr>`).join('')}</table></div>
+    <div class="card"><h2>📥 Importar questões</h2><p class="mut">Cole o bloco que o Claude gerar e toque em Importar.</p>
       <textarea id="imp" style="min-height:140px" placeholder='[{"id":"...","materia":"portugues", ...}]'></textarea><br><br>
-      <button class="btn" data-a="importar" style="width:100%">Importar</button></div>`;
+      <button class="btn" data-a="importar">Importar</button></div>`;
 }
 
 // ---------------- AÇÕES ----------------
@@ -429,10 +467,13 @@ $app.addEventListener('click', async e => {
     if (error) toast('E-mail ou senha errados'); return;
   }
   if (a === 'sair'){ await sb.auth.signOut(); return; }
-  if (a === 'aba'){ S.aba = v; render(); window.scrollTo(0,0); return; }
+  if (a === 'aba'){ S.aba = v; S.materia = null; render(); window.scrollTo(0,0); return; }
   if (a === 'abrir'){ S.aberta = S.aberta === v ? null : v; render(); return; }
   if (a === 'dom'){ await salvar(el.dataset.k, { dominio:Number(v) }); render(); return; }
-  if (a === 'treinar'){ await treinar(document.getElementById('tmat').value); return; }
+  if (a === 'treinar'){ await treinar(v); return; }
+  if (a === 'mat'){ S.aba = 'materias'; S.materia = v; render(); window.scrollTo(0,0); return; }
+  if (a === 'voltarMats'){ S.materia = null; render(); return; }
+  if (a === 'tg'){ const k = el.dataset.k, f = el.dataset.f; await salvar(k, { [f]: !(S.prog[k]?.[f]) }); render(); return; }
   if (a === 'resp'){ const q = S.quiz; q.resp = Number(v); if (q.resp === q.lista[q.i].correta) q.acertos++; render(); return; }
   if (a === 'proxima'){
     const q = S.quiz; q.i++; q.resp = null;
@@ -454,7 +495,7 @@ $app.addEventListener('click', async e => {
     if (error){ toast(error.message); return; }
     p.resultado = data; await carregar(); render(); window.scrollTo(0,0); return;
   }
-  if (a === 'fecharProva'){ S.prova = null; S.aba = 'treino'; render(); return; }
+  if (a === 'fecharProva'){ S.prova = null; render(); return; }
   if (a === 'relatorio'){ try { await navigator.clipboard.writeText(relatorio()); toast('Relatório copiado! Cola na conversa com o Claude.'); } catch { toast('Não consegui copiar'); } return; }
   if (a === 'regGta'){
     const horas = Number(document.getElementById('ghoras').value); const dia = document.getElementById('gdia').value;
