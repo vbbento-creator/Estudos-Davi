@@ -79,6 +79,19 @@ td,th{padding:8px 4px;border-bottom:1px solid var(--line);text-align:left}
 .nivel{display:flex;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
 .nivel b.ic{font-size:26px}
 .enun{white-space:pre-line;font-size:16px;font-weight:600;margin:8px 0}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+.cal-h{text-align:center;font-size:12px;font-weight:700;color:var(--mut);padding-bottom:4px}
+.cal-d{min-width:0;min-height:78px;border:1.5px solid var(--line);border-radius:10px;padding:3px;cursor:pointer;display:flex;flex-direction:column;gap:3px;background:#fff}
+.cal-d .n{font-size:13px;font-weight:700}
+.cal-d.hoje .n{background:var(--ac);color:#fff;border-radius:20px;padding:0 6px;align-self:flex-start}
+.cal-d.sel{border-color:var(--ac);background:var(--soft)}
+.cal-d.passado{opacity:.55}
+.chip{display:inline-block;max-width:100%;font-size:10px;font-weight:700;border-radius:8px;padding:1px 3px;background:var(--soft);color:var(--mut);white-space:nowrap;overflow:hidden}
+.chip.prova{background:#fde2e2;color:#c0262c}
+.chip.gta{background:#ede4ff;color:#6d4aff}
+.chip.fer{background:#fff3d6;color:#a16207}
+.chip.ok{background:var(--okbg);color:var(--ok)}
+@media(min-width:620px){.cal-d{min-height:96px}.chip{font-size:12px}}
 #login{max-width:380px;margin:12vh auto;padding:24px}
 @media(min-width:620px){.grid{grid-template-columns:1fr 1fr 1fr}}
 </style>
@@ -208,14 +221,14 @@ const DOM = [['😵','Não sei nada'],['😕','Sei pouco'],['😐','Mais ou meno
 
 function render(){
   if (!S.user) return telaLogin();
-  const abas = [['hoje','🏠','Hoje'],['materias','📚','Matérias'],['premios','🎮','Prêmios']];
+  const abas = [['hoje','🏠','Hoje'],['agenda','📅','Agenda'],['materias','📚','Matérias'],['premios','🎮','Prêmios']];
   if (ehResp()) abas.push(['painel','🛡️','Painel']);
   let corpo = '';
   if (S.prova) corpo = telaProva();
   else if (S.quiz) corpo = telaQuiz();
   else if (S.aba === 'materias' && S.materia) corpo = telaMateria(S.materia);
   else if (S.aba === 'painel' && S.verQ) corpo = telaVerQuestoes();
-  else corpo = ({ hoje:telaHoje, materias:telaMaterias, premios:telaPremios, painel:telaPainel })[S.aba]();
+  else corpo = ({ hoje:telaHoje, agenda:telaAgenda, materias:telaMaterias, premios:telaPremios, painel:telaPainel })[S.aba]();
   const foco = S.quiz || S.prova;
   $app.innerHTML = `
     <header><h1>📘 Estudos P2</h1>${foco ? '' : '<button class="sair" data-a="sair">sair</button>'}</header>
@@ -273,6 +286,31 @@ function telaHoje(){
     ${gta}
     <div class="card"><h2>📅 ${diaHoje?.d===hoje ? 'O que fazer hoje' : 'Próximo dia do plano'}</h2>${diaHoje ? blocoDia(diaHoje) : '<p class="mut">Cronograma encerrado 🎉</p>'}
       <details><summary>Ver cronograma completo</summary>${CRONO.map(blocoDia).join('')}</details></div>`;
+}
+
+function telaAgenda(){
+  const hoje = hojeISO(); const sel = S.diaSel || hoje;
+  const ini = new Date('2026-11-15T12:00:00'); const dias = [];
+  for (let i = 0; i < 21; i++){ const d = new Date(ini); d.setDate(ini.getDate()+i); dias.push(d.toLocaleDateString('sv-SE')); }
+  const cel = d => {
+    const provas = MATERIAS.filter(m => m.prova === d);
+    const cr = CRONO.find(c => c.d === d);
+    const feitos = cr ? cr.itens.filter((_, i) => S.prog[`crono:${d}:${i}`]?.feito).length : 0;
+    const n = Number(d.slice(8));
+    let chips = '';
+    if (provas.length) chips += `<div class="chip prova">✏️ ${provas.map(m => m.emoji).join('')}</div>`;
+    if (d === '2026-11-19') chips += `<div class="chip gta">🎮 GTA</div>`;
+    if (d === '2026-11-20') chips += `<div class="chip fer">feriado</div>`;
+    if (cr) chips += `<div class="chip ${feitos===cr.itens.length?'ok':''}">${feitos===cr.itens.length?'✓':''} ${feitos}/${cr.itens.length}</div>`;
+    return `<div class="cal-d ${d===hoje?'hoje':''} ${d===sel?'sel':''} ${d<hoje?'passado':''}" data-a="dia" data-v="${d}"><span class="n">${n===1?'1 dez':n}</span>${chips}</div>`;
+  };
+  const cr = CRONO.find(c => c.d === sel); const provas = MATERIAS.filter(m => m.prova === sel);
+  return `<div class="card" style="padding:10px"><div class="row sp" style="padding:4px 6px 10px"><b>Novembro / Dezembro 2026</b><span class="mut">toque num dia</span></div>
+    <div class="cal">${['D','S','T','Q','Q','S','S'].map(x => `<div class="cal-h">${x}</div>`).join('')}${dias.map(cel).join('')}</div>
+    <div class="row" style="padding:10px 4px 2px;gap:12px;font-size:12px"><span><span class="chip prova">✏️</span> prova</span><span><span class="chip">0/3</span> metas do dia</span><span><span class="chip gta">🎮</span> prazo GTA</span></div></div>
+    <div class="card"><h2>${fmtData(sel)}${sel===hoje?' · hoje':''}</h2>
+      ${provas.length ? `<div class="row" style="margin-bottom:8px">${provas.map(m => `<button class="btn sec min" data-a="mat" data-v="${m.id}">✏️ Prova: ${m.emoji} ${h(m.nome)}</button>`).join('')}</div>` : ''}
+      ${cr ? blocoDia(cr) : '<p class="mut">Sem metas neste dia.</p>'}</div>`;
 }
 
 function telaMaterias(){
@@ -529,6 +567,7 @@ $app.addEventListener('click', async e => {
     if (error){ toast(error.message); return; } S.gta.push(data); render(); return;
   }
   if (a === 'delGta'){ await sb.from('uso_gta').delete().eq('id', v); S.gta = S.gta.filter(r => String(r.id) !== v); render(); return; }
+  if (a === 'dia'){ S.diaSel = v; render(); return; }
   if (a === 'verQ'){ await abrirQuestoes(v); return; }
   if (a === 'fecharVerQ'){ S.verQ = null; S.listaQ = null; render(); return; }
   if (a === 'delQ'){ if (!confirm('Apagar esta questão?')) return; const { error } = await sb.from('questoes').delete().eq('id', v); if (error){ toast(error.message); return; } S.listaQ = S.listaQ.filter(q => q.id !== v); await contarQuestoes(); render(); return; }
@@ -545,7 +584,7 @@ $app.addEventListener('click', async e => {
 $app.addEventListener('change', async e => {
   const el = e.target;
   if (el.dataset.a === 'ck'){ await salvar(el.dataset.k, { [el.dataset.f]: el.checked }); render(); }
-  if (el.dataset.a === 'crono'){ await salvar(el.dataset.k, { feito: el.checked }); }
+  if (el.dataset.a === 'crono'){ await salvar(el.dataset.k, { feito: el.checked }); if (S.aba === 'agenda') render(); }
   if (el.dataset.a === 'duv'){ await salvar(el.dataset.k, { duvida: el.value }); toast('Salvo'); }
   if (el.dataset.a === 'nota'){
     const n = el.value === '' ? null : Number(el.value);
