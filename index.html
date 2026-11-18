@@ -386,6 +386,7 @@ function telaPainel(){
     const [mid, i] = r.chave.split(':'); return `<div class="nivel"><div><b>${MAT[mid]?.emoji||''} ${h(MAT[mid]?.topicos[i]||r.chave)}</b><div class="mut">${h(r.duvida)}</div></div></div>`;
   }).join('');
   return `<div class="card"><h2>🛡️ Como ele está</h2><table><tr><th>Matéria</th><th>Tópicos</th><th>Domínio</th><th>Treino</th><th>Prova</th></tr>${linhas}</table></div>
+    <div class="card"><h2>🗂️ Questões cadastradas</h2><table><tr><th>Matéria</th><th>Treino</th><th>Prova</th></tr>${MATERIAS.map(m => `<tr><td>${m.emoji} ${h(m.nome)}</td><td>${S.qtd?.[m.id]?.treino||0}</td><td>${S.qtd?.[m.id]?.prova||0}</td></tr>`).join('')}</table></div>
     <div class="card"><h2>❓ Dúvidas anotadas</h2>${duvidas || '<p class="mut">Nenhuma ainda.</p>'}</div>
     <div class="card"><h2>📋 Relatório para o Claude</h2><p class="mut">Copia o progresso dele para colar na conversa e pedir questões no nível certo.</p>
       <button class="btn sec" data-a="relatorio">Copiar relatório</button></div>
@@ -394,7 +395,7 @@ function telaPainel(){
       ${S.gta.map(r => `<div class="nivel"><span style="flex:1">${fmtData(r.dia)} · ${r.horas}h</span><button class="btn sec min" data-a="delGta" data-v="${r.id}">apagar</button></div>`).join('')}</div>
     <div class="card"><h2>💰 Lançar notas da P2</h2><table>${P2_MATS.map(mid => `<tr><td>${MAT[mid].emoji} ${h(MAT[mid].nome)}</td><td style="width:100px"><input data-a="nota" data-v="${mid}" type="number" step="0.1" min="0" max="10" value="${S.notas[mid] ?? ''}"></td></tr>`).join('')}</table></div>
     <div class="card"><h2>📥 Importar questões</h2><p class="mut">Escolha o arquivo .json que o Claude mandou:</p>
-      <input type="file" id="impf" data-a="impf" accept=".json,application/json"><p class="mut">…ou cole o conteúdo aqui:</p>
+      <input type="file" id="impf" accept=".json,application/json,text/plain"><p class="mut">…ou cole o conteúdo aqui:</p>
       <textarea id="imp" style="min-height:140px" placeholder='[{"id":"...","materia":"portugues", ...}]'></textarea><br><br>
       <button class="btn" data-a="importar">Importar</button></div>`;
 }
@@ -506,14 +507,19 @@ $app.addEventListener('click', async e => {
     if (error){ toast(error.message); return; } S.gta.push(data); render(); return;
   }
   if (a === 'delGta'){ await sb.from('uso_gta').delete().eq('id', v); S.gta = S.gta.filter(r => String(r.id) !== v); render(); return; }
-  if (a === 'importar'){ await importar(document.getElementById('imp').value); document.getElementById('imp').value = ''; return; }
+  if (a === 'importar'){
+    const f = document.getElementById('impf').files[0];
+    const txt = f ? await f.text() : document.getElementById('imp').value;
+    if (!txt.trim()){ toast('Escolha o arquivo primeiro 😉'); return; }
+    if (await importar(txt)){ document.getElementById('imp').value = ''; document.getElementById('impf').value = ''; await contarQuestoes(); render(); }
+    return;
+  }
 });
 
 // Ações de checkbox (precisam ver o estado novo)
 $app.addEventListener('change', async e => {
   const el = e.target;
   if (el.dataset.a === 'ck'){ await salvar(el.dataset.k, { [el.dataset.f]: el.checked }); render(); }
-  if (el.dataset.a === 'impf' && el.files[0]){ await importar(await el.files[0].text()); el.value=''; }
   if (el.dataset.a === 'crono'){ await salvar(el.dataset.k, { feito: el.checked }); }
   if (el.dataset.a === 'duv'){ await salvar(el.dataset.k, { duvida: el.value }); toast('Salvo'); }
   if (el.dataset.a === 'nota'){
@@ -524,13 +530,20 @@ $app.addEventListener('change', async e => {
 });
 
 async function importar(txt){
-  let arr; try { arr = JSON.parse(txt); } catch { toast('Arquivo inválido — baixe de novo do Claude'); return; }
+  let arr; try { arr = JSON.parse(txt.replace(/^\uFEFF/, '').trim()); } catch (e) { toast('Não consegui ler o arquivo: ' + e.message.slice(0,80)); return false; }
+  if (!Array.isArray(arr)){ toast('Arquivo em formato inesperado'); return false; }
   const qs = arr.map(q => ({ id:q.id, materia:q.materia, topico:q.topico || null, tipo:q.tipo, enunciado:q.enunciado, alternativas:q.alternativas }));
   const gb = arr.map(q => ({ questao_id:q.id, correta:q.correta, explicacao:q.explicacao || null }));
-  const r1 = await sb.from('questoes').upsert(qs); if (r1.error){ toast(r1.error.message); return; }
-  const r2 = await sb.from('gabarito').upsert(gb); if (r2.error){ toast(r2.error.message); return; }
+  const r1 = await sb.from('questoes').upsert(qs); if (r1.error){ toast('Erro: ' + r1.error.message); return false; }
+  const r2 = await sb.from('gabarito').upsert(gb); if (r2.error){ toast('Erro: ' + r2.error.message); return false; }
   const t = arr.filter(q => q.tipo==='treino').length;
   toast(`✅ ${arr.length} questões importadas (${t} treino · ${arr.length-t} prova)`);
+  return true;
+}
+async function contarQuestoes(){
+  if (!ehResp()) return;
+  const { data } = await sb.from('questoes').select('materia,tipo');
+  S.qtd = {}; (data||[]).forEach(q => { const k = S.qtd[q.materia] ||= { treino:0, prova:0 }; k[q.tipo]++; });
 }
 function confirmarEnvio(){ return window.confirm('Tem questão sem resposta. Enviar mesmo assim?'); }
 
@@ -551,6 +564,7 @@ async function iniciarSessao(session){
   if (!data){ $app.innerHTML = `<div id="login" class="card"><h2>Quase lá</h2><p class="mut">Seu login funciona, mas ainda não foi cadastrado no app. Fala com o pai.</p><button class="btn sec" data-a="sair">Sair</button></div>`; return; }
   S.perfil = data;
   await carregar();
+  await contarQuestoes();
   render();
 }
 sb.auth.onAuthStateChange((_ev, session) => {
