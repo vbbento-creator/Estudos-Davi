@@ -78,6 +78,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}
 td,th{padding:8px 4px;border-bottom:1px solid var(--line);text-align:left}
 .nivel{display:flex;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
 .nivel b.ic{font-size:26px}
+.enun{white-space:pre-line;font-size:16px;font-weight:600;margin:8px 0}
 #login{max-width:380px;margin:12vh auto;padding:24px}
 @media(min-width:620px){.grid{grid-template-columns:1fr 1fr 1fr}}
 </style>
@@ -329,7 +330,7 @@ function telaQuiz(){
   return `<div class="card"><div class="row sp"><span class="tag">${MAT[q.materia].emoji} ${h(MAT[q.materia].nome)}</span><span class="tag">${q.i+1} de ${q.lista.length}</span></div>
     <div class="bar" style="margin:12px 0"><i style="width:${100*q.i/q.lista.length}%;background:var(--ac)"></i></div>
     ${it.topico ? `<div class="mut">${h(it.topico)}</div>` : ''}
-    <h2 style="margin-top:6px">${h(it.enunciado)}</h2>
+    <p class="enun">${h(it.enunciado)}</p>
     ${it.alternativas.map((a, i) => {
       let c = ''; if (q.resp != null){ if (i===it.correta) c='certa'; else if (i===q.resp) c='errada'; }
       return `<button class="alt ${c}" data-a="resp" data-v="${i}" ${q.resp!=null?'disabled':''}><b>${'ABCDE'[i]})</b> ${h(a)}</button>`;
@@ -343,7 +344,7 @@ function telaProva(){
   if (p.resultado){
     const r = p.resultado;
     return `<div class="card" style="text-align:center"><div class="big">${r.pct>=80?'🏆':'📚'}</div><h2>${r.acertos} de ${r.total} · ${r.pct}%</h2></div>
-      ${r.detalhes.map((d, n) => `<div class="card"><b>${n+1}. ${h(d.enunciado)}</b>
+      ${r.detalhes.map((d, n) => `<div class="card"><p class="enun">${n+1}. ${h(d.enunciado)}</p>
         ${d.alternativas.map((a, i) => `<div class="alt ${i===d.correta?'certa':i===d.resposta?'errada':''}"><b>${'ABCDE'[i]})</b> ${h(a)}</div>`).join('')}
         <p class="mut">${h(d.explicacao||'')}</p></div>`).join('')}
       <button class="btn" data-a="fecharProva">Voltar</button>`;
@@ -351,7 +352,7 @@ function telaProva(){
   const falta = Math.max(0, new Date(p.ate) - new Date());
   return `<div class="card hero" style="position:sticky;top:8px;z-index:3"><div class="row sp"><b>🏛️ Prova · ${h(MAT[p.materia].nome)}</b><span class="big" id="relogio">${Math.floor(falta/6e4)}:${String(Math.floor(falta%6e4/1e3)).padStart(2,'0')}</span></div>
     <div class="mut">${Object.keys(p.resp).length} de ${p.lista.length} respondidas · sem consulta 👀</div></div>
-    ${p.lista.map((q, n) => `<div class="card"><b>${n+1}. ${h(q.enunciado)}</b>
+    ${p.lista.map((q, n) => `<div class="card"><p class="enun">${n+1}. ${h(q.enunciado)}</p>
       ${q.alternativas.map((a, i) => `<button class="alt ${p.resp[q.id]===i?'sel':''}" data-a="marcar" data-q="${h(q.id)}" data-v="${i}"><b>${'ABCDE'[i]})</b> ${h(a)}</button>`).join('')}</div>`).join('')}
     <button class="btn ok" data-a="enviarProva">Enviar prova</button>`;
 }
