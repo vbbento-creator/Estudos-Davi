@@ -214,6 +214,7 @@ function render(){
   if (S.prova) corpo = telaProva();
   else if (S.quiz) corpo = telaQuiz();
   else if (S.aba === 'materias' && S.materia) corpo = telaMateria(S.materia);
+  else if (S.aba === 'painel' && S.verQ) corpo = telaVerQuestoes();
   else corpo = ({ hoje:telaHoje, materias:telaMaterias, premios:telaPremios, painel:telaPainel })[S.aba]();
   const foco = S.quiz || S.prova;
   $app.innerHTML = `
@@ -374,6 +375,27 @@ function telaPremios(){
     <div class="row sp" style="margin-top:10px"><b>Total</b><span class="big">R$ ${d.total}</span></div></div>`;
 }
 
+function telaVerQuestoes(){
+  const m = MAT[S.verQ]; const L = S.listaQ || [];
+  const bloco = tipo => { const qs = L.filter(q => q.tipo===tipo);
+    return `<h2 style="margin:18px 4px 6px">${tipo==='treino'?'🎯 Treino':'🏛️ Prova valendo'} (${qs.length})</h2>` + (qs.map((q, n) => `<div class="card">
+      <div class="row sp"><span class="tag">${h(q.topico||'')}</span><button class="btn sec min" data-a="delQ" data-v="${h(q.id)}">apagar</button></div>
+      <p class="enun">${n+1}. ${h(q.enunciado)}</p>
+      ${q.alternativas.map((a, i) => `<div class="alt ${i===q.correta?'certa':''}"><b>${'ABCDE'[i]})</b> ${h(a)}</div>`).join('')}
+      <p class="mut">💡 ${h(q.explicacao||'')}</p></div>`).join('') || '<p class="mut">Nenhuma.</p>'); };
+  return `<button class="voltar" data-a="fecharVerQ">‹ Painel</button>
+    <div class="mhead" style="--c:${COR[m.id]}"><span class="em">${m.emoji}</span><div class="big">${h(m.nome)}</div><div>Todas as questões, com a resposta certa marcada em verde</div></div>
+    ${S.listaQ ? bloco('treino') + bloco('prova') : '<p class="mut">Carregando…</p>'}`;
+}
+async function abrirQuestoes(mid){
+  S.verQ = mid; S.listaQ = null; render(); window.scrollTo(0,0);
+  const { data: qs } = await sb.from('questoes').select('*').eq('materia', mid).order('id');
+  const { data: gb } = await sb.from('gabarito').select('*').in('questao_id', (qs||[]).map(q => q.id));
+  const G = Object.fromEntries((gb||[]).map(g => [g.questao_id, g]));
+  S.listaQ = (qs||[]).map(q => ({ ...q, correta:G[q.id]?.correta, explicacao:G[q.id]?.explicacao }));
+  render();
+}
+
 function telaPainel(){
   const linhas = MATERIAS.map(m => {
     const p = progMat(m.id);
@@ -386,7 +408,7 @@ function telaPainel(){
     const [mid, i] = r.chave.split(':'); return `<div class="nivel"><div><b>${MAT[mid]?.emoji||''} ${h(MAT[mid]?.topicos[i]||r.chave)}</b><div class="mut">${h(r.duvida)}</div></div></div>`;
   }).join('');
   return `<div class="card"><h2>🛡️ Como ele está</h2><table><tr><th>Matéria</th><th>Tópicos</th><th>Domínio</th><th>Treino</th><th>Prova</th></tr>${linhas}</table></div>
-    <div class="card"><h2>🗂️ Questões cadastradas</h2><table><tr><th>Matéria</th><th>Treino</th><th>Prova</th></tr>${MATERIAS.map(m => `<tr><td>${m.emoji} ${h(m.nome)}</td><td>${S.qtd?.[m.id]?.treino||0}</td><td>${S.qtd?.[m.id]?.prova||0}</td></tr>`).join('')}</table></div>
+    <div class="card"><h2>🗂️ Questões cadastradas</h2><table><tr><th>Matéria</th><th>Treino</th><th>Prova</th></tr>${MATERIAS.map(m => `<tr data-a="verQ" data-v="${m.id}" style="cursor:pointer"><td>${m.emoji} ${h(m.nome)}</td><td>${S.qtd?.[m.id]?.treino||0}</td><td>${S.qtd?.[m.id]?.prova||0}</td><td style="color:var(--ac);font-weight:700">ver ›</td></tr>`).join('')}</table></div>
     <div class="card"><h2>❓ Dúvidas anotadas</h2>${duvidas || '<p class="mut">Nenhuma ainda.</p>'}</div>
     <div class="card"><h2>📋 Relatório para o Claude</h2><p class="mut">Copia o progresso dele para colar na conversa e pedir questões no nível certo.</p>
       <button class="btn sec" data-a="relatorio">Copiar relatório</button></div>
@@ -470,7 +492,7 @@ $app.addEventListener('click', async e => {
     if (error) toast('E-mail ou senha errados'); return;
   }
   if (a === 'sair'){ await sb.auth.signOut(); return; }
-  if (a === 'aba'){ S.aba = v; S.materia = null; render(); window.scrollTo(0,0); return; }
+  if (a === 'aba'){ S.aba = v; S.materia = null; S.verQ = null; render(); window.scrollTo(0,0); return; }
   if (a === 'abrir'){ S.aberta = S.aberta === v ? null : v; render(); return; }
   if (a === 'dom'){ await salvar(el.dataset.k, { dominio:Number(v) }); render(); return; }
   if (a === 'treinar'){ await treinar(v); return; }
@@ -507,6 +529,9 @@ $app.addEventListener('click', async e => {
     if (error){ toast(error.message); return; } S.gta.push(data); render(); return;
   }
   if (a === 'delGta'){ await sb.from('uso_gta').delete().eq('id', v); S.gta = S.gta.filter(r => String(r.id) !== v); render(); return; }
+  if (a === 'verQ'){ await abrirQuestoes(v); return; }
+  if (a === 'fecharVerQ'){ S.verQ = null; S.listaQ = null; render(); return; }
+  if (a === 'delQ'){ if (!confirm('Apagar esta questão?')) return; const { error } = await sb.from('questoes').delete().eq('id', v); if (error){ toast(error.message); return; } S.listaQ = S.listaQ.filter(q => q.id !== v); await contarQuestoes(); render(); return; }
   if (a === 'importar'){
     const f = document.getElementById('impf').files[0];
     const txt = f ? await f.text() : document.getElementById('imp').value;
