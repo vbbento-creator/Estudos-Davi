@@ -202,7 +202,7 @@ const S = { user:null, perfil:null, aba:'hoje', alunos:[], aluno:null, mats:[], 
   grupos:{}, saldos:{}, lanc:[], prog:{}, tent:[], lib:{}, notas:{}, tarefasCad:[], premios:[], tarefas:{}, rev:[], pend:[], recAb:[],
   pausas:[], quiz:null, prova:null, materia:null, cad:'tarefas', diaTarefa:null,
   saldoT:0, saldosFam:{}, fam:{ crono:{}, provas:[], progCrono:{} }, agenda:{}, agIni:null, agSel:null, agView:'semana', agFiltro:'todos',
-  resgates:[], resgPend:[], limites:{}, qtdLoja:{}, sheet:null, mais:null };
+  resgates:[], resgPend:[], limites:{}, qtdLoja:{}, sheet:null, mais:null, pEstudo:{} };
 const $app = document.getElementById('app');
 const h = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const hojeISO = () => new Date().toLocaleDateString('sv-SE', { timeZone:'America/Sao_Paulo' });
@@ -248,6 +248,30 @@ const emDias = n => n === 0 ? 'hoje' : n === 1 ? 'amanhã' : `em ${n} dias`;
 function ganhoSemana(grupo){
   const ini = segunda(hojeISO());
   return S.lanc.filter(l => l.grupo === grupo && l.data_ref >= ini && (l.valor > 0 || l.origem === 'estorno')).reduce((s, l) => s + Number(l.valor), 0);
+}
+const norm = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+const diaSP = iso => new Date(iso).toLocaleDateString('sv-SE', { timeZone:'America/Sao_Paulo' });
+function materiasDoTexto(t){ const n = ' ' + norm(t) + ' '; return S.mats.filter(m => [norm(m.id), norm(m.nome)].some(k => k.length >= 3 && n.includes(' ' + k + ' '))); }
+function treinoNoDia(mid, d, minPct){ return S.tent.some(t => t.materia === mid && t.tipo === 'treino' && t.total >= 5 && diaSP(t.criado) === d && Number(t.pct) >= (minPct || 0)); }
+function estudoNoDia(mid, d){
+  const m = MAT(mid); if (!m) return false;
+  return m.topicos.some(t => { const p = S.prog[chT(mid, t.idx)]; return p?.concluido_em && diaSP(p.concluido_em) === d; }) || treinoNoDia(mid, d, 0);
+}
+// Item do plano de estudo que o app reconhece sozinho: a matéria aparece no texto e a criança fez o estudo ou o treino no app naquele dia
+function autoFeito(texto, d){
+  if (ehResp()) return false;
+  const n = norm(texto); const c = S.grupos.estudos?.config || {};
+  if (/\bprova valendo\b/.test(n)) return S.tent.some(t => t.tipo === 'prova' && diaSP(t.criado) === d);
+  const treino = /\btreinos?\b/.test(n);
+  let ms = materiasDoTexto(texto);
+  if (treino && !ms.length && /\bmaterias\b/.test(n)) ms = (c.materias || []).map(id => MAT(id)).filter(Boolean);
+  if (!ms.length) return false;
+  const minPct = /\b70\b/.test(n) ? (Number(c.treino_min) || 70) : 0;
+  return ms.every(m => treino ? treinoNoDia(m.id, d, minPct) : estudoNoDia(m.id, d));
+}
+async function atualizaPontos(antes){
+  await carregarSaldos(); await carregarLoja();
+  const dif = S.saldoT - antes; if (dif > 0) toast(`🎉 +${pts(dif)} pontos!`);
 }
 const descPremio = (p, n) => n > 1 ? `${p.nome} × ${n}` : p.nome;
 
@@ -298,6 +322,8 @@ async function carregarLoja(){
   S.limites = Object.fromEntries((lm.data || []).map(x => [x.premio, x]));
   if (lc.data) S.lanc = lc.data;
   if (ehResp()){
+    const pe = await sb.rpc('pontos_estudo_por_materia', { p_aluno:S.aluno });
+    S.pEstudo = Object.fromEntries((pe.data || []).map(r => [r.materia, Number(r.pontos)]));
     const pr = await sb.from('resgates').select('*').in('status', ['aguardando', 'pedido']).order('criado');
     S.resgPend = pr.data || [];
   }
@@ -466,8 +492,8 @@ function linhaTarefa(t, dia){
     <div class="tx"><b>${t.emoji} ${h(t.nome)}</b><small>${sub}</small></div>${ptsTag(t.pontos)}${rec}</div>`;
 }
 function linhaCrono(d, i, texto){
-  const k = `crono:${d}:${i}`; const f = !!S.prog[k]?.feito;
-  return `<div class="task ${f ? 'ok' : ''}"><button class="chk" data-a="cronoTg" data-k="${k}" aria-label="${f ? 'Desmarcar' : 'Marcar'} ${h(texto)}">${f ? '✓' : ''}</button><div class="tx"><b>${h(texto)}</b><small>Plano de estudo</small></div></div>`;
+  const k = `crono:${d}:${i}`; const manual = !!S.prog[k]?.feito; const auto = !manual && autoFeito(texto, d); const f = manual || auto;
+  return `<div class="task ${f ? 'ok' : ''}"><button class="chk" ${auto ? 'disabled' : `data-a="cronoTg" data-k="${k}"`} aria-label="${f ? 'Feito' : 'Marcar'}: ${h(texto)}">${f ? '✓' : ''}</button><div class="tx"><b>${h(texto)}</b><small>${auto ? 'Marcado sozinho: você fez no app' : 'Plano de estudo'}</small></div></div>`;
 }
 
 function oQueFalta(g){
@@ -490,7 +516,7 @@ function hojeAluno(){
   const itensC = dc ? dc.itens : [];
   const okT = t => t.status === 'feito' && t.decisao !== 'rejeitado';
   const total = T.length + itensC.length;
-  const feitos = T.filter(okT).length + itensC.filter((_, i) => S.prog[`crono:${hoje}:${i}`]?.feito).length;
+  const feitos = T.filter(okT).length + itensC.filter((it, i) => S.prog[`crono:${hoje}:${i}`]?.feito || autoFeito(it, hoje)).length;
   const grupos = grupoPeriodo(T);
   const casa = grupos.map(([nome, L]) => `<h3>${grupos.length === 1 && nome === 'Durante o dia' ? 'Tarefas de casa' : nome}</h3>${L.map(t => linhaTarefa(t, hoje)).join('')}`).join('');
   const estudo = itensC.length ? `<h3>Plano de estudo</h3>${itensC.map((it, i) => linhaCrono(hoje, i, it)).join('')}` : '';
@@ -505,6 +531,8 @@ function hojeAluno(){
       <div class="mut" style="margin-bottom:4px">${g.ouro ? 'Você bateu o OURO! 🔥' : 'Pra subir de nível, falta:'}</div>
       ${oQueFalta(g).map(([mid, t]) => `<div class="falta" data-a="mat" data-v="${mid}"><span>${MAT(mid).emoji} <b>${h(MAT(mid).nome)}</b><br><small>${h(t)}</small></span><span>›</span></div>`).join('')}</div>`;
   }
+  const ganhos = S.lanc.filter(l => ['topico', 'treino', 'prova'].includes(l.origem) && l.data_ref === hoje && l.valor > 0);
+  const ganhosCard = ganhos.length ? `<div class="card"><div class="row sp"><h2 style="margin:0">Pontos de estudo hoje</h2>${ptsTag(ganhos.reduce((x, l) => x + Number(l.valor), 0))}</div>${ganhos.map(l => `<div class="ext"><span>${h(l.descricao)}</span><b class="pos">+${pts(l.valor)}</b></div>`).join('')}</div>` : '';
   const teto = Number(S.grupos.casa?.teto_semana) || 0; const sem = ganhoSemana('casa');
   const cap = teto ? `<div class="card"><div class="row sp"><b>Pontos de tarefas nesta semana</b><span class="mut">${pts(sem)} de ${pts(teto)}</span></div><div class="bar ouro" style="margin-top:8px"><i style="width:${Math.min(100, Math.round(100 * sem / teto))}%"></i></div></div>` : '';
   return `<div class="card"><div class="row sp"><h2 style="margin:0">Hoje</h2><span class="chip ${total && feitos === total ? 'ok' : ''}">${feitos} de ${total}</span></div>
@@ -514,7 +542,7 @@ function hojeAluno(){
     ${O.length ? `<div class="card"><h2>Ainda dá para marcar (ontem)</h2>${O.map(t => linhaTarefa(t, ontem)).join('')}</div>` : ''}
     ${pp ? `<div class="card"><div class="row sp"><div class="grow"><small class="mut">Próxima prova</small><h2 style="margin:0">${pp.dias === 0 ? 'HOJE' : emDias(pp.dias)}</h2></div><span class="tag">${fmtData(pp.d)}</span></div>
       <div class="row" style="margin-top:10px">${pp.mats.map(m => `<button class="btn sec min" data-a="mat" data-v="${m.id}">${m.emoji} ${h(m.nome)}</button>`).join('')}</div></div>` : ''}
-    ${meta}${cap}
+    ${ganhosCard}${meta}${cap}
     ${!S.mats.length ? '<div class="card"><p class="mut">Ainda não há matérias cadastradas. O pai ou a mãe cadastram em Mais › Cadastros.</p></div>' : ''}
     <button class="sair" data-a="sair">Sair</button>`;
 }
@@ -815,7 +843,7 @@ function telaAlunos(){
     <div class="card"><h2>Extrato</h2>${S.lanc.slice(0, 15).map(l => `<div class="ext"><span>${GRUPO[l.grupo][0]} ${h(l.descricao)}<br><small class="mut">${fmtData(l.data_ref)}</small></span><b class="${l.valor < 0 ? 'neg' : 'pos'}">${l.valor > 0 ? '+' : ''}${pts(l.valor)}</b></div>`).join('') || '<p class="vazio">Nenhum lançamento ainda.</p>'}</div>`;
 }
 function painelLancar(){
-  const G = S.grupos; const g = calcMeta(); const d = calcDinheiro();
+  const G = S.grupos; const limite = Number(G.notas?.config?.bonus_min) || 7; const g = calcMeta(); const d = calcDinheiro();
   const refMeta = g ? 'meta:' + g.c.prazo : '';
   const metaLancada = g && S.lanc.some(l => l.origem === 'nivel' && l.origem_ref === refMeta);
   return `<div class="card"><h2>Lançar recompensas de ${h(nomeAluno(S.aluno))}</h2>
@@ -829,7 +857,10 @@ function painelLancar(){
     <div class="row"><input id="luD" type="date" value="${hojeISO()}" style="flex:1"><input id="luT" placeholder="descrição (ex.: jantar extra)" style="flex:2"></div><br>
     <div class="row"><button class="btn sec" data-a="lUso" style="flex:1">➖ Tirar pontos</button><button class="btn" data-a="lCredito" style="flex:1">➕ Dar pontos</button></div>
     <p class="mut">10 pontos = R$ 1. Para corrigir um erro, faça um lançamento ao contrário.</p></div>
-    <div class="card"><h2>Médias do bimestre</h2><table>${S.mats.map(m => `<tr><td>${m.emoji} ${h(m.nome)}</td><td style="width:100px"><input data-a="nota" data-v="${m.id}" type="number" step="0.1" min="0" max="10" value="${S.notas[m.id] ?? ''}"></td></tr>`).join('') || '<tr><td class="mut">Nenhuma matéria cadastrada.</td></tr>'}</table></div>`;
+    <div class="card"><h2>Médias do bimestre</h2><p class="mut">Se a média ficar abaixo de ${pts(limite)}, você pode retirar os pontos de estudo e de treino daquela matéria.</p>
+      <table>${S.mats.map(m => { const n = S.notas[m.id]; const pe = S.pEstudo[m.id] || 0; const baixo = n != null && n < limite;
+        return `<tr><td>${m.emoji} ${h(m.nome)}</td><td style="width:100px"><input data-a="nota" data-v="${m.id}" type="number" step="0.1" min="0" max="10" value="${n ?? ''}"></td></tr>
+          ${pe ? `<tr><td colspan="2"><div class="row sp"><small class="${baixo ? '' : 'mut'}" style="${baixo ? 'color:var(--bad);font-weight:800' : ''}">${baixo ? 'Média abaixo de ' + pts(limite) + '. ' : ''}Pontos de estudo e treino: ${pts(pe)}</small><button class="btn ${baixo ? 'bad' : 'ghost'} min" data-a="perderEstudo" data-v="${m.id}">Tirar ${pts(pe)}</button></div></td></tr>` : ''}`; }).join('') || '<tr><td class="mut">Nenhuma matéria cadastrada.</td></tr>'}</table></div>`;
 }
 function painelImportar(){
   return `<div class="card"><h2>Importar questões para ${h(nomeAluno(S.aluno))}</h2><p class="mut">Escolha o arquivo .json que o Claude mandou. O campo "materia" precisa ser um código cadastrado: ${S.todasMats.map(m => '<code>' + h(m.id) + '</code>').join(' ') || '(nenhuma ainda)'}</p>
@@ -1078,6 +1109,10 @@ function relatorio(){
 async function recarregar(){ await carregar(); render(); }
 
 const acoes = {
+  async perderEstudo(el){ const m = MAT(el.dataset.v); const pe = S.pEstudo[m.id] || 0;
+    if (!confirm(`Tirar ${pts(pe)} pontos de estudo e treino de ${m.nome} de ${nomeAluno(S.aluno)}? Isso não volta.`)) return;
+    const { data, error } = await sb.rpc('perder_pontos_estudo', { p_aluno:S.aluno, p_materia:m.id }); if (erro(error)) return;
+    toast(`Retirados ${pts(data)} pontos de ${m.nome}`); await recarregar(); },
   async cronoTg(el){ const k = el.dataset.k; await salvar(k, { feito:!S.prog[k]?.feito }); render(); },
   agSel(el){ S.agSel = el.dataset.v; render(); },
   agView(el){ S.agView = el.dataset.v; render(); },
@@ -1106,15 +1141,16 @@ const acoes = {
   async treinar(el){ await treinar(el.dataset.v); },
   mat(el){ S.aba = 'materias'; S.materia = el.dataset.v; render(); window.scrollTo(0,0); },
   voltarMats(){ S.materia = null; render(); },
-  async tg(el){ const k = el.dataset.k, f = el.dataset.f; await salvar(k, { [f]: !(S.prog[k]?.[f]) }); render(); },
+  async tg(el){ const k = el.dataset.k, f = el.dataset.f; const antes = S.saldoT; await salvar(k, { [f]: !(S.prog[k]?.[f]) }); render(); if (!ehResp()){ await atualizaPontos(antes); render(); } },
   resp(el){ const q = S.quiz; if (q.resp != null) return; q.resp = Number(el.dataset.v); const it = q.lista[q.i]; q.det.push({ id:it.id, r:q.resp, c:it.correta }); if (q.resp === it.correta) q.acertos++; render(); },
   async proxima(){
     const q = S.quiz; if (q.salvando) return;
     if (q.i + 1 >= q.lista.length && !ehResp()){
       q.salvando = true;   // evita gravar duas vezes com clique duplo
+      const saldoAntes = S.saldoT;
       const pct = Math.round(1000*q.acertos/q.lista.length)/10;
       const { data, error } = await sb.from('tentativas').insert({ materia:q.materia, tipo:'treino', acertos:q.acertos, total:q.lista.length, pct, detalhes:q.det }).select().single();
-      if (error) toast('Erro ao salvar o resultado: ' + error.message); else S.tent.unshift(data);
+      if (error) toast('Erro ao salvar o resultado: ' + error.message); else { S.tent.unshift(data); await atualizaPontos(saldoAntes); }
       q.salvando = false;
     }
     q.i++; q.resp = null; render(); window.scrollTo(0,0);
