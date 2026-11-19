@@ -658,6 +658,8 @@ function telaCad(){
   return `<div class="subabas">${sub.map(([id, nm]) => `<button data-a="cadAba" data-v="${id}" class="${S.cad===id?'on':''}">${nm}</button>`).join('')}</div>${corpo}`;
 }
 const ckAlunos = (pref, sel) => S.alunos.map(a => `<label class="ckin"><input type="checkbox" id="${pref}-${a.user_id}" ${sel?.includes(a.user_id)?'checked':''}> ${h(a.nome)}</label>`).join('');
+const SEMANA = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+const lerDias = pref => { const d = SEMANA.map((_, i) => i).filter(i => document.getElementById(`${pref}-ds-${i}`)?.checked); return d.length === 7 ? null : d; };
 const lerAlunos = pref => S.alunos.map(a => a.user_id).filter(id => document.getElementById(`${pref}-${id}`)?.checked);
 
 function formTarefa(t){
@@ -667,8 +669,9 @@ function formTarefa(t){
     <div class="row" style="margin-top:8px"><label class="mut">Vale</label><input id="${p}-pontos" type="number" min="0" step="any" value="${t?.pontos ?? 10}" style="width:90px"><span class="mut">${MOEDA[S.grupos.casa?.moeda || 'pontos']}</span>
       <select id="${p}-modo" style="flex:1"><option value="todos" ${t?.modo!=='revezamento'?'selected':''}>Todo dia, para cada um marcado</option><option value="revezamento" ${t?.modo==='revezamento'?'selected':''}>Revezamento entre os marcados</option></select></div>
     <div class="row" style="margin-top:8px">${ckAlunos(p + '-al', t?.alunos ?? S.alunos.map(a => a.user_id))}</div>
+    <div class="row" style="margin-top:8px"><span class="mut">Dias:</span>${SEMANA.map((d, i) => `<label class="ckin"><input type="checkbox" id="${p}-ds-${i}" ${!t?.dias_semana || t.dias_semana.includes(i) ? 'checked' : ''}> ${d}</label>`).join('')}</div>
     <div class="row" style="margin-top:8px"><label class="mut">Começa em</label><input id="${p}-base" type="date" value="${t?.base ?? hojeISO()}" style="flex:1"></div>
-    <p class="mut">No revezamento, o 1º marcado (na ordem acima) faz no dia de início, e a vez alterna a cada dia. Mudar o valor só afeta marcações futuras.</p>
+    <p class="mut">No revezamento, o 1º marcado (na ordem acima) faz no primeiro dia válido a partir do início, e a vez alterna a cada dia em que a tarefa acontece. Mudar o valor só afeta marcações futuras.</p>
     <div class="row">${t ? `<button class="btn min" data-a="cTarefaSalvar" data-v="${id}">Salvar</button><button class="btn sec min" data-a="cTarefaAtiva" data-v="${id}">${t.ativa ? 'Desativar' : 'Reativar'}</button>` : `<button class="btn min" data-a="cTarefaSalvar" data-v="novo">Criar tarefa</button>`}</div>
     ${t?.modo === 'revezamento' && t.ativa ? `<details><summary>Trocar o responsável de um dia</summary><div class="row" style="margin-top:8px"><input type="date" id="${p}-tdia" value="${hojeISO()}" style="flex:1">
       <select id="${p}-tal" style="flex:1">${t.alunos.map(a => `<option value="${a}">${h(nomeAluno(a))}</option>`).join('')}</select><button class="btn sec min" data-a="cTroca" data-v="${id}">Trocar</button></div>
@@ -867,8 +870,9 @@ const acoes = {
   // cadastros
   cadAba(el){ S.cad = el.dataset.v; render(); },
   async cTarefaSalvar(el){ const id = el.dataset.v, p = `t${id}`;
-    const reg = { nome:val(`${p}-nome`).trim(), emoji:val(`${p}-emoji`).trim() || '✅', pontos:num(`${p}-pontos`) ?? 0, modo:val(`${p}-modo`), alunos:lerAlunos(`${p}-al`), base:val(`${p}-base`) || hojeISO() };
+    const reg = { nome:val(`${p}-nome`).trim(), emoji:val(`${p}-emoji`).trim() || '✅', pontos:num(`${p}-pontos`) ?? 0, modo:val(`${p}-modo`), alunos:lerAlunos(`${p}-al`), base:val(`${p}-base`) || hojeISO(), dias_semana:lerDias(p) };
     if (!reg.nome || !reg.alunos.length){ toast('Dê um nome e marque ao menos uma criança'); return; }
+    if (reg.dias_semana && !reg.dias_semana.length){ toast('Marque ao menos um dia da semana'); return; }
     const { error } = id === 'novo' ? await sb.from('tarefas').insert(reg) : await sb.from('tarefas').update(reg).eq('id', id);
     if (erro(error)) return; toast('Salvo ✓'); await recarregar(); },
   async cTarefaAtiva(el){ const t = S.tarefasCad.find(x => x.id === Number(el.dataset.v)); const { error } = await sb.from('tarefas').update({ ativa:!t.ativa }).eq('id', t.id); if (erro(error)) return; await recarregar(); },
