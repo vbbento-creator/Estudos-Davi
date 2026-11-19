@@ -3,110 +3,187 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#5b5bf0">
+<meta name="theme-color" content="#0E7A64">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Nunito+Sans:wght@400;600;700;800&display=swap">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Estudos</title>
+<title>Cofrinho</title>
 <style>
-:root{--bg:#f4f6fb;--card:#fff;--txt:#1d2433;--mut:#6b7489;--line:#e6e9f2;--ac:#5b5bf0;--ok:#1fa971;--okbg:#e3f6ee;--warn:#f59e0b;--bad:#e5484d;--badbg:#fdecec;--soft:#eef0fb}
+:root{
+  --font-display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
+  --font-body:"Nunito Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --bg:#EEF2EF;--card:#FFFFFF;--txt:#16201D;--mut:#55635E;--line:#DCE4DF;
+  --ac:#0E7A64;--ac-ink:#FFFFFF;--soft:#D9F0E9;
+  --ok:#0E7A64;--okbg:#D9F0E9;--warn:#F3A712;--warnbg:#FFF0CC;--warn-ink:#6B4200;--bad:#CF3B3A;--badbg:#FBE3E2;
+  --prova:#CF3B3A;--estudo:#2C6BE0;--meta:#7B4CD1;--metabg:#ECE4FA;
+  --shadow:0 1px 2px #16201d14,0 6px 20px #16201d0d;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F1513;--card:#18211E;--txt:#E8F0EC;--mut:#9AABA4;--line:#2A3631;
+  --ac:#3CC4A3;--ac-ink:#06201A;--soft:#163A31;
+  --ok:#3CC4A3;--okbg:#163A31;--warn:#F5B83A;--warnbg:#3A2E10;--warn-ink:#FFE2A0;--bad:#FF7B7A;--badbg:#3F1F1F;
+  --prova:#FF7B7A;--estudo:#7BA7FF;--meta:#B596F5;--metabg:#2C2147;
+  --shadow:0 1px 2px #00000066,0 6px 20px #00000040;color-scheme:dark}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.45 "Segoe UI",system-ui,-apple-system,Roboto,sans-serif;padding-bottom:90px}
-header{padding:18px 16px 6px;display:flex;justify-content:space-between;align-items:center;max-width:760px;margin:0 auto}
-header h1{font-size:22px;margin:0}
-header .sair{background:none;border:0;color:var(--mut);font-size:14px;text-decoration:underline;cursor:pointer}
-main{padding:0 14px;max-width:760px;margin:0 auto}
-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:8px 0 calc(8px + env(safe-area-inset-bottom));z-index:5;box-shadow:0 -4px 16px #1d24330d}
-nav button{background:none;border:0;color:var(--mut);font-size:11px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 6px;border-radius:12px;cursor:pointer;flex:1;min-width:0}
-nav button span{font-size:22px}
-nav button.on{color:var(--ac);background:var(--soft)}
-.card{background:var(--card);border-radius:18px;padding:16px;margin:12px 0;box-shadow:0 2px 10px #1d24330a}
-.card h2{font-size:17px;margin:0 0 10px}
+body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.45 var(--font-body);padding-bottom:96px}
+h1,h2,h3{font-family:var(--font-display);text-wrap:balance;line-height:1.15}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,summary:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--estudo);outline-offset:2px}
+main{padding:0 14px;max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+.topo{display:flex;justify-content:space-between;align-items:center;padding:14px 16px 8px;gap:10px;max-width:760px;margin:0 auto}
+.who{display:flex;align-items:center;gap:10px;min-width:0}
+.who small{display:block;color:var(--mut);line-height:1.1}
+.who b{font-family:var(--font-display);font-size:21px;line-height:1.1}
+.av{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:50%;color:#fff;font-weight:800;font-family:var(--font-display);flex:none;font-size:14px}
+.av.sm{width:26px;height:26px;font-size:10px}
+.saldo{display:flex;align-items:center;gap:6px;background:var(--warnbg);color:var(--warn-ink);border:0;border-radius:999px;padding:8px 14px 8px 8px;font-size:18px;min-height:44px;font-family:var(--font-display);font-weight:800}
+.coin{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--warn);color:var(--warn-ink);font-size:12px;font-weight:800;flex:none;font-family:var(--font-body)}
+nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:center;gap:2px;padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px));z-index:5;box-shadow:0 -4px 16px #16201d12}
+nav button{flex:1;max-width:140px;min-width:0;border:0;background:none;color:var(--mut);display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;border-radius:14px;font-size:12px;font-weight:700;position:relative;min-height:54px}
+nav button[aria-current="page"]{color:var(--ac);background:var(--soft)}
+.badge{position:absolute;top:2px;left:calc(50% + 8px);background:var(--prova);color:#fff;border-radius:999px;font-size:11px;min-width:18px;height:18px;display:grid;place-items:center;padding:0 5px}
+.card{background:var(--card);border-radius:20px;padding:14px;box-shadow:var(--shadow)}
+.card h2{font-size:18px;margin:0 0 4px}
+.card h3{font-size:13px;margin:14px 0 2px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}
 .mut{color:var(--mut);font-size:14px}
+.hello{font-size:15px;color:var(--mut);margin:4px 0 0}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .sp{justify-content:space-between}
-.btn{background:var(--ac);color:#fff;border:0;border-radius:14px;padding:13px 16px;font-size:16px;font-weight:700;cursor:pointer;width:100%}
+.grow{flex:1;min-width:0}
+.btn{background:var(--ac);color:var(--ac-ink);border:0;border-radius:14px;padding:12px 16px;font-size:16px;font-weight:800;cursor:pointer;width:100%;min-height:46px}
 .btn.sec{background:var(--soft);color:var(--ac)}
-.btn.ok{background:var(--ok)}
-.btn.min{width:auto;padding:8px 12px;font-size:14px}
-.btn:disabled{opacity:.45}
-input,select,textarea{background:#fff;color:var(--txt);border:1.5px solid var(--line);border-radius:12px;padding:11px;font-size:16px;width:100%;font-family:inherit}
+.btn.ok{background:var(--ok);color:var(--ac-ink)}
+.btn.bad{background:var(--badbg);color:var(--bad)}
+.btn.ghost{background:transparent;border:1.5px solid var(--line);color:var(--txt)}
+.btn.min{width:auto;padding:8px 14px;font-size:14px;min-height:40px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+input,select,textarea{background:var(--card);color:var(--txt);border:1.5px solid var(--line);border-radius:12px;padding:11px;font-size:16px;width:100%;font-family:inherit}
 textarea{min-height:70px;resize:vertical}
-.bar{height:10px;background:var(--soft);border-radius:8px;overflow:hidden}
+.bar{height:10px;background:var(--line);border-radius:8px;overflow:hidden}
 .bar i{display:block;height:100%;border-radius:8px;background:var(--ok);transition:width .3s}
-.tag{display:inline-block;font-size:12px;font-weight:700;padding:3px 9px;border-radius:20px;background:var(--soft);color:var(--mut)}
-.tag.ok{background:var(--okbg);color:var(--ok)}
-.tag.hoje{background:var(--ac);color:#fff}
-.hello{font-size:15px;color:var(--mut);margin:0 0 4px}
-.hero{background:linear-gradient(135deg,#5b5bf0,#8b5cf6);color:#fff}
-.hero .mut{color:#e4e2ff}
-.big{font-size:30px;font-weight:800;line-height:1.1}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
-.mcard{background:#fff;border-radius:18px;padding:14px;box-shadow:0 2px 10px #1d24330a;cursor:pointer;border-top:6px solid var(--c);display:flex;flex-direction:column;gap:6px}
+.bar.ouro i{background:var(--warn)}
+.tag,.chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:800;padding:3px 10px;border-radius:999px;background:var(--line);color:var(--mut)}
+.tag.ok,.chip.ok{background:var(--okbg);color:var(--ok)}
+.tag.hoje{background:var(--ac);color:var(--ac-ink)}
+.tag.bad,.chip.prova{background:var(--badbg);color:var(--bad)}
+.tag.warn,.chip.ouro{background:var(--warnbg);color:var(--warn-ink)}
+.chip.meta{background:var(--metabg);color:var(--meta)}
+.dia-ok{background:var(--okbg);color:var(--ok);border-radius:14px;padding:10px 12px;font-weight:800;margin-top:10px}
+.hero{background:var(--ac);color:var(--ac-ink)}
+.hero .mut{color:inherit;opacity:.85}
+.big{font-family:var(--font-display);font-size:30px;font-weight:800;line-height:1.1}
+/* tarefas */
+.task{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line);flex-wrap:wrap}
+.task:first-of-type{border-top:0}
+.chk{width:46px;height:46px;border-radius:50%;border:2.5px solid var(--line);background:var(--card);display:grid;place-items:center;flex:none;color:transparent;font-size:20px;font-weight:800;padding:0}
+.chk:not(:disabled):hover{border-color:var(--ac)}
+.task.ok .chk{background:var(--ac);border-color:var(--ac);color:var(--ac-ink);animation:pop .3s}
+.task.feito .chk{background:var(--warnbg);border-color:var(--warn);color:var(--warn-ink)}
+.task.rej .chk,.task.nao .chk{background:var(--badbg);border-color:var(--bad);color:var(--bad)}
+.task.fut .chk{opacity:.5}
+@keyframes pop{0%{transform:scale(.7)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.task.ok .chk{animation:none}.bar i{transition:none}}
+.task.ok .tx b{text-decoration:line-through;text-decoration-color:var(--mut);color:var(--mut)}
+.tx{flex:1;min-width:0}
+.tx b{display:block;font-weight:800;line-height:1.25}
+.tx small{color:var(--mut);font-size:13px}
+.pts{display:inline-flex;align-items:center;gap:5px;font-weight:800;color:var(--warn-ink);background:var(--warnbg);border-radius:999px;padding:3px 10px 3px 4px;font-size:14px;flex:none}
+.pts .coin{width:18px;height:18px;font-size:10px}
+.task .acoes{flex-basis:100%;display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+/* missão */
+.trilha{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+.trilha div{text-align:center;padding:10px 4px;border-radius:14px;background:var(--bg);font-size:13px;font-weight:800}
+.trilha div.on{background:var(--ac);color:var(--ac-ink)}
+.trilha div span{display:block;font-size:24px}
+.falta{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-top:1px solid var(--line);cursor:pointer}
+/* agenda */
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button,.alunos button,.subabas button{border:1.5px solid var(--line);background:var(--card);border-radius:999px;padding:8px 16px;font-weight:800;color:var(--mut);min-height:42px;white-space:nowrap;font-size:14px}
+.seg button[aria-pressed="true"],.alunos button.on,.subabas button.on{background:var(--ac);border-color:var(--ac);color:var(--ac-ink)}
+.alunos,.subabas{display:flex;gap:6px;max-width:760px;margin:4px auto 4px;padding:0 14px;overflow-x:auto}
+.subabas{padding:0;margin:0 0 4px}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.dbtn{border:1.5px solid transparent;background:var(--card);border-radius:14px;padding:6px 0 7px;display:flex;flex-direction:column;align-items:center;gap:3px;min-height:64px;font-weight:800;min-width:0}
+.dbtn small{color:var(--mut);font-weight:700;text-transform:uppercase;font-size:11px}
+.dbtn .n{font-size:17px;font-family:var(--font-display)}
+.dbtn.hoje .n{color:var(--ac)}
+.dbtn.sel{background:var(--ac);color:var(--ac-ink)}
+.dbtn.sel small,.dbtn.sel .n{color:var(--ac-ink)}
+.dbtn.pas{opacity:.6}
+.dots{display:flex;gap:3px;height:7px}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+.dot.prova{background:var(--prova)}.dot.casa{background:var(--ac)}.dot.estudo{background:var(--estudo)}.dot.meta{background:var(--meta)}
+.dbtn.sel .dot{box-shadow:0 0 0 1.5px var(--ac-ink)}
+.month{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.mh{text-align:center;font-size:11px;font-weight:800;color:var(--mut);text-transform:uppercase}
+.legenda{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--mut);font-weight:700;margin-top:10px}
+.legenda span{display:inline-flex;align-items:center;gap:5px}
+.navw{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.navw button{width:44px;height:44px;border-radius:50%;border:0;background:var(--bg);font-size:20px;font-weight:800}
+.navw button:disabled{opacity:.35}
+.pessoa{display:flex;align-items:center;gap:8px;margin:12px 0 2px;font-weight:800}
+/* matérias e legado */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(min-width:620px){.grid{grid-template-columns:1fr 1fr 1fr}}
+.mcard{background:var(--card);border-radius:18px;padding:14px;box-shadow:var(--shadow);cursor:pointer;display:flex;flex-direction:column;gap:6px;border:0;border-top:6px solid var(--c);text-align:left}
 .mcard .em{font-size:28px}
 .mcard b{font-size:15px}
-.mhead{border-radius:18px;padding:18px;color:#fff;background:var(--c);margin:12px 0}
+.mhead{border-radius:18px;padding:18px;color:#fff;background:var(--c);margin:4px 0}
 .mhead .em{font-size:34px}
-.voltar{background:none;border:0;color:var(--ac);font-weight:700;font-size:15px;padding:8px 0;cursor:pointer}
-.topico{background:#fff;border-radius:16px;padding:14px;margin:10px 0;box-shadow:0 2px 10px #1d24330a}
-.topico .tt{font-weight:700;margin-bottom:10px}
+.voltar{background:none;border:0;color:var(--ac);font-weight:800;font-size:15px;padding:8px 0;cursor:pointer;text-align:left}
+.topico{background:var(--card);border-radius:16px;padding:14px;margin:0;box-shadow:var(--shadow)}
+.topico .tt{font-weight:800;margin-bottom:10px}
 .pills{display:flex;gap:8px}
-.pill{flex:1;border:2px solid var(--line);background:#fff;border-radius:14px;padding:11px 6px;font-size:15px;font-weight:700;color:var(--mut);cursor:pointer}
+.pill{flex:1;border:2px solid var(--line);background:var(--card);border-radius:14px;padding:11px 6px;font-size:15px;font-weight:800;color:var(--mut);cursor:pointer}
 .pill.on{border-color:var(--ok);background:var(--okbg);color:var(--ok)}
 .dom{display:flex;gap:6px;margin-top:6px}
-.dom button{flex:1;background:#fff;border:2px solid var(--line);border-radius:12px;padding:6px 0;font-size:22px;cursor:pointer;filter:grayscale(1);opacity:.6}
+.dom button{flex:1;background:var(--card);border:2px solid var(--line);border-radius:12px;padding:6px 0;font-size:22px;cursor:pointer;filter:grayscale(1);opacity:.6}
 .dom button.on{filter:none;opacity:1;border-color:var(--ac);background:var(--soft)}
 .lbl{font-size:13px;color:var(--mut);margin-top:12px}
-details summary{cursor:pointer;color:var(--ac);font-weight:600;font-size:14px;margin-top:10px}
-.alt{display:block;width:100%;text-align:left;background:#fff;color:var(--txt);border:2px solid var(--line);border-radius:14px;padding:13px;margin:8px 0;font-size:15px;cursor:pointer}
+details summary{cursor:pointer;color:var(--ac);font-weight:700;font-size:14px;margin-top:10px}
+.alt{display:block;width:100%;text-align:left;background:var(--card);color:var(--txt);border:2px solid var(--line);border-radius:14px;padding:13px;margin:8px 0;font-size:15px;cursor:pointer}
 .alt.certa{border-color:var(--ok);background:var(--okbg)}
 .alt.errada{border-color:var(--bad);background:var(--badbg)}
 .alt.sel{border-color:var(--ac);background:var(--soft)}
-.trilha{display:flex;gap:6px;margin:10px 0}
-.trilha div{flex:1;text-align:center;padding:10px 4px;border-radius:14px;background:#ffffff26;font-size:13px;font-weight:700}
-.trilha div.on{background:#fff;color:var(--ac)}
-.trilha div span{display:block;font-size:22px}
-.falta{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-top:1px solid #ffffff33;cursor:pointer}
 .ck{display:flex;align-items:center;gap:10px;padding:8px 0;cursor:pointer;border-top:1px solid var(--line)}
-.ck:first-of-type{border-top:0}
 .ck input{width:22px;height:22px;accent-color:var(--ok);flex:none}
-.dia{margin:12px 0;padding-left:12px;border-left:4px solid var(--line)}
-.dia.hoje{border-color:var(--ac)}
-.dia.passado{opacity:.5}
-.modal{position:fixed;inset:0;background:#1d243380;display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
+.modal{position:fixed;inset:0;background:#0b1210a6;display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
 .modal .card{width:100%;max-width:420px}
-.toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:#1d2433;color:#fff;padding:10px 18px;border-radius:12px;z-index:20;font-weight:600}
+.sheetbg{position:fixed;inset:0;background:#0b1210a6;display:flex;align-items:flex-end;justify-content:center;z-index:10}
+.sheet{background:var(--card);width:100%;max-width:520px;border-radius:24px 24px 0 0;padding:20px 18px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px}
+.sheet h2{font-size:22px;margin:0}
+.toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:var(--txt);color:var(--bg);padding:10px 18px;border-radius:12px;z-index:20;font-weight:700;max-width:90vw;text-align:center}
 table{width:100%;border-collapse:collapse;font-size:14px}
 td,th{padding:8px 4px;border-bottom:1px solid var(--line);text-align:left}
 .nivel{display:flex;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
 .nivel b.ic{font-size:26px}
-.enun{white-space:pre-line;font-size:16px;font-weight:600;margin:8px 0}
-.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
-.cal-h{text-align:center;font-size:12px;font-weight:700;color:var(--mut);padding-bottom:4px}
-.cal-d{min-width:0;min-height:78px;border:1.5px solid var(--line);border-radius:10px;padding:3px;cursor:pointer;display:flex;flex-direction:column;gap:3px;background:#fff}
-.cal-d .n{font-size:13px;font-weight:700}
-.cal-d.hoje .n{background:var(--ac);color:#fff;border-radius:20px;padding:0 6px;align-self:flex-start}
-.cal-d.sel{border-color:var(--ac);background:var(--soft)}
-.cal-d.passado{opacity:.55}
-.chip{display:inline-block;max-width:100%;font-size:10px;font-weight:700;border-radius:8px;padding:1px 3px;background:var(--soft);color:var(--mut);white-space:nowrap;overflow:hidden}
-.chip.prova{background:#fde2e2;color:#c0262c}
-.chip.gta{background:#ede4ff;color:#6d4aff}
-.chip.fer{background:#fff3d6;color:#a16207}
-.chip.ok{background:var(--okbg);color:var(--ok)}
-@media(min-width:620px){.cal-d{min-height:96px}.chip{font-size:12px}}
-#login{max-width:380px;margin:12vh auto;padding:24px}
-@media(min-width:620px){.grid{grid-template-columns:1fr 1fr 1fr}}
-.tag.bad{background:var(--badbg);color:var(--bad)}
-.tag.warn{background:#fff3d6;color:#a16207}
-.alunos,.subabas{display:flex;gap:6px;max-width:760px;margin:4px auto 0;padding:0 14px;overflow-x:auto}
-.alunos button,.subabas button{border:2px solid var(--line);background:#fff;border-radius:20px;padding:6px 14px;font-weight:700;color:var(--mut);cursor:pointer;white-space:nowrap;font-size:14px}
-.alunos button.on,.subabas button.on{border-color:var(--ac);background:var(--soft);color:var(--ac)}
-.subabas{padding:0;margin:12px 0}
-.saldos{display:grid;grid-template-columns:1fr;gap:12px}
-@media(min-width:620px){.saldos{grid-template-columns:1fr 1fr 1fr}}
-.saldo .big{font-size:26px}
+.enun{white-space:pre-line;font-size:16px;font-weight:700;margin:8px 0}
+.campo{display:flex;flex-direction:column;gap:2px;flex:1;min-width:130px;margin-top:6px}
 .ckin{display:inline-flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;margin-right:10px}
 .ckin input{width:18px;height:18px;padding:0}
-.campo{display:flex;flex-direction:column;gap:2px;flex:1;min-width:130px;margin-top:6px}
 .inativo{opacity:.55}
+#login{max-width:380px;margin:12vh auto;padding:24px}
+.sair{background:none;border:0;color:var(--mut);font-size:14px;text-decoration:underline;padding:10px;margin:8px auto;display:block}
+/* loja */
+.saldo-card{background:var(--warnbg);color:var(--warn-ink)}
+.saldo-card .big{display:flex;align-items:center;gap:10px;font-size:44px}
+.saldo-card .coin{width:36px;height:36px;font-size:18px}
+.loja-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.loja-item:first-of-type{border-top:0}
+.tile{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:24px;background:var(--warnbg);flex:none}
+.loja-item b{display:block}
+.preco{display:flex;align-items:center;gap:5px;font-weight:800;font-size:14px;color:var(--warn-ink)}
+.step{display:flex;align-items:center;gap:8px}
+.step button{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--line);background:var(--card);font-size:20px;font-weight:800}
+.step button:disabled{opacity:.35}
+.step output{min-width:64px;text-align:center;font-weight:800;font-family:var(--font-display);font-size:18px}
+.ext{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:15px}
+.ext:first-of-type{border-top:0}
+.ext b.neg{color:var(--bad)}.ext b.pos{color:var(--ok)}
+.lista{display:flex;flex-direction:column}
+.lista button{display:flex;align-items:center;justify-content:space-between;gap:10px;border:0;background:none;padding:14px 4px;border-top:1px solid var(--line);text-align:left;font-weight:700;min-height:52px;width:100%}
+.lista button:first-child{border-top:0}
+.vazio{color:var(--mut);padding:8px 0}
+.aviso{background:var(--warnbg);color:var(--warn-ink);border-radius:14px;padding:10px 12px;font-size:14px;font-weight:700}
 </style>
 </head>
 <body>
@@ -123,7 +200,9 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 // ---------------- ESTADO ----------------
 const S = { user:null, perfil:null, aba:'hoje', alunos:[], aluno:null, mats:[], todasMats:[], todosTopicos:[], crono:[],
   grupos:{}, saldos:{}, lanc:[], prog:{}, tent:[], lib:{}, notas:{}, tarefasCad:[], premios:[], tarefas:{}, rev:[], pend:[], recAb:[],
-  pausas:[], quiz:null, prova:null, materia:null, cad:'tarefas', diaTarefa:null };
+  pausas:[], quiz:null, prova:null, materia:null, cad:'tarefas', diaTarefa:null,
+  saldoT:0, saldosFam:{}, fam:{ crono:{}, provas:[], progCrono:{} }, agenda:{}, agIni:null, agSel:null, agView:'semana', agFiltro:'todos',
+  resgates:[], resgPend:[], limites:{}, qtdLoja:{}, sheet:null, mais:null };
 const $app = document.getElementById('app');
 const h = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const hojeISO = () => new Date().toLocaleDateString('sv-SE', { timeZone:'America/Sao_Paulo' });
@@ -136,17 +215,41 @@ const MAT = id => S.mats.find(m => m.id === id);
 const nomeAluno = id => S.alunos.find(a => a.user_id === id)?.nome || '—';
 const val = id => document.getElementById(id)?.value ?? '';
 const num = id => { const v = val(id); return v === '' ? null : Number(v); };
-const GRUPO = { notas:['💰','Notas das provas'], estudos:['🎮','Estudos no app'], casa:['🧹','Tarefas de casa'] };
+const GRUPO = { notas:['🏫','Médias do bimestre'], estudos:['📖','Estudos'], casa:['🧹','Tarefas de casa'], loja:['🛍️','Loja'] };
 const MOEDA = { reais:'R$', minutos:'minutos de tela', pontos:'pontos' };
-function fmtV(moeda, v){
-  v = Number(v) || 0;
-  if (moeda === 'reais') return 'R$ ' + v.toLocaleString('pt-BR', { maximumFractionDigits:2 });
-  if (moeda === 'minutos'){ const s = v < 0 ? '-' : ''; v = Math.abs(Math.round(v)); const hh = Math.floor(v/60), mm = v%60;
-    return s + (hh ? hh + 'h' + (mm ? String(mm).padStart(2,'0') : '') : mm + 'min'); }
-  return v.toLocaleString('pt-BR') + ' pts';
-}
+function fmtV(moeda, v){ return pts(v) + ' pts'; }
 function toast(msg){ const t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.append(t); setTimeout(()=>t.remove(),3000); }
 const erro = e => { if (e){ toast((e.message || String(e)).replace(/^.*?: /, '')); return true; } return false; };
+const PERIODO = { manha:'Manhã', tarde:'Tarde', noite:'Noite' };
+const pts = v => (Number(v) || 0).toLocaleString('pt-BR', { maximumFractionDigits:1 });
+const reais = v => { const x = (Number(v) || 0) / 10; return 'R$ ' + x.toLocaleString('pt-BR', { minimumFractionDigits:Number.isInteger(x) ? 0 : 2, maximumFractionDigits:2 }); };
+const coin = '<span class="coin" aria-hidden="true">★</span>';
+const ptsTag = n => `<span class="pts">${coin}+${pts(n)}</span>`;
+const fmtMin = m => m >= 60 ? `${Math.floor(m / 60)}h${m % 60 ? String(m % 60).padStart(2, '0') : ''}` : `${m} min`;
+const CORES = ['#2C6BE0', '#B8472A', '#2E9E5B', '#7B4CD1'];
+const idxAluno = id => Math.max(0, S.alunos.findIndex(a => a.user_id === id));
+const av = (id, sm) => `<span class="av ${sm ? 'sm' : ''}" style="background:${CORES[idxAluno(id) % CORES.length]}" aria-hidden="true">${h(nomeAluno(id).slice(0, 2))}</span>`;
+const ICONS = {
+  home:'<path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/>',
+  cal:'<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  book:'<path d="M4 4h6a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4zM20 4h-6a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h7z"/>',
+  gift:'<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M5 12v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8M8 8a2.5 2.5 0 1 1 0-5c2 0 4 2.5 4 5 0-2.5 2-5 4-5a2.5 2.5 0 1 1 0 5"/>',
+  check:'<circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/>',
+  users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5a6.5 6.5 0 0 1 3.5 5.5"/>',
+  more:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'
+};
+const ico = n => `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]}</svg>`;
+const DOWL = ['dom','seg','ter','qua','qui','sex','sáb'];
+const DOWH = ['D','S','T','Q','Q','S','S'];
+const dow = iso => new Date(iso + 'T12:00:00').getDay();
+const diaCurto = iso => `${DOWL[dow(iso)]}, ${iso.slice(8)}/${iso.slice(5, 7)}`;
+const diaRel = iso => { const h0 = hojeISO(); return iso === h0 ? 'hoje' : iso === addDias(h0, -1) ? 'ontem' : iso === addDias(h0, 1) ? 'amanhã' : diaCurto(iso); };
+const emDias = n => n === 0 ? 'hoje' : n === 1 ? 'amanhã' : `em ${n} dias`;
+function ganhoSemana(grupo){
+  const ini = segunda(hojeISO());
+  return S.lanc.filter(l => l.grupo === grupo && l.data_ref >= ini && (l.valor > 0 || l.origem === 'estorno')).reduce((s, l) => s + Number(l.valor), 0);
+}
+const descPremio = (p, n) => n > 1 ? `${p.nome} × ${n}` : p.nome;
 
 // ---------------- DADOS ----------------
 async function carregar(){
@@ -178,17 +281,58 @@ async function carregar(){
   S.tarefasCad = tf.data || [];
   S.premios = pr.data || [];
   S.pausas = pz.data || [];
-  await Promise.all([carregarSaldos(), carregarTarefas(), contarQuestoes()]);
+  await Promise.all([carregarSaldos(), carregarTarefas(), carregarLoja(), contarQuestoes()]);
+  await carregarFamilia();
 }
 async function carregarSaldos(){
-  const r = await Promise.all(['notas','estudos','casa'].map(g => sb.rpc('saldo', { p_aluno:S.aluno, p_grupo:g })));
-  S.saldos = { notas:r[0].data ?? 0, estudos:r[1].data ?? 0, casa:r[2].data ?? 0 };
+  const r = await sb.rpc('saldo_total', { p_aluno:S.aluno });
+  S.saldoT = Number(r.data ?? 0);
+}
+async function carregarLoja(){
+  const [rg, lm, lc] = await Promise.all([
+    sb.from('resgates').select('*').eq('aluno', S.aluno).order('criado', { ascending:false }).limit(30),
+    sb.rpc('limites_loja', { p_aluno:S.aluno }),
+    sb.from('lancamentos').select('*').eq('aluno', S.aluno).order('data_ref', { ascending:false }).order('id', { ascending:false }).limit(300),
+  ]);
+  S.resgates = rg.data || [];
+  S.limites = Object.fromEntries((lm.data || []).map(x => [x.premio, x]));
+  if (lc.data) S.lanc = lc.data;
+  if (ehResp()){
+    const pr = await sb.from('resgates').select('*').in('status', ['aguardando', 'pedido']).order('criado');
+    S.resgPend = pr.data || [];
+  }
+}
+async function carregarAgenda(){
+  const hoje = hojeISO();
+  const ids = ehResp() ? S.alunos.map(a => a.user_id) : [S.aluno];
+  const res = await Promise.all(ids.map(id => sb.rpc('agenda_tarefas', { p_aluno:id, p_ini:addDias(hoje, -7), p_fim:addDias(hoje, 27) })));
+  S.agenda = Object.fromEntries(ids.map((id, i) => [id, res[i].data || []]));
+}
+async function carregarFamilia(){
+  if (!ehResp()){
+    S.fam = { crono:{ [S.aluno]:S.crono }, provas:S.mats.filter(m => m.prova).map(m => ({ aluno:S.aluno, nome:m.nome, emoji:m.emoji, prova:m.prova })), progCrono:{} };
+    S.saldosFam = { [S.aluno]:S.saldoT };
+    return;
+  }
+  const ids = S.alunos.map(a => a.user_id);
+  const [cr, mt, pg, sd] = await Promise.all([
+    sb.from('cronograma').select('*').order('dia'),
+    sb.from('materias').select('aluno,nome,emoji,prova').eq('ativa', true).not('prova', 'is', null),
+    sb.from('progresso').select('aluno,chave,feito').like('chave', 'crono:%').eq('feito', true),
+    Promise.all(ids.map(id => sb.rpc('saldo_total', { p_aluno:id }))),
+  ]);
+  const crono = {}; (cr.data || []).forEach(c => (crono[c.aluno] ||= []).push({ d:c.dia, t:c.titulo, itens:c.itens || [] }));
+  const progCrono = {}; (pg.data || []).forEach(r => ((progCrono[r.aluno] ||= {})[r.chave] = true));
+  S.fam = { crono, provas:mt.data || [], progCrono };
+  S.saldosFam = Object.fromEntries(ids.map((id, i) => [id, Number(sd[i].data ?? 0)]));
 }
 async function carregarTarefas(){
   const hoje = hojeISO();
-  const dias = ehResp() ? [S.diaTarefa || hoje] : [hoje, addDias(hoje, -1)];
-  const res = await Promise.all(dias.map(d => sb.rpc('tarefas_do_dia', { p_aluno:S.aluno, p_dia:d })));
-  S.tarefas = Object.fromEntries(dias.map((d, i) => [d, res[i].data || []]));
+  if (!ehResp()){
+    const dias = [hoje, addDias(hoje, -1)];
+    const res = await Promise.all(dias.map(d => sb.rpc('tarefas_do_dia', { p_aluno:S.aluno, p_dia:d })));
+    S.tarefas = Object.fromEntries(dias.map((d, i) => [d, res[i].data || []]));
+  } else S.tarefas = {};
   const rev = S.tarefasCad.filter(t => t.ativa && t.modo === 'revezamento');
   const r2 = await Promise.all(rev.flatMap(t => [hoje, addDias(hoje, 1)].map(d => sb.rpc('responsaveis', { p_tarefa:t.id, d }))));
   S.rev = rev.map((t, i) => ({ t, hoje:r2[2*i].data?.[0], amanha:r2[2*i+1].data?.[0] }));
@@ -199,6 +343,7 @@ async function carregarTarefas(){
     ]);
     S.pend = pd.data || []; S.recAb = rc.data || [];
   }
+  await carregarAgenda();
 }
 
 async function salvar(chave, campos){
@@ -236,7 +381,7 @@ function calcMeta(){
   const qtd = Math.min(Number(c.prova_qtd) || mats.length, mats.length);
   const ouroDet = mats.map(mid => ({ mid, v:melhor(mid, 'prova', prazo) }));
   const ouro = prata && ouroDet.filter(x => x.v >= c.prova_min).length >= qtd;
-  const M = c.minutos || {};
+  const M = c.pontos || {};
   const nivel = ouro ? 'ouro' : prata ? 'prata' : bronze ? 'bronze' : null;
   return { c, prazo, mats, qtd, M, bronze, prata, ouro, bronzeDet, prataDet, ouroDet, nivel, valor:nivel ? Number(M[nivel]) || 0 : 0 };
 }
@@ -261,27 +406,34 @@ const DOM = [['😵','Não sei nada'],['😕','Sei pouco'],['😐','Mais ou meno
 
 function render(){
   if (!S.user) return telaLogin();
-  const abas = [['hoje','🏠','Hoje'],['agenda','📅','Agenda'],['materias','📚','Matérias'],['tarefas','🧹','Tarefas'],['premios','🎁','Prêmios']];
-  if (ehResp()) abas.push(['painel','🛡️','Painel'], ['cad','⚙️','Cadastros']);
+  const pais = ehResp();
+  const abas = pais ? [['hoje','home','Hoje'],['agenda','cal','Agenda'],['aprovar','check','Aprovar'],['alunos','users','Alunos'],['mais','more','Mais']]
+                    : [['hoje','home','Hoje'],['agenda','cal','Agenda'],['materias','book','Estudar'],['loja','gift','Loja']];
+  if (!abas.some(a => a[0] === S.aba)) S.aba = 'hoje';
   let corpo = '';
   if (S.prova) corpo = telaProva();
   else if (S.quiz) corpo = telaQuiz();
   else if (S.aba === 'materias' && S.materia && MAT(S.materia)) corpo = telaMateria(S.materia);
-  else if (S.aba === 'painel' && S.verQ) corpo = telaVerQuestoes();
-  else if (S.aba === 'painel' && S.anMat) corpo = telaAnalise();
-  else corpo = ({ hoje:telaHoje, agenda:telaAgenda, materias:telaMaterias, tarefas:telaTarefas, premios:telaPremios, painel:telaPainel, cad:telaCad })[S.aba]();
+  else if (S.aba === 'alunos' && S.verQ) corpo = telaVerQuestoes();
+  else if (S.aba === 'alunos' && S.anMat) corpo = telaAnalise();
+  else corpo = ({ hoje:telaHoje, agenda:telaAgenda, materias:telaMaterias, loja:telaLoja, aprovar:telaAprovar, alunos:telaAlunos, mais:telaMais })[S.aba]();
   const foco = S.quiz || S.prova;
-  const seletor = ehResp() && !foco ? `<div class="alunos">${S.alunos.map(a => `<button data-a="verAluno" data-v="${a.user_id}" class="${a.user_id===S.aluno?'on':''}">${h(a.nome)}</button>`).join('')}</div>` : '';
-  $app.innerHTML = `
-    <header><h1>📘 Estudos</h1>${foco ? '' : '<button class="sair" data-a="sair">sair</button>'}</header>
-    ${seletor}
-    <main>${corpo}</main>
-    ${foco ? '' : `<nav>${abas.map(([id,ic,nm]) => `<button data-a="aba" data-v="${id}" class="${S.aba===id?'on':''}"><span>${ic}</span>${nm}</button>`).join('')}</nav>`}`;
+  const seletor = pais && !foco && ['alunos', 'mais'].includes(S.aba) && !S.verQ && !S.anMat
+    ? `<div class="alunos">${S.alunos.map(a => `<button data-a="verAluno" data-v="${a.user_id}" class="${a.user_id === S.aluno ? 'on' : ''}">${h(a.nome)}</button>`).join('')}</div>` : '';
+  const topo = foco ? '' : pais
+    ? `<div class="topo"><div class="who"><span class="av" style="background:var(--ac);color:var(--ac-ink)" aria-hidden="true">${h((S.perfil?.nome || 'P').slice(0, 1))}</span><div><small>Cofrinho</small><b>${h(S.perfil?.nome || 'Pais')}</b></div></div></div>`
+    : `<div class="topo"><div class="who">${av(S.aluno)}<div><small>Cofrinho</small><b>Oi, ${h(S.perfil?.nome || '')}</b></div></div><button class="saldo" data-a="aba" data-v="loja" aria-label="Seu saldo: ${pts(S.saldoT)} pontos. Abrir a Loja">${coin}${pts(S.saldoT)}</button></div>`;
+  const nBadge = pais ? S.pend.length + S.recAb.length + S.resgPend.filter(r => r.status === 'pedido').length : 0;
+  const antes = document.getElementById('tela'); const sc = antes && antes.dataset.aba === S.aba ? window.scrollY : 0;
+  $app.innerHTML = `${topo}${seletor}<main id="tela" data-aba="${S.aba}">${corpo}</main>
+    ${foco ? '' : `<nav aria-label="Navegação">${abas.map(([id, ic, nm]) => `<button data-a="aba" data-v="${id}" ${S.aba === id ? 'aria-current="page"' : ''}>${ico(ic)}${nm}${pais && id === 'aprovar' && nBadge ? `<span class="badge">${nBadge}</span>` : ''}</button>`).join('')}</nav>`}
+    ${S.sheet ? sheetHtml() : ''}`;
+  if (sc) window.scrollTo(0, sc);
 }
 
 function telaLogin(){
   $app.innerHTML = `<div id="login" class="card">
-    <div class="big">📘</div><h2>Estudos</h2><p class="mut">Entre com seu e-mail e senha.</p>
+    <div class="big">🐷</div><h2>Cofrinho</h2><p class="mut">Entre com seu e-mail e senha.</p>
     <input id="lemail" type="email" placeholder="e-mail" autocomplete="username"><br><br>
     <input id="lsenha" type="password" placeholder="senha" autocomplete="current-password"><br><br>
     <button class="btn" data-a="entrar">Entrar</button></div>`;
@@ -296,11 +448,26 @@ function proximaProva(){
   return { d, dias, mats:futuras.filter(m => m.prova===d) };
 }
 
-function blocoDia(dia){
-  const hoje = hojeISO();
-  const cls = dia.d===hoje ? 'hoje' : dia.d < hoje ? 'passado' : '';
-  return `<div class="dia ${cls}"><div class="row sp"><b>${h(dia.t)}</b><span class="tag ${dia.d===hoje?'hoje':''}">${dia.d===hoje?'HOJE':fmtData(dia.d)}</span></div>
-    ${dia.itens.map((it, i) => { const k=`crono:${dia.d}:${i}`; return `<label class="ck"><input type="checkbox" data-a="crono" data-k="${k}" ${S.prog[k]?.feito?'checked':''}> ${h(it)}</label>`; }).join('')}</div>`;
+function grupoPeriodo(L){
+  const out = [];
+  for (const p of ['manha', 'tarde', 'noite', null]){ const it = L.filter(t => (t.periodo || null) === p); if (it.length) out.push([p ? PERIODO[p] : 'Durante o dia', it]); }
+  return out;
+}
+function linhaTarefa(t, dia){
+  const st = t.decisao === 'validado' ? 'ok' : t.decisao === 'rejeitado' ? 'rej' : t.status === 'feito' ? 'feito' : t.status === 'nao_feito' ? 'nao' : '';
+  const mark = { ok:'✓', feito:'⏳', rej:'✕', nao:'✕' }[st] || '';
+  const sub = t.decisao === 'validado' ? `validado · +${pts(t.valor)}` : t.decisao === 'rejeitado' ? 'não validado'
+    : t.status === 'feito' ? 'aguardando pai ou mãe' : t.status === 'nao_feito' ? 'não feito' : (t.periodo ? PERIODO[t.periodo] : 'a fazer');
+  const pode = t.pode_marcar && !ehResp() && !t.decisao && (t.status === 'a_fazer' || t.status === 'feito');
+  let rec = '';
+  if (t.recurso_id) rec = `<div class="mut" style="flex-basis:100%">📣 Recurso: “${h(t.recurso_comentario)}” → ${t.recurso_decisao ? `<b>${t.recurso_decisao === 'validado' ? 'aceito' : 'negado'}</b>${t.recurso_resposta ? ' · ' + h(t.recurso_resposta) : ''}` : 'aguardando pai ou mãe'}</div>`;
+  else if (t.pode_recorrer) rec = `<details style="flex-basis:100%"><summary>Não concordo (recurso, até 5 dias)</summary><textarea id="rc-${t.tarefa}-${dia}" placeholder="Explique o que aconteceu"></textarea><br><button class="btn sec min" data-a="tRecurso" data-t="${t.tarefa}" data-d="${dia}">Enviar recurso</button></details>`;
+  return `<div class="task ${st}"><button class="chk" ${pode ? `data-a="tMarcar" data-s="${t.status === 'a_fazer' ? 'feito' : ''}" data-t="${t.tarefa}" data-d="${dia}"` : 'disabled'} aria-label="${t.status === 'a_fazer' ? 'Marcar' : 'Desmarcar'} ${h(t.nome)}">${mark}</button>
+    <div class="tx"><b>${t.emoji} ${h(t.nome)}</b><small>${sub}</small></div>${ptsTag(t.pontos)}${rec}</div>`;
+}
+function linhaCrono(d, i, texto){
+  const k = `crono:${d}:${i}`; const f = !!S.prog[k]?.feito;
+  return `<div class="task ${f ? 'ok' : ''}"><button class="chk" data-a="cronoTg" data-k="${k}" aria-label="${f ? 'Desmarcar' : 'Marcar'} ${h(texto)}">${f ? '✓' : ''}</button><div class="tx"><b>${h(texto)}</b><small>Plano de estudo</small></div></div>`;
 }
 
 function oQueFalta(g){
@@ -312,61 +479,127 @@ function oQueFalta(g){
 }
 
 function trilha(g){
-  const mo = S.grupos.estudos.moeda;
-  return `<div class="trilha">${[['bronze','🥉'],['prata','🥈'],['ouro','🥇']].map(([n, ic]) => `<div class="${g[n]?'on':''}"><span>${ic}</span>${fmtV(mo, g.M[n])}</div>`).join('')}</div>`;
+  return `<div class="trilha">${[['bronze','🥉','Bronze'],['prata','🥈','Prata'],['ouro','🥇','Ouro']].map(([n, ic, nm]) => `<div class="${g[n] ? 'on' : ''}"><span>${ic}</span>${nm}<br><small>+${pts(g.M[n])}</small></div>`).join('')}</div>`;
 }
 
-function telaHoje(){
-  const hoje = hojeISO(); const pp = proximaProva(); const g = calcMeta();
-  const diaHoje = S.crono.find(d => d.d===hoje) || S.crono.find(d => d.d > hoje);
+function telaHoje(){ return ehResp() ? hojePais() : hojeAluno(); }
+function hojeAluno(){
+  const hoje = hojeISO(), ontem = addDias(hoje, -1);
+  const T = S.tarefas[hoje] || [];
+  const dc = S.crono.find(d => d.d === hoje);
+  const itensC = dc ? dc.itens : [];
+  const okT = t => t.status === 'feito' && t.decisao !== 'rejeitado';
+  const total = T.length + itensC.length;
+  const feitos = T.filter(okT).length + itensC.filter((_, i) => S.prog[`crono:${hoje}:${i}`]?.feito).length;
+  const grupos = grupoPeriodo(T);
+  const casa = grupos.map(([nome, L]) => `<h3>${grupos.length === 1 && nome === 'Durante o dia' ? 'Tarefas de casa' : nome}</h3>${L.map(t => linhaTarefa(t, hoje)).join('')}`).join('');
+  const estudo = itensC.length ? `<h3>Plano de estudo</h3>${itensC.map((it, i) => linhaCrono(hoje, i, it)).join('')}` : '';
+  const O = (S.tarefas[ontem] || []).filter(t => t.status === 'a_fazer' && t.pode_marcar);
+  const pp = proximaProva(); const g = calcMeta();
+  const revTxt = S.rev.length ? `<p class="mut" style="margin:10px 0 0">${S.rev.map(r => `${r.t.emoji} hoje: <b>${h(nomeAluno(r.hoje))}</b>`).join(' · ')}</p>` : '';
   let meta = '';
   const falta = g ? g.prazo - new Date() : 0;
   if (g && falta > 0){
-    const hh = Math.floor(falta/36e5), mm = Math.floor(falta%36e5/6e4);
-    meta = `<div class="card hero"><div class="row sp"><h2 style="margin:0">🎮 Missão da semana</h2><span class="mut">faltam ${hh}h${String(mm).padStart(2,'0')}</span></div>
-      ${trilha(g)}
+    const hh = Math.floor(falta / 36e5), mm = Math.floor(falta % 36e5 / 6e4);
+    meta = `<div class="card"><div class="row sp"><h2 style="margin:0">Missão da semana</h2><span class="chip meta">faltam ${hh}h${String(mm).padStart(2, '0')}</span></div>${trilha(g)}
       <div class="mut" style="margin-bottom:4px">${g.ouro ? 'Você bateu o OURO! 🔥' : 'Pra subir de nível, falta:'}</div>
       ${oQueFalta(g).map(([mid, t]) => `<div class="falta" data-a="mat" data-v="${mid}"><span>${MAT(mid).emoji} <b>${h(MAT(mid).nome)}</b><br><small>${h(t)}</small></span><span>›</span></div>`).join('')}</div>`;
   }
-  const tHoje = S.tarefas[hoje] || [];
-  const aFazer = tHoje.filter(t => t.status === 'a_fazer').length;
-  const casa = tHoje.length ? `<div class="card"><div class="row sp"><h2 style="margin:0">🧹 Tarefas de casa</h2><button class="btn sec min" data-a="aba" data-v="tarefas">abrir ›</button></div>
-    <p class="mut" style="margin:6px 0 0">${aFazer ? `${aFazer} para marcar hoje` : 'Tudo marcado hoje ✓'}${S.rev.length ? ' · ' + S.rev.map(r => `${r.t.emoji} hoje: <b>${h(nomeAluno(r.hoje))}</b>`).join(' · ') : ''}</p></div>` : '';
-  const quem = ehResp() ? `Vendo: ${h(nomeAluno(S.aluno))}` : `E aí, ${h(S.perfil?.nome || '')}! 👋`;
-  return `<p class="hello">${quem}</p>
-    ${pp ? `<div class="card"><div class="row sp"><div><div class="mut">Próxima prova</div><div class="big">${pp.dias===0?'HOJE':pp.dias===1?'Amanhã':'em '+pp.dias+' dias'}</div></div><span class="tag">${fmtData(pp.d)}</span></div>
+  const teto = Number(S.grupos.casa?.teto_semana) || 0; const sem = ganhoSemana('casa');
+  const cap = teto ? `<div class="card"><div class="row sp"><b>Pontos de tarefas nesta semana</b><span class="mut">${pts(sem)} de ${pts(teto)}</span></div><div class="bar ouro" style="margin-top:8px"><i style="width:${Math.min(100, Math.round(100 * sem / teto))}%"></i></div></div>` : '';
+  return `<div class="card"><div class="row sp"><h2 style="margin:0">Hoje</h2><span class="chip ${total && feitos === total ? 'ok' : ''}">${feitos} de ${total}</span></div>
+      <div class="bar" style="margin:10px 0 4px"><i style="width:${total ? Math.round(100 * feitos / total) : 0}%"></i></div>
+      ${total && feitos === total ? '<div class="dia-ok">Dia completo! Bom trabalho. 🎉</div>' : ''}
+      ${casa}${estudo}${total ? '' : '<p class="vazio">Nada marcado para hoje.</p>'}${revTxt}</div>
+    ${O.length ? `<div class="card"><h2>Ainda dá para marcar (ontem)</h2>${O.map(t => linhaTarefa(t, ontem)).join('')}</div>` : ''}
+    ${pp ? `<div class="card"><div class="row sp"><div class="grow"><small class="mut">Próxima prova</small><h2 style="margin:0">${pp.dias === 0 ? 'HOJE' : emDias(pp.dias)}</h2></div><span class="tag">${fmtData(pp.d)}</span></div>
       <div class="row" style="margin-top:10px">${pp.mats.map(m => `<button class="btn sec min" data-a="mat" data-v="${m.id}">${m.emoji} ${h(m.nome)}</button>`).join('')}</div></div>` : ''}
-    ${meta}${casa}
-    ${S.crono.length ? `<div class="card"><h2>📅 ${diaHoje?.d===hoje ? 'O que fazer hoje' : 'Próximo dia do plano'}</h2>${diaHoje ? blocoDia(diaHoje) : '<p class="mut">Cronograma encerrado 🎉</p>'}
-      <details><summary>Ver cronograma completo</summary>${S.crono.map(blocoDia).join('')}</details></div>` : ''}
-    ${!S.mats.length ? '<div class="card"><p class="mut">Ainda não há matérias cadastradas. O pai ou a mãe cadastram na aba ⚙️ Cadastros.</p></div>' : ''}`;
+    ${meta}${cap}
+    ${!S.mats.length ? '<div class="card"><p class="mut">Ainda não há matérias cadastradas. O pai ou a mãe cadastram em Mais › Cadastros.</p></div>' : ''}
+    <button class="sair" data-a="sair">Sair</button>`;
+}
+function hojePais(){
+  const hoje = hojeISO();
+  const nPend = S.pend.length, nRec = S.recAb.length, nPed = S.resgPend.filter(r => r.status === 'pedido').length;
+  const cards = S.alunos.map(a => {
+    const R = (S.agenda[a.user_id] || []).filter(r => r.dia === hoje);
+    const feitos = R.filter(r => r.status === 'feito' && r.decisao !== 'rejeitado').length;
+    const pp = (S.fam.provas || []).filter(p => p.aluno === a.user_id && p.prova >= hoje).sort((x, y) => x.prova.localeCompare(y.prova))[0];
+    const dias = pp ? Math.round((new Date(pp.prova + 'T12:00:00') - new Date(hoje + 'T12:00:00')) / 864e5) : null;
+    const pend = S.pend.filter(p => p.aluno === a.user_id).length;
+    return `<div class="card"><div class="row">${av(a.user_id)}<div class="grow"><h2 style="margin:0">${h(a.nome)}</h2><small class="mut">${feitos} de ${R.length} tarefas hoje</small></div><span class="chip ouro">${coin} ${pts(S.saldosFam[a.user_id])}</span></div>
+      <div class="bar" style="margin:10px 0 8px"><i style="width:${R.length ? Math.round(100 * feitos / R.length) : 0}%"></i></div>
+      <div class="row sp"><small class="mut">${pp ? `${pp.emoji} ${h(pp.nome)} ${emDias(dias)}` : 'Sem prova marcada'}</small>${pend ? `<small class="mut">${pend} para validar</small>` : ''}</div></div>`;
+  }).join('');
+  const rev = S.rev.length ? `<div class="card"><h2>Revezamento</h2>${S.rev.map(r => `<div class="row sp" style="padding:6px 0"><span>${r.t.emoji} ${h(r.t.nome)}</span><span class="mut">hoje: <b>${h(nomeAluno(r.hoje))}</b> · amanhã: <b>${h(nomeAluno(r.amanha))}</b></span></div>`).join('')}</div>` : '';
+  return `<div class="card"><h2>Precisa de você</h2>${nPend + nRec + nPed
+      ? `<div class="row sp" style="margin-top:10px"><div class="grow"><b>${nPend} ${nPend === 1 ? 'tarefa' : 'tarefas'} para validar</b><br><small class="mut">${nPed} ${nPed === 1 ? 'pedido' : 'pedidos'} na Loja · ${nRec} ${nRec === 1 ? 'recurso' : 'recursos'}</small></div><button class="btn min" data-a="aba" data-v="aprovar">Ver</button></div>`
+      : '<div class="dia-ok">Tudo em dia. Nada esperando por você.</div>'}</div>${cards}${rev}`;
 }
 
+function agendaItens(w, d){ return (S.agenda[w] || []).filter(r => r.dia === d); }
+function pontosDia(d, ws){
+  const x = [];
+  if ((S.fam.provas || []).some(p => ws.includes(p.aluno) && p.prova === d)) x.push('prova');
+  if (ws.some(w => agendaItens(w, d).length)) x.push('casa');
+  if (ws.some(w => (S.fam.crono[w] || []).some(c => c.d === d))) x.push('estudo');
+  const m = calcMeta();
+  if (m && ws.includes(S.aluno) && m.prazo.toLocaleDateString('sv-SE', { timeZone:'America/Sao_Paulo' }) === d) x.push('meta');
+  return `<span class="dots">${x.map(c => `<i class="dot ${c}"></i>`).join('')}</span>`;
+}
+function linhaAgenda(r, w){
+  const hoje = hojeISO(); const ontem = addDias(hoje, -1);
+  const st = r.decisao === 'validado' ? 'ok' : r.decisao === 'rejeitado' ? 'rej' : r.status === 'feito' ? 'feito' : r.status === 'nao_feito' ? 'nao' : r.status === 'futuro' ? 'fut' : '';
+  const mark = { ok:'✓', feito:'⏳', rej:'✕', nao:'✕' }[st] || '';
+  const sub = r.decisao === 'validado' ? 'validado' : r.decisao === 'rejeitado' ? 'não validado' : r.status === 'feito' ? 'aguardando validação'
+    : r.status === 'nao_feito' ? 'não feito' : (r.periodo ? PERIODO[r.periodo] : (r.status === 'futuro' ? 'ainda não chegou' : 'a fazer'));
+  const k = `data-t="${r.tarefa}" data-d="${r.dia}" data-al="${w}"`;
+  let acoes = ''; let btn = '';
+  if (ehResp()){
+    if (r.status === 'feito' && !r.decisao) acoes = `<button class="btn bad min" data-a="tDecidir" data-s="rejeitado" ${k}>Rejeitar</button><button class="btn ok min" data-a="tDecidir" data-s="validado" ${k}>Validar</button>`;
+    else if (!r.decisao && r.dia <= hoje && r.status !== 'feito') acoes = `<button class="btn sec min" data-a="tMarcar" data-s="feito" ${k}>Marcar como feita</button>`;
+  } else if (!r.decisao && (r.dia === hoje || r.dia === ontem) && ['a_fazer', 'feito'].includes(r.status)){
+    btn = `data-a="tMarcar" data-s="${r.status === 'a_fazer' ? 'feito' : ''}" ${k}`;
+  }
+  return `<div class="task ${st}"><button class="chk" ${btn || 'disabled'} aria-label="${h(r.nome)}">${mark}</button>
+    <div class="tx"><b>${r.emoji} ${h(r.nome)}</b><small>${sub}</small></div>${ptsTag(r.pontos)}${acoes ? `<div class="acoes">${acoes}</div>` : ''}</div>`;
+}
+function linhaCronoAg(w, d, i, texto){
+  if (!ehResp()) return linhaCrono(d, i, texto);
+  const f = !!S.fam.progCrono[w]?.[`crono:${d}:${i}`];
+  return `<div class="task ${f ? 'ok' : ''}"><button class="chk" disabled aria-label="${h(texto)}">${f ? '✓' : ''}</button><div class="tx"><b>${h(texto)}</b><small>Plano de estudo</small></div></div>`;
+}
 function telaAgenda(){
-  const hoje = hojeISO(); const sel = S.diaSel || hoje;
-  const primeiro = [hoje, S.crono[0]?.d].filter(Boolean).sort()[0];
-  const ini = addDias(primeiro, -new Date(primeiro + 'T12:00:00').getDay());
-  const dias = Array.from({ length:21 }, (_, i) => addDias(ini, i));
-  const prazo = calcMeta()?.prazo; const diaPrazo = prazo ? prazo.toLocaleDateString('sv-SE', { timeZone:'America/Sao_Paulo' }) : null;
-  const cel = d => {
-    const provas = S.mats.filter(m => m.prova === d);
-    const cr = S.crono.find(c => c.d === d);
-    const feitos = cr ? cr.itens.filter((_, i) => S.prog[`crono:${d}:${i}`]?.feito).length : 0;
-    const n = Number(d.slice(8));
-    let chips = '';
-    if (provas.length) chips += `<div class="chip prova">✏️ ${provas.map(m => m.emoji).join('')}</div>`;
-    if (d === diaPrazo) chips += `<div class="chip gta">🎮 meta</div>`;
-    if (S.pausas.some(p => d >= p.inicio && d <= p.fim)) chips += `<div class="chip fer">pausa</div>`;
-    if (cr) chips += `<div class="chip ${feitos===cr.itens.length?'ok':''}">${feitos===cr.itens.length?'✓':''} ${feitos}/${cr.itens.length}</div>`;
-    return `<div class="cal-d ${d===hoje?'hoje':''} ${d===sel?'sel':''} ${d<hoje?'passado':''}" data-a="dia" data-v="${d}"><span class="n">${n===1?'1/'+d.slice(5,7):n}</span>${chips}</div>`;
-  };
-  const cr = S.crono.find(c => c.d === sel); const provas = S.mats.filter(m => m.prova === sel);
-  return `<div class="card" style="padding:10px"><div class="row sp" style="padding:4px 6px 10px"><b>Próximas 3 semanas</b><span class="mut">toque num dia</span></div>
-    <div class="cal">${['D','S','T','Q','Q','S','S'].map(x => `<div class="cal-h">${x}</div>`).join('')}${dias.map(cel).join('')}</div>
-    <div class="row" style="padding:10px 4px 2px;gap:12px;font-size:12px"><span><span class="chip prova">✏️</span> prova</span><span><span class="chip">0/3</span> metas do dia</span><span><span class="chip gta">🎮</span> prazo da meta</span></div></div>
-    <div class="card"><h2>${fmtData(sel)}${sel===hoje?' · hoje':''}</h2>
-      ${provas.length ? `<div class="row" style="margin-bottom:8px">${provas.map(m => `<button class="btn sec min" data-a="mat" data-v="${m.id}">✏️ Prova: ${m.emoji} ${h(m.nome)}</button>`).join('')}</div>` : ''}
-      ${cr ? blocoDia(cr) : '<p class="mut">Sem metas neste dia.</p>'}</div>`;
+  const hoje = hojeISO(); const sel = S.agSel || hoje;
+  const ws = ehResp() ? (S.agFiltro === 'todos' ? S.alunos.map(a => a.user_id) : [S.agFiltro]) : [S.aluno];
+  const filtros = ehResp() ? `<div class="seg"><button data-a="agFiltro" data-v="todos" aria-pressed="${S.agFiltro === 'todos'}">Todos</button>${S.alunos.map(a => `<button data-a="agFiltro" data-v="${a.user_id}" aria-pressed="${S.agFiltro === a.user_id}">${h(a.nome)}</button>`).join('')}</div>` : '';
+  const toggle = `<div class="seg">${[['semana', 'Semana'], ['mes', 'Mês']].map(([v, n]) => `<button data-a="agView" data-v="${v}" aria-pressed="${S.agView === v}">${n}</button>`).join('')}</div>`;
+  const cel = (d, mes) => `<button class="dbtn ${d === hoje ? 'hoje' : ''} ${d === sel ? 'sel' : ''} ${d < hoje ? 'pas' : ''}" data-a="agSel" data-v="${d}" aria-label="${diaCurto(d)}">${mes ? '' : `<small>${DOWL[dow(d)]}</small>`}<span class="n">${Number(d.slice(8))}</span>${pontosDia(d, ws)}</button>`;
+  let grade;
+  if (S.agView === 'semana'){
+    const ini = S.agIni || hoje;
+    grade = `<div class="navw"><button data-a="agIni" data-v="-7" ${ini <= addDias(hoje, -7) ? 'disabled' : ''} aria-label="Semana anterior">‹</button><b>${fmtData(ini).replace(/^[^,]*, /, '')} a ${fmtData(addDias(ini, 6)).replace(/^[^,]*, /, '')}</b><button data-a="agIni" data-v="7" ${ini >= addDias(hoje, 21) ? 'disabled' : ''} aria-label="Próxima semana">›</button></div>
+      <div class="week">${Array.from({ length:7 }, (_, i) => cel(addDias(ini, i), false)).join('')}</div>`;
+  } else {
+    const ini = addDias(hoje, -dow(hoje));
+    grade = `<div class="month" style="margin-bottom:4px">${DOWH.map(x => `<div class="mh">${x}</div>`).join('')}</div><div class="month">${Array.from({ length:28 }, (_, i) => cel(addDias(ini, i), true)).join('')}</div>`;
+  }
+  const provasDia = (S.fam.provas || []).filter(p => ws.includes(p.aluno) && p.prova === sel);
+  const pausa = S.pausas.find(p => sel >= p.inicio && sel <= p.fim);
+  const meta = calcMeta();
+  const fimMeta = meta && ws.includes(S.aluno) && meta.prazo.toLocaleDateString('sv-SE', { timeZone:'America/Sao_Paulo' }) === sel;
+  const blocos = ws.map(w => { const T = agendaItens(w, sel); const C = (S.fam.crono[w] || []).find(c => c.d === sel);
+    return `${ws.length > 1 ? `<div class="pessoa">${av(w, true)} ${h(nomeAluno(w))}</div>` : ''}${T.map(r => linhaAgenda(r, w)).join('')}
+      ${C ? `<h3>${h(C.t)}</h3>${C.itens.map((it, i) => linhaCronoAg(w, sel, i, it)).join('')}` : ''}
+      ${!T.length && !C ? '<div class="vazio">Nada marcado.</div>' : ''}`; }).join('');
+  return `<div class="row sp">${toggle}${filtros}</div>
+    <div class="card" style="padding:12px">${grade}<div class="legenda"><span><i class="dot prova"></i>prova</span><span><i class="dot casa"></i>tarefa de casa</span><span><i class="dot estudo"></i>estudo</span><span><i class="dot meta"></i>fim da missão</span></div></div>
+    <div class="card"><div class="row sp"><h2 style="margin:0">${diaCurto(sel)}</h2>${sel === hoje ? '<span class="chip ok">hoje</span>' : ''}</div>
+      ${pausa ? `<div class="aviso" style="margin-top:8px">⏸️ Dia pausado${pausa.motivo ? ' (' + h(pausa.motivo) + ')' : ''}: nada é cobrado.</div>` : ''}
+      ${provasDia.map(p => `<div class="row" style="margin-top:8px"><span class="chip prova">Prova</span><b>${p.emoji} ${h(p.nome)}</b>${ehResp() ? av(p.aluno, true) : ''}</div>`).join('')}
+      ${fimMeta ? '<div class="row" style="margin-top:8px"><span class="chip meta">Fim da missão</span><b>Prazo do bronze, prata e ouro</b></div>' : ''}
+      ${blocos}
+      ${!ehResp() && sel > hoje ? '<p class="mut" style="margin:8px 0 0">Você marca só hoje e ontem.</p>' : ''}</div>`;
 }
 
 function telaMaterias(){
@@ -456,67 +689,69 @@ function telaProva(){
 }
 
 // ---------- Tarefas da casa ----------
-function itemTarefa(t, dia){
-  const k = `data-t="${t.tarefa}" data-d="${dia}"`;
-  const mo = S.grupos.casa?.moeda || 'pontos';
-  let st = '', bts = '';
-  if (t.decisao === 'validado') st = `<span class="tag ok">✅ validado · +${fmtV(mo, t.valor)}</span>`;
-  else if (t.decisao === 'rejeitado') st = `<span class="tag bad">🚫 não validado</span>`;
-  else if (t.status === 'feito') st = `<span class="tag warn">⏳ esperando pai/mãe</span>`;
-  else if (t.status === 'nao_feito') st = `<span class="tag bad">❌ não feito</span>`;
-  else st = `<span class="tag">vale ${fmtV(mo, t.pontos)}</span>`;
-  if (t.pode_marcar){
-    if (t.status === 'a_fazer') bts = `<button class="btn ok min" data-a="tMarcar" data-s="feito" ${k}>✅ Fiz</button><button class="btn sec min" data-a="tMarcar" data-s="nao_feito" ${k}>Não fiz</button>`;
-    else bts = `<button class="btn sec min" data-a="tMarcar" data-s="" ${k}>desfazer</button>`;
+function itemLoja(p){
+  const saldo = S.saldoT;
+  const l = S.limites[p.id]; const restante = l ? Math.max(0, l.limite - l.usado) : Infinity;
+  const n = p.unidade ? Math.min(Math.max(1, S.qtdLoja[p.id] || 1), Math.max(1, restante === Infinity ? 99 : restante)) : 1;
+  const custo = p.custo * n;
+  const aguard = p.divide > 1 ? S.resgates.find(r => r.premio === p.id && r.status === 'aguardando') : null;
+  const compartilha = p.limite_grupo ? S.premios.filter(x => x.ativo && x.id !== p.id && x.limite_grupo === p.limite_grupo).map(x => x.nome) : [];
+  let limTxt = '';
+  if (l){
+    const usadoTxt = p.tipo === 'tela' ? `${fmtMin(l.usado * p.unidade)} de ${fmtMin(l.limite * p.unidade)}` : p.tipo === 'dinheiro' ? `R$ ${l.usado * p.unidade} de R$ ${l.limite * p.unidade}` : `${l.usado} de ${l.limite}`;
+    limTxt = `<small class="mut" style="display:block">${usadoTxt} ${p.limite_periodo === 'semana' ? 'nesta semana' : 'neste mês'}${compartilha.length ? ` (junto com ${h(compartilha.join(', '))})` : ''}</small>`;
   }
-  if (ehResp() && t.status === 'feito' && !t.decisao)
-    bts += `<button class="btn ok min" data-a="tDecidir" data-s="validado" ${k} data-al="${S.aluno}">Validar</button><button class="btn sec min" data-a="tDecidir" data-s="rejeitado" ${k} data-al="${S.aluno}">Rejeitar</button>`;
-  let rec = '';
-  if (t.recurso_id) rec = `<div class="mut" style="margin-top:6px">📣 Recurso: “${h(t.recurso_comentario)}” → ${t.recurso_decisao ? `<b>${t.recurso_decisao==='validado'?'aceito':'negado'}</b>${t.recurso_resposta?' · '+h(t.recurso_resposta):''}` : 'aguardando pai/mãe'}</div>`;
-  else if (t.pode_recorrer) rec = `<details><summary>Não concordo (recurso, até 5 dias)</summary><textarea id="rc-${t.tarefa}-${dia}" placeholder="Explique o que aconteceu"></textarea><br><button class="btn sec min" data-a="tRecurso" ${k}>Enviar recurso</button></details>`;
-  return `<div class="nivel" style="flex-wrap:wrap"><b class="ic">${t.emoji}</b><div style="flex:1;min-width:160px"><b>${h(t.nome)}</b><div>${st}</div></div><div class="row">${bts}</div>${rec ? `<div style="flex-basis:100%">${rec}</div>` : ''}</div>`;
+  const unidTxt = p.unidade ? (p.tipo === 'tela' ? fmtMin(p.unidade * n) : `R$ ${p.unidade * n}`) : '';
+  const stepper = p.unidade && !aguard ? `<div class="step"><button data-a="step" data-v="${p.id}" data-d="-1" ${n <= 1 ? 'disabled' : ''} aria-label="Menos">−</button><output>${unidTxt}</output><button data-a="step" data-v="${p.id}" data-d="1" ${n >= Math.min(restante, 99) ? 'disabled' : ''} aria-label="Mais">+</button></div>` : '';
+  const cancelar = aguard ? `<button class="btn bad min" data-a="rCancelar" data-v="${aguard.id}">Cancelar</button>` : '';
+  const falta = custo - saldo;
+  const pode = !aguard && saldo >= custo && restante >= n;
+  const msg = aguard ? 'Você já pagou a sua metade. Falta o outro pagar.' : restante < 1 ? 'Limite atingido' : (falta > 0 ? `Faltam ${pts(falta)} pontos` : (p.divide > 1 ? 'Cada um paga a sua metade. O dia é combinado com pai ou mãe.' : ''));
+  return `<div class="loja-item"><span class="tile">${p.emoji}</span><div class="grow"><b>${h(p.nome)}</b><div class="preco">${coin} ${pts(custo)}</div>
+      ${falta > 0 && !aguard ? `<div class="bar ouro" style="margin:6px 0 2px"><i style="width:${Math.min(100, Math.round(100 * saldo / custo))}%"></i></div>` : ''}
+      ${msg ? `<small class="mut" style="display:block">${msg}</small>` : ''}${limTxt}</div>
+    <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">${stepper}${cancelar}${!aguard ? `<button class="btn min" data-a="trocar" data-v="${p.id}" ${pode ? '' : 'disabled'}>Trocar</button>` : ''}</div></div>`;
 }
-function telaTarefas(){
-  const hoje = hojeISO();
-  const dias = Object.keys(S.tarefas).sort().reverse();
-  const pausa = d => S.pausas.find(p => d >= p.inicio && d <= p.fim);
-  const blocos = dias.map(d => { const L = S.tarefas[d]; const pz = pausa(d);
-    return `<div class="card"><h2>${d===hoje?'Hoje':d===addDias(hoje,-1)?'Ontem':fmtData(d)} <span class="mut">· ${fmtData(d)}</span></h2>
-      ${pz ? `<p class="mut">⏸️ Dia pausado${pz.motivo?' ('+h(pz.motivo)+')':''}: nada é cobrado.</p>` : ''}
-      ${L.length ? L.map(t => itemTarefa(t, d)).join('') : (pz ? '' : '<p class="mut">Nenhuma tarefa neste dia.</p>')}
-      ${!ehResp() && d!==hoje ? '<p class="mut">Dá pra marcar o dia de ontem até meia-noite de hoje. Depois, o que não foi marcado vira “não feito”.</p>' : ''}</div>`; }).join('');
-  const rev = S.rev.length ? `<div class="card"><h2>🔁 Revezamento</h2>${S.rev.map(r => `<div class="row sp" style="padding:6px 0"><span>${r.t.emoji} ${h(r.t.nome)}</span><span class="mut">hoje: <b>${h(nomeAluno(r.hoje))}</b> · amanhã: <b>${h(nomeAluno(r.amanha))}</b></span></div>`).join('')}</div>` : '';
-  const filtro = ehResp() ? `<div class="card"><div class="row"><span class="mut">Dia:</span><input type="date" id="tdia" value="${S.diaTarefa||hoje}" max="${hoje}" style="flex:1"><button class="btn sec min" data-a="tDia">ver</button></div><p class="mut" style="margin:6px 0 0">Pai e mãe marcam qualquer dia passado. Validação fica no Painel.</p></div>` : '';
-  const mo = S.grupos.casa?.moeda || 'pontos';
-  return `<div class="card hero"><div class="mut">${GRUPO.casa[0]} Saldo das tarefas de casa</div><div class="big">${fmtV(mo, S.saldos.casa)}</div><div class="mut">Troque na aba 🎁 Prêmios</div></div>
-    ${filtro}${rev}${blocos}`;
-}
-
-function telaPremios(){
-  const G = S.grupos; if (!G.casa) return '<div class="card"><p class="mut">Carregando…</p></div>';
-  const g = calcMeta(); const d = calcDinheiro();
-  const cartao = gr => { const x = G[gr]; const ganho = ganhoJanela(gr);
-    return `<div class="saldo"><div class="mut">${GRUPO[gr][0]} ${GRUPO[gr][1]}</div><div class="big">${fmtV(x.moeda, S.saldos[gr])}</div>
-      <div class="mut">${x.expira==='semanal'?'zera domingo 23h59':'acumula'}${x.teto?` · ganho ${x.expira==='semanal'?'na semana':'total'}: ${fmtV(x.moeda, ganho)} de ${fmtV(x.moeda, x.teto)}`:''}</div></div>`; };
-  const mo = G.estudos.moeda;
-  const nv = (ok, ic, nome, v, det) => `<div class="nivel"><b class="ic">${ok?ic:'🔒'}</b><div style="flex:1"><b>${nome} · ${fmtV(mo, v)}</b><div class="mut">${det}</div></div>${ok?'<span class="tag ok">conquistado</span>':''}</div>`;
+function comoGanhar(){
+  const g = calcMeta(); const d = calcDinheiro(); const G = S.grupos;
+  const nv = (ok, ic, nome, v, det) => `<div class="nivel"><b class="ic">${ok ? ic : '🔒'}</b><div style="flex:1"><b>${nome} · +${pts(v)}</b><div class="mut">${det}</div></div>${ok ? '<span class="tag ok">conquistado</span>' : ''}</div>`;
   const em = mid => MAT(mid)?.emoji || mid;
-  const niveis = g ? `<div class="card"><h2>🎮 Missão (prazo ${g.prazo.toLocaleString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})})</h2>
-    ${nv(g.bronze,'🥉','Bronze',g.M.bronze,'Estudo + exercícios marcados em tudo: '+g.bronzeDet.map(x=>em(x.mid)+(x.ok?'✅':'⏳')).join(' '))}
-    ${nv(g.prata,'🥈','Prata',g.M.prata,`Treino ${g.c.treino_min}%+ em todas: `+g.prataDet.map(x=>em(x.mid)+' '+(x.v>=0?x.v+'%':'—')).join(' · '))}
-    ${nv(g.ouro,'🥇','Ouro',g.M.ouro,`Prova valendo ${g.c.prova_min}%+ em ${g.qtd} de ${g.mats.length}: `+g.ouroDet.map(x=>em(x.mid)+' '+(x.v>=0?x.v+'%':'—')).join(' · '))}
-    <p class="mut">O pai ou a mãe lançam o nível conquistado no saldo depois do prazo.</p></div>` : '';
-  const mn = G.notas.moeda;
-  const notas = S.mats.length ? `<div class="card"><h2>💰 Notas das provas${d.c.maximo?' · até '+fmtV(mn, d.c.maximo):''}</h2><p class="mut">${fmtV(mn, d.c.por_materia)} por matéria com nota ${d.c.nota_min} ou mais + ${fmtV(mn, d.c.bonus)} se nenhuma ficar abaixo de ${d.c.bonus_min}</p>
-    <table>${d.linhas.map(l => `<tr><td>${MAT(l.mid).emoji} ${h(MAT(l.mid).nome)}</td><td>${l.n ?? '—'}</td><td style="text-align:right">${l.v?'<b>'+fmtV(mn, l.v)+'</b>':''}</td></tr>`).join('')}
-    <tr><td>⭐ Bônus</td><td></td><td style="text-align:right">${d.bonus?'<b>'+fmtV(mn, d.bonus)+'</b>':d.todas?'—':'…'}</td></tr></table>
-    <div class="row sp" style="margin-top:10px"><b>Total previsto</b><span class="big">${fmtV(mn, d.total)}</span></div></div>` : '';
-  const mc = G.casa.moeda;
-  const premios = S.premios.filter(p => p.ativo && (!p.alunos || p.alunos.includes(S.aluno)));
-  const loja = `<div class="card"><h2>🛍️ Loja de prêmios</h2>${premios.map(p => `<div class="nivel"><b class="ic">${p.emoji}</b><div style="flex:1"><b>${h(p.nome)}</b><div class="mut">${fmtV(mc, p.custo)}</div></div>
-      ${ehResp() ? '' : `<button class="btn ${S.saldos.casa >= p.custo ? 'ok' : 'sec'} min" data-a="resgatar" data-v="${p.id}" ${S.saldos.casa >= p.custo ? '' : 'disabled'}>Trocar</button>`}</div>`).join('') || '<p class="mut">Nenhum prêmio cadastrado ainda.</p>'}</div>`;
-  const ext = `<div class="card"><h2>📒 Extrato</h2>${S.lanc.slice(0, 40).map(l => `<div class="row sp" style="padding:6px 0;border-top:1px solid var(--line)"><span>${GRUPO[l.grupo][0]} ${h(l.descricao)}<br><small class="mut">${fmtData(l.data_ref)}</small></span><b style="color:${l.valor<0?'var(--bad)':'var(--ok)'}">${l.valor>0?'+':''}${fmtV(l.moeda, l.valor)}</b></div>`).join('') || '<p class="mut">Nenhum lançamento ainda.</p>'}</div>`;
-  return `<div class="card"><div class="saldos">${['estudos','casa','notas'].map(cartao).join('')}</div></div>${niveis}${loja}${notas}${ext}`;
+  const c = G.estudos?.config || {};
+  const missao = g ? `<h3>Missão (prazo ${g.prazo.toLocaleString('pt-BR', { weekday:'short', day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })})</h3>
+    ${nv(g.bronze, '🥉', 'Bronze', g.M.bronze, 'Estudo + exercícios em tudo: ' + g.bronzeDet.map(x => em(x.mid) + (x.ok ? '✅' : '⏳')).join(' '))}
+    ${nv(g.prata, '🥈', 'Prata', g.M.prata, `Treino ${g.c.treino_min}%+ em todas: ` + g.prataDet.map(x => em(x.mid) + ' ' + (x.v >= 0 ? x.v + '%' : '—')).join(' · '))}
+    ${nv(g.ouro, '🥇', 'Ouro', g.M.ouro, `Prova valendo ${g.c.prova_min}%+ em ${g.qtd} de ${g.mats.length}: ` + g.ouroDet.map(x => em(x.mid) + ' ' + (x.v >= 0 ? x.v + '%' : '—')).join(' · '))}
+    <p class="mut">O pai ou a mãe lançam o nível conquistado depois do prazo.</p>` : '';
+  const notas = S.mats.length ? `<h3>Médias do bimestre${d.c.maximo ? ' · até ' + pts(d.c.maximo) + ' pontos' : ''}</h3><p class="mut">${pts(d.c.por_materia)} pontos por matéria com média ${d.c.nota_min} ou mais, mais ${pts(d.c.bonus)} se nenhuma ficar abaixo de ${d.c.bonus_min}.</p>
+    <table>${d.linhas.map(l => `<tr><td>${MAT(l.mid).emoji} ${h(MAT(l.mid).nome)}</td><td>${l.n ?? '—'}</td><td style="text-align:right">${l.v ? '<b>+' + pts(l.v) + '</b>' : ''}</td></tr>`).join('')}
+    <tr><td>⭐ Bônus</td><td></td><td style="text-align:right">${d.bonus ? '<b>+' + pts(d.bonus) + '</b>' : d.todas ? '—' : '…'}</td></tr></table>
+    <div class="row sp" style="margin-top:10px"><b>Total previsto</b><span class="big">${pts(d.total)}</span></div>` : '';
+  return `<div class="card"><details><summary>Como ganhar mais pontos</summary>
+    <table style="margin-top:8px"><tr><td>🧹 Cada tarefa de casa</td><td style="text-align:right">o valor dela</td></tr>
+    <tr><td>📖 Tópico concluído</td><td style="text-align:right"><b>+${pts(c.pts_topico ?? 30)}</b></td></tr>
+    <tr><td>🎯 Treino com ${c.treino_min ?? 70}%+</td><td style="text-align:right"><b>+${pts(c.pts_treino ?? 40)}</b></td></tr>
+    <tr><td>🏛️ Prova valendo com ${c.prova_min ?? 80}%+</td><td style="text-align:right"><b>+${pts(c.pts_prova ?? 100)}</b></td></tr></table>${missao}${notas}</details></div>`;
+}
+function telaLoja(){
+  const w = S.aluno; if (!S.grupos.casa) return '<div class="card"><p class="mut">Carregando…</p></div>';
+  const prem = S.premios.filter(p => p.ativo && (!p.alunos || p.alunos.includes(w)));
+  const sec = (tit, tipo) => { const L = prem.filter(p => p.tipo === tipo); return L.length ? `<div class="card"><h2>${tit}</h2>${L.map(itemLoja).join('')}</div>` : ''; };
+  const pend = S.resgates.filter(r => ['aguardando', 'pedido'].includes(r.status));
+  const pendTxt = pend.length ? `<div class="card"><h2>Seus pedidos</h2>${pend.map(r => `<div class="ext"><span>${h(r.nome)}${r.quantidade > 1 ? ' × ' + r.quantidade : ''}<br><small class="mut">${r.status === 'aguardando' ? 'esperando o outro pagar a metade' : 'o pai ou a mãe vão combinar'}</small></span><b>−${pts(r.custo)}</b></div>`).join('')}</div>` : '';
+  const sem = ganhoSemana('casa'); const teto = Number(S.grupos.casa.teto_semana) || 0;
+  return `<div class="card saldo-card"><small style="font-weight:800">Seu saldo</small><div class="big">${coin}${pts(S.saldoT)}</div>
+      <small>${teto ? `Tarefas nesta semana: ${pts(sem)} de ${pts(teto)}. ` : ''}Os pontos nunca vencem.</small></div>
+    ${sec('🎮 Tempo de tela', 'tela')}${sec('Experiências', 'experiencia')}${sec('💰 Dinheiro', 'dinheiro')}
+    ${!prem.length ? '<div class="card"><p class="mut">A loja ainda está vazia. O pai ou a mãe cadastram os itens em Mais › Cadastros.</p></div>' : ''}
+    ${pendTxt}${comoGanhar()}
+    <div class="card"><h2>Extrato</h2>${S.lanc.slice(0, 40).map(l => `<div class="ext"><span>${GRUPO[l.grupo][0]} ${h(l.descricao)}<br><small class="mut">${fmtData(l.data_ref)}</small></span><b class="${l.valor < 0 ? 'neg' : 'pos'}">${l.valor > 0 ? '+' : ''}${pts(l.valor)}</b></div>`).join('') || '<p class="vazio">Nenhum lançamento ainda.</p>'}</div>`;
+}
+function sheetHtml(){
+  const p = S.premios.find(x => x.id === S.sheet.id); if (!p) return '';
+  const n = p.unidade ? Math.max(1, S.qtdLoja[p.id] || 1) : 1; const custo = p.custo * n;
+  return `<div class="sheetbg"><div class="sheet" role="dialog" aria-label="Confirmar troca"><h2>Trocar ${pts(custo)} pontos por ${h(descPremio(p, n))}?</h2>
+    <p class="mut" style="margin:0">Você fica com ${pts(S.saldoT - custo)} pontos. O pedido vai para o pai ou a mãe.${p.divide > 1 ? ' O dia só é combinado quando todos pagarem a metade.' : ''}</p>
+    <div class="row"><button class="btn ghost grow" data-a="fechaSheet">Cancelar</button><button class="btn grow" data-a="confirmar">Confirmar</button></div></div></div>`;
 }
 
 function telaVerQuestoes(){
@@ -540,51 +775,76 @@ async function abrirQuestoes(mid){
   render();
 }
 
-function telaPainel(){
+function telaAprovar(){
   const nomeT = id => { const t = S.tarefasCad.find(x => x.id === id); return t ? t.emoji + ' ' + h(t.nome) : '#' + id; };
-  const pend = `<div class="card"><h2>✅ Tarefas esperando validação (${S.pend.length})</h2>${S.pend.map(p => `<div class="nivel" style="flex-wrap:wrap"><div style="flex:1;min-width:160px"><b>${nomeT(p.tarefa)}</b><div class="mut">${h(nomeAluno(p.aluno))} · ${fmtData(p.dia)} · ${fmtV(S.grupos.casa?.moeda||'pontos', p.valor)}</div></div>
-      <div class="row"><button class="btn ok min" data-a="tDecidir" data-s="validado" data-t="${p.tarefa}" data-d="${p.dia}" data-al="${p.aluno}">Validar</button><button class="btn sec min" data-a="tDecidir" data-s="rejeitado" data-t="${p.tarefa}" data-d="${p.dia}" data-al="${p.aluno}">Rejeitar</button></div></div>`).join('') || '<p class="mut">Nada pendente.</p>'}</div>`;
-  const rec = S.recAb.length ? `<div class="card"><h2>📣 Recursos abertos</h2>${S.recAb.map(r => `<div class="topico"><b>${nomeT(r.tarefa)}</b> <span class="mut">· ${h(nomeAluno(r.aluno))} · ${fmtData(r.dia)}</span>
+  const pend = `<div class="card"><h2>Tarefas para validar (${S.pend.length})</h2>${S.pend.map(p => `<div class="task"><div class="tx"><b>${nomeT(p.tarefa)}</b><small>${av(p.aluno, true)} ${h(nomeAluno(p.aluno))} · ${diaRel(p.dia)}</small></div>${ptsTag(p.valor)}
+      <div class="acoes"><button class="btn bad min" data-a="tDecidir" data-s="rejeitado" data-t="${p.tarefa}" data-d="${p.dia}" data-al="${p.aluno}">Rejeitar</button><button class="btn ok min" data-a="tDecidir" data-s="validado" data-t="${p.tarefa}" data-d="${p.dia}" data-al="${p.aluno}">Validar</button></div></div>`).join('') || '<p class="vazio">Nada esperando validação.</p>'}</div>`;
+  const P = S.resgPend; const vistos = new Set();
+  const linhasLoja = P.map(r => { const p = S.premios.find(x => x.id === r.premio);
+    if (p?.divide > 1){ const key = r.premio + '|' + r.semana; if (vistos.has(key)) return ''; vistos.add(key);
+      const grp = P.filter(x => x.premio === r.premio && x.semana === r.semana); const prontos = grp.every(x => x.status === 'pedido');
+      return `<div class="task"><span class="tile">${p.emoji}</span><div class="tx"><b>${h(r.nome)}</b><small>${grp.map(x => h(nomeAluno(x.aluno))).join(' e ')} ${grp.length === 1 ? 'pagou' : 'pagaram'} a metade${prontos ? '. Falta combinar o dia' : '. Aguardando o outro pagar'}</small></div>
+        <div class="acoes">${grp.map(x => `<button class="btn bad min" data-a="rCancelar" data-v="${x.id}">Cancelar ${h(nomeAluno(x.aluno))}</button>`).join('')}${prontos ? `<button class="btn ok min" data-a="rEntregar" data-v="${grp[0].id}">Combinado ✓</button>` : ''}</div></div>`; }
+    return `<div class="task"><span class="tile">${p?.emoji || '🎁'}</span><div class="tx"><b>${h(r.nome)}${r.quantidade > 1 ? ' × ' + r.quantidade : ''}</b><small>${h(nomeAluno(r.aluno))} · ${pts(r.custo)} pontos</small></div>
+      <div class="acoes"><button class="btn bad min" data-a="rCancelar" data-v="${r.id}">Cancelar e devolver</button><button class="btn ok min" data-a="rEntregar" data-v="${r.id}">Combinado ✓</button></div></div>`; }).join('');
+  const loja = `<div class="card"><h2>Pedidos da Loja</h2>${linhasLoja || '<p class="vazio">Nenhum pedido esperando.</p>'}</div>`;
+  const rec = S.recAb.length ? `<div class="card"><h2>Recursos abertos</h2>${S.recAb.map(r => `<div class="topico" style="box-shadow:none;border:1px solid var(--line);margin-top:8px"><b>${nomeT(r.tarefa)}</b> <span class="mut">· ${h(nomeAluno(r.aluno))} · ${diaRel(r.dia)}</span>
       <p>“${h(r.comentario)}”</p><input id="rr-${r.id}" placeholder="Resposta (opcional)"><br><br>
       <div class="row"><button class="btn ok min" data-a="tResolver" data-v="${r.id}" data-s="validado">Aceitar (validar)</button><button class="btn sec min" data-a="tResolver" data-v="${r.id}" data-s="rejeitado">Manter rejeitada</button></div><p class="mut">A decisão é final.</p></div>`).join('')}</div>` : '';
+  return `${pend}${loja}${rec}`;
+}
+function telaAlunos(){
+  const sem = ganhoSemana('casa'); const teto = Number(S.grupos.casa?.teto_semana) || 0;
   const linhas = S.mats.map(m => {
     const p = progMat(m.id);
     const doms = m.topicos.map(t => S.prog[chT(m.id, t.idx)]?.dominio).filter(Boolean);
-    const media = doms.length ? (doms.reduce((a,b)=>a+b,0)/doms.length).toFixed(1) : '—';
-    const tr = melhor(m.id,'treino'), pv = melhor(m.id,'prova');
-    return `<tr><td>${m.emoji} ${h(m.nome)}</td><td>${p.ok}/${p.total}</td><td>${media}</td><td>${tr>=0?tr+'%':'—'}</td><td>${pv>=0?pv+'%':'—'}</td></tr>`;
+    const media = doms.length ? (doms.reduce((a, b) => a + b, 0) / doms.length).toFixed(1) : '—';
+    const tr = melhor(m.id, 'treino'), pv = melhor(m.id, 'prova');
+    return `<tr><td>${m.emoji} ${h(m.nome)}</td><td>${p.ok}/${p.total}</td><td>${media}</td><td>${tr >= 0 ? tr + '%' : '—'}</td><td>${pv >= 0 ? pv + '%' : '—'}</td></tr>`;
   }).join('');
   const duvidas = Object.values(S.prog).filter(r => r.duvida && r.chave !== 'redacao:texto' && !r.chave.startsWith('crono:')).map(r => {
     const [mid, i] = r.chave.split(':'); const tp = S.todosTopicos.find(t => t.materia === mid && t.idx === Number(i));
-    return `<div class="nivel"><div><b>${MAT(mid)?.emoji||''} ${h(tp?.nome || r.chave)}</b><div class="mut">${h(r.duvida)}</div></div></div>`;
+    return `<div class="nivel"><div><b>${MAT(mid)?.emoji || ''} ${h(tp?.nome || r.chave)}</b><div class="mut">${h(r.duvida)}</div></div></div>`;
   }).join('');
+  return `<div class="card saldo-card"><small style="font-weight:800">Saldo de ${h(nomeAluno(S.aluno))}</small><div class="big">${coin}${pts(S.saldoT)}</div><small>${reais(S.saldoT)} · tarefas nesta semana: ${pts(sem)}${teto ? ' de ' + pts(teto) : ''}</small></div>
+    <div class="card"><h2>Como ${h(nomeAluno(S.aluno))} está</h2>${S.mats.length ? `<table><tr><th>Matéria</th><th>Tópicos</th><th>Domínio</th><th>Treino</th><th>Prova</th></tr>${linhas}</table>` : '<p class="vazio">Nenhuma matéria cadastrada.</p>'}</div>
+    <div class="card"><h2>Desempenho nas questões</h2><p class="mut">Tentativas, acertos e erros questão por questão, repetições e tópicos fracos.</p><table><tr><th>Matéria</th><th>Treinos</th><th>Provas</th><th>Melhor</th></tr>${S.mats.map(m => { const T = S.tent.filter(t => t.materia === m.id); const tr = T.filter(t => t.tipo === 'treino'), pv = T.filter(t => t.tipo === 'prova');
+      return T.length ? `<tr data-a="analise" data-v="${m.id}" style="cursor:pointer"><td>${m.emoji} ${h(m.nome)}</td><td>${tr.length}</td><td>${pv.length}</td><td>${Math.max(...T.map(t => Number(t.pct)))}%</td><td style="color:var(--ac);font-weight:800">ver ›</td></tr>` : ''; }).join('') || '<tr><td class="mut">Nenhum teste feito ainda.</td></tr>'}</table></div>
+    <div class="card"><h2>Questões cadastradas</h2><table><tr><th>Matéria</th><th>Treino</th><th>Prova</th></tr>${S.mats.map(m => `<tr data-a="verQ" data-v="${m.id}" style="cursor:pointer"><td>${m.emoji} ${h(m.nome)}</td><td>${S.qtd?.[m.id]?.treino || 0}</td><td>${S.qtd?.[m.id]?.prova || 0}</td><td style="color:var(--ac);font-weight:800">ver ›</td></tr>`).join('')}</table></div>
+    <div class="card"><h2>Dúvidas anotadas</h2>${duvidas || '<p class="vazio">Nenhuma ainda.</p>'}</div>
+    <div class="card"><h2>Extrato</h2>${S.lanc.slice(0, 15).map(l => `<div class="ext"><span>${GRUPO[l.grupo][0]} ${h(l.descricao)}<br><small class="mut">${fmtData(l.data_ref)}</small></span><b class="${l.valor < 0 ? 'neg' : 'pos'}">${l.valor > 0 ? '+' : ''}${pts(l.valor)}</b></div>`).join('') || '<p class="vazio">Nenhum lançamento ainda.</p>'}</div>`;
+}
+function painelLancar(){
   const G = S.grupos; const g = calcMeta(); const d = calcDinheiro();
   const refMeta = g ? 'meta:' + g.c.prazo : '';
   const metaLancada = g && S.lanc.some(l => l.origem === 'nivel' && l.origem_ref === refMeta);
-  const lancar = `<div class="card"><h2>🧾 Lançar recompensas de ${h(nomeAluno(S.aluno))}</h2>
-    ${g ? `<div class="nivel"><div style="flex:1"><b>🎮 Missão: ${g.nivel ? g.nivel.toUpperCase() + ' · ' + fmtV(G.estudos.moeda, g.valor) : 'nenhum nível'}</b><div class="mut">${metaLancada ? 'Já lançada ✓' : g.prazo > new Date() ? 'Prazo ainda não acabou' : 'Prazo encerrado'}</div></div>
+  return `<div class="card"><h2>Lançar recompensas de ${h(nomeAluno(S.aluno))}</h2>
+    ${g ? `<div class="nivel"><div style="flex:1"><b>🏅 Missão: ${g.nivel ? g.nivel.toUpperCase() + ' · +' + pts(g.valor) : 'nenhum nível'}</b><div class="mut">${metaLancada ? 'Já lançada ✓' : g.prazo > new Date() ? 'Prazo ainda não acabou' : 'Prazo encerrado'}</div></div>
       ${!metaLancada && g.valor ? `<button class="btn min" data-a="lMeta">Lançar</button>` : ''}</div>` : ''}
-    <div class="nivel"><div style="flex:1"><b>💰 Notas: ${fmtV(G.notas?.moeda, d.total)}</b><div class="mut">${d.todas ? 'Todas as notas lançadas' : 'Faltam notas'}</div></div>
-      <input id="lnRef" value="P2 ${new Date().getFullYear()}" style="width:110px"><button class="btn min" data-a="lNotas" ${d.total ? '' : 'disabled'}>Lançar</button></div>
-    <h2 style="margin-top:14px">⏱️ Registrar uso / ajuste</h2>
-    <div class="row"><select id="luG" style="flex:2">${['estudos','casa','notas'].map(x => `<option value="${x}">${GRUPO[x][0]} ${GRUPO[x][1]} (${MOEDA[G[x]?.moeda]})</option>`).join('')}</select>
-      <input id="luV" type="number" step="any" placeholder="valor" style="flex:1"></div><br>
-    <div class="row"><input id="luD" type="date" value="${hojeISO()}" style="flex:1"><input id="luT" placeholder="descrição (ex.: GTA sábado)" style="flex:2"></div><br>
-    <div class="row"><button class="btn sec" data-a="lUso" style="flex:1">➖ Usou / pagou</button><button class="btn" data-a="lCredito" style="flex:1">➕ Crédito extra</button></div>
-    <p class="mut">Minutos de tela: digite em minutos (2h = 120). Para corrigir um erro, faça um lançamento ao contrário.</p></div>`;
-  return `${pend}${rec}${lancar}
-    <div class="card"><h2>🛡️ Como ${h(nomeAluno(S.aluno))} está</h2><table><tr><th>Matéria</th><th>Tópicos</th><th>Domínio</th><th>Treino</th><th>Prova</th></tr>${linhas}</table></div>
-    <div class="card"><h2>📊 Desempenho nas questões</h2><p class="mut">Tentativas, acertos e erros questão por questão, repetições e tópicos fracos.</p><table><tr><th>Matéria</th><th>Treinos</th><th>Provas</th><th>Melhor</th></tr>${S.mats.map(m => { const T = S.tent.filter(t => t.materia === m.id); const tr = T.filter(t => t.tipo === 'treino'), pv = T.filter(t => t.tipo === 'prova');
-      return T.length ? `<tr data-a="analise" data-v="${m.id}" style="cursor:pointer"><td>${m.emoji} ${h(m.nome)}</td><td>${tr.length}</td><td>${pv.length}</td><td>${Math.max(...T.map(t => Number(t.pct)))}%</td><td style="color:var(--ac);font-weight:700">ver ›</td></tr>` : ''; }).join('') || '<tr><td class="mut">Nenhum teste feito ainda.</td></tr>'}</table></div>
-    <div class="card"><h2>🗂️ Questões cadastradas</h2><table><tr><th>Matéria</th><th>Treino</th><th>Prova</th></tr>${S.mats.map(m => `<tr data-a="verQ" data-v="${m.id}" style="cursor:pointer"><td>${m.emoji} ${h(m.nome)}</td><td>${S.qtd?.[m.id]?.treino||0}</td><td>${S.qtd?.[m.id]?.prova||0}</td><td style="color:var(--ac);font-weight:700">ver ›</td></tr>`).join('')}</table></div>
-    <div class="card"><h2>❓ Dúvidas anotadas</h2>${duvidas || '<p class="mut">Nenhuma ainda.</p>'}</div>
-    <div class="card"><h2>📋 Relatório para o Claude</h2><p class="mut">Copia o progresso para colar na conversa e pedir questões no nível certo.</p>
-      <button class="btn sec" data-a="relatorio">Copiar relatório</button></div>
-    <div class="card"><h2>💰 Lançar notas das provas</h2><table>${S.mats.map(m => `<tr><td>${m.emoji} ${h(m.nome)}</td><td style="width:100px"><input data-a="nota" data-v="${m.id}" type="number" step="0.1" min="0" max="10" value="${S.notas[m.id] ?? ''}"></td></tr>`).join('')}</table></div>
-    <div class="card"><h2>📥 Importar questões para ${h(nomeAluno(S.aluno))}</h2><p class="mut">Escolha o arquivo .json que o Claude mandou. O campo "materia" precisa ser um código cadastrado: ${S.todasMats.map(m => '<code>' + h(m.id) + '</code>').join(' ')}</p>
-      <input type="file" id="impf" accept=".json,application/json,text/plain"><p class="mut">…ou cole o conteúdo aqui:</p>
-      <textarea id="imp" style="min-height:140px" placeholder='[{"id":"...","materia":"portugues", ...}]'></textarea><br><br>
-      <button class="btn" data-a="importar">Importar</button></div>`;
+    <div class="nivel"><div style="flex:1"><b>🏫 Médias: +${pts(d.total)}</b><div class="mut">${d.todas ? 'Todas as médias lançadas' : 'Faltam médias'}</div></div>
+      <input id="lnRef" value="Bim ${new Date().getFullYear()}" style="width:110px"><button class="btn min" data-a="lNotas" ${d.total ? '' : 'disabled'}>Lançar</button></div>
+    <h3>Ajuste manual</h3>
+    <div class="row"><select id="luG" style="flex:2">${['estudos', 'casa', 'notas', 'loja'].map(x => `<option value="${x}">${GRUPO[x][0]} ${GRUPO[x][1]}</option>`).join('')}</select>
+      <input id="luV" type="number" step="any" placeholder="pontos" style="flex:1"></div><br>
+    <div class="row"><input id="luD" type="date" value="${hojeISO()}" style="flex:1"><input id="luT" placeholder="descrição (ex.: jantar extra)" style="flex:2"></div><br>
+    <div class="row"><button class="btn sec" data-a="lUso" style="flex:1">➖ Tirar pontos</button><button class="btn" data-a="lCredito" style="flex:1">➕ Dar pontos</button></div>
+    <p class="mut">10 pontos = R$ 1. Para corrigir um erro, faça um lançamento ao contrário.</p></div>
+    <div class="card"><h2>Médias do bimestre</h2><table>${S.mats.map(m => `<tr><td>${m.emoji} ${h(m.nome)}</td><td style="width:100px"><input data-a="nota" data-v="${m.id}" type="number" step="0.1" min="0" max="10" value="${S.notas[m.id] ?? ''}"></td></tr>`).join('') || '<tr><td class="mut">Nenhuma matéria cadastrada.</td></tr>'}</table></div>`;
+}
+function painelImportar(){
+  return `<div class="card"><h2>Importar questões para ${h(nomeAluno(S.aluno))}</h2><p class="mut">Escolha o arquivo .json que o Claude mandou. O campo "materia" precisa ser um código cadastrado: ${S.todasMats.map(m => '<code>' + h(m.id) + '</code>').join(' ') || '(nenhuma ainda)'}</p>
+    <input type="file" id="impf" accept=".json,application/json,text/plain"><p class="mut">…ou cole o conteúdo aqui:</p>
+    <textarea id="imp" style="min-height:140px" placeholder='[{"id":"...","materia":"portugues", ...}]'></textarea><br><br>
+    <button class="btn" data-a="importar">Importar</button></div>`;
+}
+function telaMais(){
+  const voltar = '<button class="voltar" data-a="maisVoltar">‹ Mais</button>';
+  if (S.mais === 'cad') return voltar + telaCad();
+  if (S.mais === 'lancar') return voltar + painelLancar();
+  if (S.mais === 'importar') return voltar + painelImportar();
+  const it = [['cad', '⚙️', 'Cadastros', 'tarefas, loja e preços, matérias, regras e pausas'], ['lancar', '🧾', 'Lançar médias e pontos', 'médias do bimestre, missão e ajustes'], ['importar', '📥', 'Importar questões', 'arquivo do Claude'], ['relatorio', '📋', 'Relatório para o Claude', 'copia o progresso de ' + nomeAluno(S.aluno)]];
+  return `<div class="card"><div class="lista">${it.map(([id, e, n, s]) => `<button data-a="${id === 'relatorio' ? 'relatorio' : 'maisAbre'}" data-v="${id}"><span>${e} <b>${n}</b><br><small class="mut">${s}</small></span><span class="mut">›</span></button>`).join('')}</div></div>
+    <button class="sair" data-a="sair">Sair</button>`;
 }
 
 
@@ -653,9 +913,9 @@ function telaAnalise(){
 
 // ---------- Cadastros (pais) ----------
 function telaCad(){
-  const sub = [['tarefas','🧹 Tarefas'],['premios','🛍️ Prêmios'],['materias','📚 Matérias'],['regras','🎁 Recompensas'],['pausas','⏸️ Pausas']];
+  const sub = [['tarefas', '🧹 Tarefas'], ['premios', '🛍️ Loja e preços'], ['materias', '📚 Matérias'], ['regras', '⭐ Pontos'], ['pausas', '⏸️ Pausas']];
   const corpo = ({ tarefas:cadTarefas, premios:cadPremios, materias:cadMaterias, regras:cadRegras, pausas:cadPausas })[S.cad]();
-  return `<div class="subabas">${sub.map(([id, nm]) => `<button data-a="cadAba" data-v="${id}" class="${S.cad===id?'on':''}">${nm}</button>`).join('')}</div>${corpo}`;
+  return `<div class="subabas">${sub.map(([id, nm]) => `<button data-a="cadAba" data-v="${id}" class="${S.cad === id ? 'on' : ''}">${nm}</button>`).join('')}</div>${corpo}`;
 }
 const ckAlunos = (pref, sel) => S.alunos.map(a => `<label class="ckin"><input type="checkbox" id="${pref}-${a.user_id}" ${sel?.includes(a.user_id)?'checked':''}> ${h(a.nome)}</label>`).join('');
 const SEMANA = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
@@ -664,10 +924,11 @@ const lerAlunos = pref => S.alunos.map(a => a.user_id).filter(id => document.get
 
 function formTarefa(t){
   const id = t?.id ?? 'novo'; const p = `t${id}`;
-  return `<div class="topico ${t && !t.ativa ? 'inativo' : ''}">
+  return `<div class="topico ${t && !t.ativa ? 'inativo' : ''}" style="${t ? 'box-shadow:none;border:1px solid var(--line);margin-top:8px' : ''}">
     <div class="row"><input id="${p}-emoji" value="${h(t?.emoji ?? '✅')}" style="width:60px"><input id="${p}-nome" value="${h(t?.nome ?? '')}" placeholder="Nome da tarefa" style="flex:1"></div>
-    <div class="row" style="margin-top:8px"><label class="mut">Vale</label><input id="${p}-pontos" type="number" min="0" step="any" value="${t?.pontos ?? 10}" style="width:90px"><span class="mut">${MOEDA[S.grupos.casa?.moeda || 'pontos']}</span>
-      <select id="${p}-modo" style="flex:1"><option value="todos" ${t?.modo!=='revezamento'?'selected':''}>Todo dia, para cada um marcado</option><option value="revezamento" ${t?.modo==='revezamento'?'selected':''}>Revezamento entre os marcados</option></select></div>
+    <div class="row" style="margin-top:8px"><label class="mut">Vale</label><input id="${p}-pontos" type="number" min="0" step="any" value="${t?.pontos ?? 5}" style="width:90px"><span class="mut">pontos</span>
+      <select id="${p}-periodo" style="flex:1"><option value="">O dia todo</option>${Object.entries(PERIODO).map(([k, n]) => `<option value="${k}" ${t?.periodo === k ? 'selected' : ''}>${n}</option>`).join('')}</select></div>
+    <div class="row" style="margin-top:8px"><select id="${p}-modo" style="flex:1"><option value="todos" ${t?.modo !== 'revezamento' ? 'selected' : ''}>Todo dia, para cada um marcado</option><option value="revezamento" ${t?.modo === 'revezamento' ? 'selected' : ''}>Revezamento entre os marcados</option></select></div>
     <div class="row" style="margin-top:8px">${ckAlunos(p + '-al', t?.alunos ?? S.alunos.map(a => a.user_id))}</div>
     <div class="row" style="margin-top:8px"><span class="mut">Dias:</span>${SEMANA.map((d, i) => `<label class="ckin"><input type="checkbox" id="${p}-ds-${i}" ${!t?.dias_semana || t.dias_semana.includes(i) ? 'checked' : ''}> ${d}</label>`).join('')}</div>
     <div class="row" style="margin-top:8px"><label class="mut">Começa em</label><input id="${p}-base" type="date" value="${t?.base ?? hojeISO()}" style="flex:1"></div>
@@ -677,20 +938,40 @@ function formTarefa(t){
       <select id="${p}-tal" style="flex:1">${t.alunos.map(a => `<option value="${a}">${h(nomeAluno(a))}</option>`).join('')}</select><button class="btn sec min" data-a="cTroca" data-v="${id}">Trocar</button></div>
       <p class="mut">Só muda aquele dia; o revezamento dos outros dias continua igual.</p></details>` : ''}</div>`;
 }
+function possivelSemana(a){
+  return S.tarefasCad.filter(t => t.ativa && t.alunos.includes(a)).reduce((s, t) => {
+    const dias = t.dias_semana ? t.dias_semana.length : 7;
+    return s + Number(t.pontos) * (t.modo === 'revezamento' ? dias / t.alunos.length : dias);
+  }, 0);
+}
+const IDEIAS = [['🪥', 'Escovar os dentes (manhã)', 'manha'], ['🪥', 'Escovar os dentes (noite)', 'noite'], ['🤝', 'Não brigar com o irmão', ''], ['🎒', 'Arrumar a mochila', 'noite'], ['📚', 'Fazer a lição de casa', 'tarde'], ['🛁', 'Tomar banho sem reclamar', 'noite']];
 function cadTarefas(){
-  return `<div class="card"><h2>🧹 Tarefas da casa</h2>${S.tarefasCad.map(formTarefa).join('') || '<p class="mut">Nenhuma.</p>'}</div>
-    <div class="card"><h2>➕ Nova tarefa</h2>${formTarefa(null)}</div>`;
+  const teto = Number(S.grupos.casa?.teto_semana) || 0;
+  const resumo = S.alunos.map(a => { const x = possivelSemana(a.user_id); const passa = teto && x > teto;
+    return `<div class="row sp" style="padding:6px 0"><span>${av(a.user_id, true)} ${h(a.nome)}</span><span class="${passa ? 'tag warn' : 'mut'}">${pts(x)} pontos possíveis por semana${teto ? ' · teto ' + pts(teto) : ''}</span></div>`; }).join('');
+  const passou = teto && S.alunos.some(a => possivelSemana(a.user_id) > teto);
+  return `<div class="card"><h2>Pontos das tarefas por semana</h2>${resumo}
+      <p class="mut" style="margin:6px 0 0">${passou ? 'As tarefas somam mais que o teto. O que passar do teto na semana não é creditado, então vale baixar o valor de algumas.' : 'Tarefa nova não aumenta o custo: o teto semanal segura. Hoje: ' + reais(teto) + ' por semana.'}</p></div>
+    <div class="card"><h2>🧹 Tarefas</h2>${S.tarefasCad.map(formTarefa).join('') || '<p class="vazio">Nenhuma.</p>'}</div>
+    <div class="card"><h2>➕ Nova tarefa</h2><div class="row" style="margin-bottom:8px">${IDEIAS.map(([e, n, p]) => `<button class="btn sec min" data-a="preset" data-e="${e}" data-n="${h(n)}" data-p="${p}">${e} ${h(n)}</button>`).join('')}</div>${formTarefa(null)}</div>`;
 }
 function formPremio(p){
   const id = p?.id ?? 'novo'; const k = `p${id}`;
-  return `<div class="topico ${p && !p.ativo ? 'inativo' : ''}"><div class="row"><input id="${k}-emoji" value="${h(p?.emoji ?? '🎁')}" style="width:60px"><input id="${k}-nome" value="${h(p?.nome ?? '')}" placeholder="Ex.: Tomar sorvete" style="flex:1"></div>
-    <div class="row" style="margin-top:8px"><label class="mut">Custa</label><input id="${k}-custo" type="number" min="0" step="any" value="${p?.custo ?? 50}" style="width:100px"><span class="mut">${MOEDA[S.grupos.casa?.moeda || 'pontos']}</span></div>
+  const tipos = { experiencia:'Experiência', tela:'Tempo de tela', dinheiro:'Dinheiro' };
+  return `<div class="topico ${p && !p.ativo ? 'inativo' : ''}" style="${p ? 'box-shadow:none;border:1px solid var(--line);margin-top:8px' : ''}"><div class="row"><input id="${k}-emoji" value="${h(p?.emoji ?? '🎁')}" style="width:60px"><input id="${k}-nome" value="${h(p?.nome ?? '')}" placeholder="Ex.: Tomar sorvete" style="flex:1"></div>
+    <div class="row" style="margin-top:8px"><select id="${k}-tipo" style="flex:1;min-width:160px">${Object.entries(tipos).map(([v, n]) => `<option value="${v}" ${(p?.tipo ?? 'experiencia') === v ? 'selected' : ''}>${n}</option>`).join('')}</select>
+      <label class="mut">Custa</label><input id="${k}-custo" type="number" min="0" step="any" value="${p?.custo ?? 100}" style="width:100px"><span class="mut">pontos</span></div>
+    <div class="row" style="margin-top:8px"><label class="mut">Cada compra vale</label><input id="${k}-unidade" type="number" min="0" step="any" value="${p?.unidade ?? ''}" style="width:90px" placeholder="—"><span class="mut">minutos (tela) ou reais (dinheiro)</span></div>
+    <div class="row" style="margin-top:8px"><label class="mut">Limite</label><input id="${k}-limite" type="number" min="0" step="1" value="${p?.limite ?? ''}" style="width:80px" placeholder="sem"><span class="mut">compras por</span>
+      <select id="${k}-per" style="flex:1"><option value="semana" ${p?.limite_periodo !== 'mes' ? 'selected' : ''}>semana</option><option value="mes" ${p?.limite_periodo === 'mes' ? 'selected' : ''}>mês</option></select></div>
+    <div class="row" style="margin-top:8px"><label class="campo" style="margin:0"><span class="mut">Itens com o mesmo grupo dividem o limite (ex.: passeio)</span><input id="${k}-grupo" value="${h(p?.limite_grupo ?? '')}" placeholder="opcional"></label>
+      <label class="campo" style="margin:0;max-width:150px"><span class="mut">Quantos pagam</span><input id="${k}-divide" type="number" min="1" max="4" value="${p?.divide ?? 1}"></label></div>
     <div class="row" style="margin-top:8px"><span class="mut">Para:</span>${ckAlunos(k + '-al', p ? (p.alunos ?? S.alunos.map(a => a.user_id)) : S.alunos.map(a => a.user_id))}</div><br>
-    <div class="row">${p ? `<button class="btn min" data-a="cPremioSalvar" data-v="${id}">Salvar</button><button class="btn sec min" data-a="cPremioAtivo" data-v="${id}">${p.ativo ? 'Desativar' : 'Reativar'}</button>` : `<button class="btn min" data-a="cPremioSalvar" data-v="novo">Criar prêmio</button>`}</div></div>`;
+    <div class="row">${p ? `<button class="btn min" data-a="cPremioSalvar" data-v="${id}">Salvar</button><button class="btn sec min" data-a="cPremioAtivo" data-v="${id}">${p.ativo ? 'Desativar' : 'Reativar'}</button>` : `<button class="btn min" data-a="cPremioSalvar" data-v="novo">Criar item</button>`}</div></div>`;
 }
 function cadPremios(){
-  return `<div class="card"><h2>🛍️ Prêmios de fim de semana</h2><p class="mut">Pagos com o saldo das tarefas de casa.</p>${S.premios.map(formPremio).join('') || '<p class="mut">Nenhum.</p>'}</div>
-    <div class="card"><h2>➕ Novo prêmio</h2>${formPremio(null)}</div>`;
+  return `<div class="card"><h2>🛍️ Loja e preços</h2><p class="mut">Custo em pontos (10 pontos = R$ 1). No jantar dividido, o custo é a parte de cada um e "quantos pagam" é 2.</p>${S.premios.map(formPremio).join('') || '<p class="vazio">Nenhum.</p>'}</div>
+    <div class="card"><h2>➕ Novo item</h2>${formPremio(null)}</div>`;
 }
 function cadMaterias(){
   const tops = m => S.todosTopicos.filter(t => t.materia === m.id);
@@ -709,24 +990,23 @@ function cadMaterias(){
 function cadRegras(){
   const G = S.grupos; if (!G.casa) return '';
   const f = (id, lbl, v, extra = '') => `<label class="campo"><span class="mut">${lbl}</span><input id="${id}" value="${h(v ?? '')}" ${extra}></label>`;
-  const base = gr => { const x = G[gr];
-    return `<div class="row"><label class="campo"><span class="mut">Recompensa</span><select id="g-${gr}-moeda">${Object.entries(MOEDA).map(([k, n]) => `<option value="${k}" ${x.moeda===k?'selected':''}>${n}</option>`).join('')}</select></label>
-      ${f(`g-${gr}-teto`, 'Teto (máximo ganho; vazio = sem teto)', x.teto, 'type="number" min="0" step="any"')}
-      <label class="campo"><span class="mut">Saldo</span><select id="g-${gr}-expira"><option value="nunca" ${x.expira==='nunca'?'selected':''}>acumula</option><option value="semanal" ${x.expira==='semanal'?'selected':''}>zera domingo 23h59</option></select></label></div>`; };
   const c = G.estudos.config, n = G.notas.config;
-  const prazoLocal = c.prazo ? new Date(c.prazo).toLocaleString('sv-SE', { timeZone:'America/Sao_Paulo' }).slice(0,16).replace(' ', 'T') : '';
-  return `<p class="hello">Regras de ${h(nomeAluno(S.aluno))}. Mudanças valem daqui pra frente; o que já foi lançado não muda.</p>
-    <div class="card"><h2>🎮 Estudos no app</h2>${base('estudos')}
-      <div class="lbl">Missão (níveis)</div><div class="row">${f('ge-prazo','Prazo',prazoLocal,'type="datetime-local"')}</div>
-      <div class="row" style="margin-top:6px"><span class="mut">Matérias da missão:</span>${S.mats.map(m => `<label class="ckin"><input type="checkbox" id="ge-m-${m.id}" ${(c.materias||[]).includes(m.id)?'checked':''}> ${m.emoji} ${h(m.nome)}</label>`).join('')}</div>
-      <div class="row">${f('ge-tmin','Prata: treino mínimo (%)',c.treino_min,'type="number"')}${f('ge-pmin','Ouro: prova mínima (%)',c.prova_min,'type="number"')}${f('ge-pqtd','Ouro: em quantas matérias',c.prova_qtd,'type="number"')}</div>
-      <div class="row">${f('ge-b','🥉 Bronze vale',c.minutos?.bronze,'type="number" step="any"')}${f('ge-p','🥈 Prata vale',c.minutos?.prata,'type="number" step="any"')}${f('ge-o','🥇 Ouro vale',c.minutos?.ouro,'type="number" step="any"')}</div>
-      <p class="mut">Valores na unidade escolhida (minutos de tela: 14h = 840).</p><button class="btn" data-a="cRegra" data-v="estudos">Salvar</button></div>
-    <div class="card"><h2>💰 Notas das provas</h2>${base('notas')}
-      <div class="row">${f('gn-por','Valor por matéria',n.por_materia,'type="number" step="any"')}${f('gn-min','com nota mínima',n.nota_min,'type="number" step="any"')}</div>
-      <div class="row">${f('gn-bonus','Bônus',n.bonus,'type="number" step="any"')}${f('gn-bmin','se nenhuma nota abaixo de',n.bonus_min,'type="number" step="any"')}${f('gn-max','Máximo por rodada',n.maximo,'type="number" step="any"')}</div>
-      <button class="btn" data-a="cRegra" data-v="notas">Salvar</button></div>
-    <div class="card"><h2>🧹 Tarefas de casa</h2>${base('casa')}<p class="mut">Quanto vale cada tarefa e cada prêmio se define nas abas Tarefas e Prêmios.</p><button class="btn" data-a="cRegra" data-v="casa">Salvar</button></div>`;
+  const prazoLocal = c.prazo ? new Date(c.prazo).toLocaleString('sv-SE', { timeZone:'America/Sao_Paulo' }).slice(0, 16).replace(' ', 'T') : '';
+  return `<p class="hello">Regras de ${h(nomeAluno(S.aluno))}. 10 pontos = R$ 1. Mudanças valem daqui pra frente; o que já foi lançado não muda.</p>
+    <div class="card"><h2>🧹 Tarefas de casa</h2>${f('gc-teto', 'Teto de ganho por semana (pontos)', G.casa.teto_semana, 'type="number" min="0" step="any"')}
+      <p class="mut">Hoje: ${reais(G.casa.teto_semana)} por semana. Tarefa nova não aumenta o custo, o teto segura. Vazio = sem teto.</p><button class="btn" data-a="cRegra" data-v="casa">Salvar</button></div>
+    <div class="card"><h2>📖 Estudos no app</h2>
+      <div class="row">${f('ge-pt', 'Tópico concluído', c.pts_topico, 'type="number" step="any"')}${f('ge-ptr', 'Treino aprovado', c.pts_treino, 'type="number" step="any"')}${f('ge-ppr', 'Prova aprovada', c.pts_prova, 'type="number" step="any"')}</div>
+      <div class="row">${f('ge-tmin', 'Treino aprovado a partir de (%)', c.treino_min, 'type="number"')}${f('ge-pmin', 'Prova aprovada a partir de (%)', c.prova_min, 'type="number"')}</div>
+      <div class="lbl">Missão (níveis)</div><div class="row">${f('ge-prazo', 'Prazo', prazoLocal, 'type="datetime-local"')}</div>
+      <div class="row" style="margin-top:6px"><span class="mut">Matérias da missão:</span>${S.mats.map(m => `<label class="ckin"><input type="checkbox" id="ge-m-${m.id}" ${(c.materias || []).includes(m.id) ? 'checked' : ''}> ${m.emoji} ${h(m.nome)}</label>`).join('')}</div>
+      <div class="row">${f('ge-pqtd', 'Ouro: prova em quantas matérias', c.prova_qtd, 'type="number"')}</div>
+      <div class="row">${f('ge-b', '🥉 Bronze vale', c.pontos?.bronze, 'type="number" step="any"')}${f('ge-p', '🥈 Prata vale', c.pontos?.prata, 'type="number" step="any"')}${f('ge-o', '🥇 Ouro vale', c.pontos?.ouro, 'type="number" step="any"')}</div>
+      <button class="btn" data-a="cRegra" data-v="estudos">Salvar</button></div>
+    <div class="card"><h2>🏫 Médias do bimestre</h2>
+      <div class="row">${f('gn-por', 'Pontos por matéria', n.por_materia, 'type="number" step="any"')}${f('gn-min', 'com média mínima', n.nota_min, 'type="number" step="any"')}</div>
+      <div class="row">${f('gn-bonus', 'Bônus', n.bonus, 'type="number" step="any"')}${f('gn-bmin', 'se nenhuma média abaixo de', n.bonus_min, 'type="number" step="any"')}${f('gn-max', 'Máximo por bimestre', n.maximo, 'type="number" step="any"')}</div>
+      <p class="mut">Máximo atual: ${reais(n.maximo)}.</p><button class="btn" data-a="cRegra" data-v="notas">Salvar</button></div>`;
 }
 function cadPausas(){
   return `<div class="card"><h2>⏸️ Dias pausados</h2><p class="mut">Viagem, doença etc. Nesses dias nenhuma tarefa é cobrada e o revezamento não anda. Vale para os dois.</p>
@@ -798,10 +1078,29 @@ function relatorio(){
 async function recarregar(){ await carregar(); render(); }
 
 const acoes = {
+  async cronoTg(el){ const k = el.dataset.k; await salvar(k, { feito:!S.prog[k]?.feito }); render(); },
+  agSel(el){ S.agSel = el.dataset.v; render(); },
+  agView(el){ S.agView = el.dataset.v; render(); },
+  agIni(el){ S.agIni = addDias(S.agIni || hojeISO(), Number(el.dataset.v)); S.agSel = S.agIni; render(); },
+  agFiltro(el){ S.agFiltro = el.dataset.v; render(); },
+  maisAbre(el){ S.mais = el.dataset.v; render(); window.scrollTo(0, 0); },
+  maisVoltar(){ S.mais = null; render(); },
+  step(el){ const p = S.premios.find(x => x.id === Number(el.dataset.v)); const l = S.limites[p.id]; const max = l ? Math.max(1, l.limite - l.usado) : 99;
+    S.qtdLoja[p.id] = Math.min(max, Math.max(1, (S.qtdLoja[p.id] || 1) + Number(el.dataset.d))); render(); },
+  trocar(el){ S.sheet = { id:Number(el.dataset.v) }; render(); },
+  fechaSheet(){ S.sheet = null; render(); },
+  async confirmar(){
+    const p = S.premios.find(x => x.id === S.sheet.id); const n = p.unidade ? Math.max(1, S.qtdLoja[p.id] || 1) : 1;
+    const { error } = await sb.rpc('resgatar', { p_premio:p.id, p_qtd:n }); S.sheet = null;
+    if (erro(error)){ render(); return; }
+    S.qtdLoja[p.id] = 1; toast(p.divide > 1 ? 'Sua metade foi paga! Falta o outro pagar.' : '🎉 Pedido enviado ao pai e à mãe'); await recarregar(); },
+  async rCancelar(el){ if (!confirm('Cancelar este pedido e devolver os pontos?')) return; const { error } = await sb.rpc('cancelar_resgate', { p_id:Number(el.dataset.v) }); if (erro(error)) return; toast('Pedido cancelado, pontos devolvidos'); await recarregar(); },
+  async rEntregar(el){ const { error } = await sb.rpc('entregar_resgate', { p_id:Number(el.dataset.v) }); if (erro(error)) return; toast('Combinado!'); await recarregar(); },
+  preset(el){ const p = 'tnovo'; document.getElementById(`${p}-nome`).value = el.dataset.n; document.getElementById(`${p}-emoji`).value = el.dataset.e; document.getElementById(`${p}-periodo`).value = el.dataset.p; document.getElementById(`${p}-nome`).scrollIntoView({ block:'center' }); },
   async entrar(){ const { error } = await sb.auth.signInWithPassword({ email:val('lemail').trim(), password:val('lsenha') }); if (error) toast('E-mail ou senha errados'); },
   async sair(){ await sb.auth.signOut(); },
-  async aba(el){ S.aba = el.dataset.v; S.materia = null; S.verQ = null; S.anMat = null; render(); window.scrollTo(0,0);
-    if (['tarefas','painel','hoje'].includes(S.aba)){ await carregarTarefas(); render(); } },
+  async aba(el){ S.aba = el.dataset.v; S.materia = null; S.verQ = null; S.anMat = null; S.mais = null; S.sheet = null; render(); window.scrollTo(0,0);
+    if (['hoje','agenda','aprovar','loja','alunos'].includes(S.aba)){ await Promise.all([carregarTarefas(), carregarSaldos(), carregarLoja()]); await carregarFamilia(); render(); } },
   async verAluno(el){ S.aluno = el.dataset.v; try { localStorage.setItem('aluno', S.aluno); } catch {} S.materia = null; S.verQ = null; S.anMat = null; await recarregar(); },
   async dom(el){ await salvar(el.dataset.k, { dominio:Number(el.dataset.v) }); render(); },
   async treinar(el){ await treinar(el.dataset.v); },
@@ -835,7 +1134,6 @@ const acoes = {
   },
   fecharProva(){ S.prova = null; render(); },
   async relatorio(){ try { await navigator.clipboard.writeText(relatorio()); toast('Relatório copiado! Cola na conversa com o Claude.'); } catch { toast('Não consegui copiar'); } },
-  dia(el){ S.diaSel = el.dataset.v; render(); },
   async verQ(el){ await abrirQuestoes(el.dataset.v); },
   fecharVerQ(){ S.verQ = null; S.listaQ = null; render(); },
   async analise(el){ await abrirAnalise(el.dataset.v); },
@@ -848,29 +1146,27 @@ const acoes = {
     if (await importar(txt)){ await contarQuestoes(); render(); }
   },
   // tarefas
-  async tMarcar(el){ const { error } = await sb.rpc('marcar_tarefa', { p_tarefa:Number(el.dataset.t), p_dia:el.dataset.d, p_status:el.dataset.s || null, p_aluno:S.aluno }); if (erro(error)) return; await carregarTarefas(); render(); },
+  async tMarcar(el){ const { error } = await sb.rpc('marcar_tarefa', { p_tarefa:Number(el.dataset.t), p_dia:el.dataset.d, p_status:el.dataset.s || null, p_aluno:el.dataset.al || S.aluno }); if (erro(error)) return; await carregarTarefas(); await carregarSaldos(); render(); },
   async tDecidir(el){ const { error } = await sb.rpc('decidir_tarefa', { p_tarefa:Number(el.dataset.t), p_dia:el.dataset.d, p_aluno:el.dataset.al, p_decisao:el.dataset.s }); if (erro(error)) return;
     toast(el.dataset.s === 'validado' ? 'Validada ✓' : 'Rejeitada'); await recarregar(); },
   async tRecurso(el){ const c = val(`rc-${el.dataset.t}-${el.dataset.d}`).trim(); if (!c){ toast('Escreva o motivo'); return; }
     const { error } = await sb.rpc('abrir_recurso', { p_tarefa:Number(el.dataset.t), p_dia:el.dataset.d, p_comentario:c }); if (erro(error)) return; toast('Recurso enviado'); await carregarTarefas(); render(); },
   async tResolver(el){ const { error } = await sb.rpc('resolver_recurso', { p_id:Number(el.dataset.v), p_decisao:el.dataset.s, p_resposta:val(`rr-${el.dataset.v}`) || null }); if (erro(error)) return; toast('Recurso resolvido'); await recarregar(); },
   async tDia(){ S.diaTarefa = val('tdia') || hojeISO(); await carregarTarefas(); render(); },
-  async resgatar(el){ const p = S.premios.find(x => x.id === Number(el.dataset.v)); if (!confirm(`Trocar ${fmtV(S.grupos.casa.moeda, p.custo)} por "${p.nome}"?`)) return;
-    const { error } = await sb.rpc('resgatar', { p_premio:p.id }); if (erro(error)) return; toast(`🎉 ${p.nome}! Avise o pai ou a mãe.`); await recarregar(); },
   // lançamentos
   async lMeta(){ const g = calcMeta(); if (!confirm(`Lançar ${fmtV(S.grupos.estudos.moeda, g.valor)} (${g.nivel}) para ${nomeAluno(S.aluno)}?`)) return;
     const dRef = g.prazo.toLocaleDateString('sv-SE', { timeZone:'America/Sao_Paulo' });
     const { error } = await sb.rpc('lancar', { p_aluno:S.aluno, p_grupo:'estudos', p_valor:g.valor, p_descricao:`Missão: nível ${g.nivel}`, p_data_ref:dRef, p_origem:'nivel', p_origem_ref:'meta:' + g.c.prazo });
     if (erro(error)) return; toast('Lançado ✓'); await recarregar(); },
   async lNotas(){ const d = calcDinheiro(); const ref = val('lnRef').trim() || 'notas'; if (!confirm(`Lançar ${fmtV(S.grupos.notas.moeda, d.total)} (${ref}) para ${nomeAluno(S.aluno)}?`)) return;
-    const { error } = await sb.rpc('lancar', { p_aluno:S.aluno, p_grupo:'notas', p_valor:d.total, p_descricao:`Notas: ${ref}`, p_origem:'notas', p_origem_ref:ref });
+    const { error } = await sb.rpc('lancar', { p_aluno:S.aluno, p_grupo:'notas', p_valor:d.total, p_descricao:`Médias: ${ref}`, p_origem:'notas', p_origem_ref:ref });
     if (error?.message?.includes('lancamentos_unico')){ toast('Essa rodada já foi lançada'); return; } if (erro(error)) return; toast('Lançado ✓'); await recarregar(); },
   async lUso(){ await lancarManual(-1); },
   async lCredito(){ await lancarManual(1); },
   // cadastros
   cadAba(el){ S.cad = el.dataset.v; render(); },
   async cTarefaSalvar(el){ const id = el.dataset.v, p = `t${id}`;
-    const reg = { nome:val(`${p}-nome`).trim(), emoji:val(`${p}-emoji`).trim() || '✅', pontos:num(`${p}-pontos`) ?? 0, modo:val(`${p}-modo`), alunos:lerAlunos(`${p}-al`), base:val(`${p}-base`) || hojeISO(), dias_semana:lerDias(p) };
+    const reg = { nome:val(`${p}-nome`).trim(), emoji:val(`${p}-emoji`).trim() || '✅', pontos:num(`${p}-pontos`) ?? 0, modo:val(`${p}-modo`), alunos:lerAlunos(`${p}-al`), base:val(`${p}-base`) || hojeISO(), dias_semana:lerDias(p), periodo:val(`${p}-periodo`) || null };
     if (!reg.nome || !reg.alunos.length){ toast('Dê um nome e marque ao menos uma criança'); return; }
     if (reg.dias_semana && !reg.dias_semana.length){ toast('Marque ao menos um dia da semana'); return; }
     const { error } = id === 'novo' ? await sb.from('tarefas').insert(reg) : await sb.from('tarefas').update(reg).eq('id', id);
@@ -879,8 +1175,12 @@ const acoes = {
   async cTroca(el){ const id = Number(el.dataset.v); const { error } = await sb.from('trocas').upsert({ tarefa:id, dia:val(`t${id}-tdia`), aluno:val(`t${id}-tal`), por:S.user.id }, { onConflict:'tarefa,dia' });
     if (erro(error)) return; toast('Troca registrada'); await recarregar(); },
   async cPremioSalvar(el){ const id = el.dataset.v, k = `p${id}`; const al = lerAlunos(`${k}-al`);
-    const reg = { nome:val(`${k}-nome`).trim(), emoji:val(`${k}-emoji`).trim() || '🎁', custo:num(`${k}-custo`), alunos:al.length === S.alunos.length ? null : al };
+    const tipo = val(`${k}-tipo`); const limite = num(`${k}-limite`); const unidade = num(`${k}-unidade`);
+    const reg = { nome:val(`${k}-nome`).trim(), emoji:val(`${k}-emoji`).trim() || '🎁', tipo, custo:num(`${k}-custo`), unidade:tipo === 'experiencia' ? null : unidade,
+      limite:limite > 0 ? limite : null, limite_periodo:limite > 0 ? val(`${k}-per`) : null, limite_grupo:val(`${k}-grupo`).trim() || null,
+      divide:Math.max(1, num(`${k}-divide`) || 1), alunos:al.length === S.alunos.length ? null : al };
     if (!reg.nome || !(reg.custo > 0) || !al.length){ toast('Nome, custo maior que zero e ao menos uma criança'); return; }
+    if (tipo !== 'experiencia' && !(reg.unidade > 0)){ toast('Tela e dinheiro precisam do valor de cada compra'); return; }
     const { error } = id === 'novo' ? await sb.from('premios').insert(reg) : await sb.from('premios').update(reg).eq('id', id);
     if (erro(error)) return; toast('Salvo ✓'); await recarregar(); },
   async cPremioAtivo(el){ const p = S.premios.find(x => x.id === Number(el.dataset.v)); const { error } = await sb.from('premios').update({ ativo:!p.ativo }).eq('id', p.id); if (erro(error)) return; await recarregar(); },
@@ -900,14 +1200,14 @@ const acoes = {
     if (S.todasMats.some(m => m.id === id)){ toast('Já existe uma matéria com o código ' + id); return; }
     const { error } = await sb.from('materias').insert({ aluno:S.aluno, id, nome, emoji:val('mn-emoji').trim() || '📘', cor:val('mn-cor'), ordem:S.todasMats.length });
     if (erro(error)) return; toast('Matéria criada: código ' + id); await recarregar(); },
-  async cRegra(el){ const gr = el.dataset.v; const x = S.grupos[gr];
-    const reg = { moeda:val(`g-${gr}-moeda`), teto:num(`g-${gr}-teto`), expira:val(`g-${gr}-expira`), config:{ ...x.config } };
-    if (reg.teto != null && !(reg.teto > 0)) reg.teto = null;
-    if (gr === 'estudos'){ const pz = val('ge-prazo');
+  async cRegra(el){ const gr = el.dataset.v; const x = S.grupos[gr]; const reg = {};
+    if (gr === 'casa'){ reg.teto_semana = num('gc-teto'); if (reg.teto_semana != null && !(reg.teto_semana > 0)) reg.teto_semana = null; }
+    if (gr === 'estudos'){ const pz = val('ge-prazo'); reg.config = { ...x.config };
       Object.assign(reg.config, { prazo:pz ? new Date(pz + ':00-03:00').toISOString() : null, materias:S.mats.map(m => m.id).filter(id => document.getElementById(`ge-m-${id}`)?.checked),
-        treino_min:num('ge-tmin') ?? 70, prova_min:num('ge-pmin') ?? 80, prova_qtd:num('ge-pqtd') ?? 1, minutos:{ bronze:num('ge-b') ?? 0, prata:num('ge-p') ?? 0, ouro:num('ge-o') ?? 0 } }); }
-    if (gr === 'notas') Object.assign(reg.config, { por_materia:num('gn-por') ?? 0, nota_min:num('gn-min') ?? 0, bonus:num('gn-bonus') ?? 0, bonus_min:num('gn-bmin') ?? 0, maximo:num('gn-max') });
-    if (reg.moeda !== x.moeda && !confirm('Mudar o tipo de recompensa começa um saldo novo nesse tipo (o histórico continua no extrato). Continuar?')) return;
+        treino_min:num('ge-tmin') ?? 70, prova_min:num('ge-pmin') ?? 80, prova_qtd:num('ge-pqtd') ?? 1,
+        pts_topico:num('ge-pt') ?? 30, pts_treino:num('ge-ptr') ?? 40, pts_prova:num('ge-ppr') ?? 100,
+        pontos:{ bronze:num('ge-b') ?? 0, prata:num('ge-p') ?? 0, ouro:num('ge-o') ?? 0 } }); delete reg.config.minutos; }
+    if (gr === 'notas'){ reg.config = { ...x.config }; Object.assign(reg.config, { por_materia:num('gn-por') ?? 0, nota_min:num('gn-min') ?? 0, bonus:num('gn-bonus') ?? 0, bonus_min:num('gn-bmin') ?? 0, maximo:num('gn-max') }); }
     const { error } = await sb.from('grupos').update(reg).eq('aluno', S.aluno).eq('grupo', gr); if (erro(error)) return; toast('Regras salvas ✓'); await recarregar(); },
   async cPausa(){ const ini = val('pz-ini'), fim = val('pz-fim') || val('pz-ini'); if (!ini){ toast('Escolha as datas'); return; }
     const { error } = await sb.from('pausas').insert({ inicio:ini, fim, motivo:val('pz-mot') || null }); if (erro(error)) return; toast('Pausa criada'); await recarregar(); },
