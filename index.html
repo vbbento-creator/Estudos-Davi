@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#5b5bf0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Estudos do Davi · P2</title>
+<title>Estudos</title>
 <style>
 :root{--bg:#f4f6fb;--card:#fff;--txt:#1d2433;--mut:#6b7489;--line:#e6e9f2;--ac:#5b5bf0;--ok:#1fa971;--okbg:#e3f6ee;--warn:#f59e0b;--bad:#e5484d;--badbg:#fdecec;--soft:#eef0fb}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -15,7 +15,7 @@ header h1{font-size:22px;margin:0}
 header .sair{background:none;border:0;color:var(--mut);font-size:14px;text-decoration:underline;cursor:pointer}
 main{padding:0 14px;max-width:760px;margin:0 auto}
 nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:8px 0 calc(8px + env(safe-area-inset-bottom));z-index:5;box-shadow:0 -4px 16px #1d24330d}
-nav button{background:none;border:0;color:var(--mut);font-size:12px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 14px;border-radius:12px;cursor:pointer}
+nav button{background:none;border:0;color:var(--mut);font-size:11px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 6px;border-radius:12px;cursor:pointer;flex:1;min-width:0}
 nav button span{font-size:22px}
 nav button.on{color:var(--ac);background:var(--soft)}
 .card{background:var(--card);border-radius:18px;padding:16px;margin:12px 0;box-shadow:0 2px 10px #1d24330a}
@@ -94,6 +94,19 @@ td,th{padding:8px 4px;border-bottom:1px solid var(--line);text-align:left}
 @media(min-width:620px){.cal-d{min-height:96px}.chip{font-size:12px}}
 #login{max-width:380px;margin:12vh auto;padding:24px}
 @media(min-width:620px){.grid{grid-template-columns:1fr 1fr 1fr}}
+.tag.bad{background:var(--badbg);color:var(--bad)}
+.tag.warn{background:#fff3d6;color:#a16207}
+.alunos,.subabas{display:flex;gap:6px;max-width:760px;margin:4px auto 0;padding:0 14px;overflow-x:auto}
+.alunos button,.subabas button{border:2px solid var(--line);background:#fff;border-radius:20px;padding:6px 14px;font-weight:700;color:var(--mut);cursor:pointer;white-space:nowrap;font-size:14px}
+.alunos button.on,.subabas button.on{border-color:var(--ac);background:var(--soft);color:var(--ac)}
+.subabas{padding:0;margin:12px 0}
+.saldos{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:620px){.saldos{grid-template-columns:1fr 1fr 1fr}}
+.saldo .big{font-size:26px}
+.ckin{display:inline-flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;margin-right:10px}
+.ckin input{width:18px;height:18px;padding:0}
+.campo{display:flex;flex-direction:column;gap:2px;flex:1;min-width:130px;margin-top:6px}
+.inativo{opacity:.55}
 </style>
 </head>
 <body>
@@ -105,140 +118,169 @@ const SUPABASE_URL = 'https://ykwcicxnqdvopkykwxzc.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_aPmFxy7JzuJCRWdWurQPsw_fzW58nNX';
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ---------------- CONTEÚDO DA P2 ----------------
-const MATERIAS = [
-  { id:'portugues', nome:'Língua Portuguesa', emoji:'📝', prova:'2026-11-23', topicos:['Crase','Homônimos e parônimos','Leitura e interpretação textual'] },
-  { id:'ingles', nome:'Inglês', emoji:'🇬🇧', prova:'2026-11-23', topicos:['Text comprehension','Relative pronouns: who, which and whose','Question tag'] },
-  { id:'fisica', nome:'Física', emoji:'🌌', prova:'2026-11-24', topicos:['Módulo 10: Constelações','Módulo 11: Evolução estelar'] },
-  { id:'biologia', nome:'Biologia', emoji:'🌿', prova:'2026-11-24', topicos:['16.1 Modificações na estrutura dos ecossistemas','16.2 Poluição'] },
-  { id:'redacao', nome:'Redação', emoji:'✍️', prova:'2026-11-25', topicos:['Artigo de opinião','Livro: O Quarto de Despejo'] },
-  { id:'espanhol', nome:'Espanhol', emoji:'🇪🇸', prova:'2026-11-25', topicos:['Variantes linguísticas','Aspectos culturales: Cuba','Comprensión lectora'] },
-  { id:'matematica', nome:'Matemática', emoji:'📐', prova:'2026-11-26', topicos:['Trigonometria no triângulo retângulo','Razões trigonométricas','Ângulos notáveis','Situações-problema: trigonometria no triângulo retângulo','Situações-problema: razões trigonométricas','Situações-problema: ângulos notáveis'] },
-  { id:'quimica', nome:'Química', emoji:'⚗️', prova:'2026-11-26', topicos:['Química orgânica (introdução)','Classificação geral de cadeia','Classificação geral do carbono'] },
-  { id:'geografia', nome:'Geografia', emoji:'🗾', prova:'2026-11-27', topicos:['Japão: localização, fatores naturais, população e economia','Antártida: localização e Tratado da Antártida'] },
-  { id:'historia', nome:'História', emoji:'📜', prova:'2026-11-27', topicos:['Módulo 13: Brasil, a encruzilhada da ditadura','Nova República e Constituição de 1988','A conquista do protagonismo feminino','Questão indígena e questão do "campo negro"','Transformações do capitalismo na América Latina e no Brasil','Nova República e Neoliberalismo'] },
-  { id:'arte', nome:'Arte', emoji:'🎨', prova:'2026-12-01', topicos:['Ciberarte','Bioarte','A história da arte'] },
-  { id:'musica', nome:'Música', emoji:'🎵', prova:'2026-12-01', topicos:['Simbologia musical (p.174)','Figuras de duração (p.174)','Barras de compasso: simples e dupla (p.174-175)','Ligadura e ponto de aumento (p.175)','Sinais de repetição: Da Capo e Ritornelo (p.176)','Sinais de intensidade (p.176)','Pulso e compasso: binário, ternário, quaternário (p.177-178)','Clave e suas finalidades (p.179)'] },
-];
-const MAT = Object.fromEntries(MATERIAS.map(m => [m.id, m]));
-
-const CRONO = [
-  { d:'2026-11-18', t:'Quarta', itens:['☀️ Português: crase, homônimos e parônimos + treino','☀️ Inglês: relative pronouns e question tag + treino','🌙 📖 Livro: 1º sexto'] },
-  { d:'2026-11-19', t:'Quinta 🎯 META GTA até 22h', itens:['☀️ Física: constelações e evolução estelar','☀️ Biologia: módulo 16','☀️ Treinos das 4 matérias (70%+)','🌙 Prova valendo com pai/mãe (80%+)','🌙 📖 Livro: 2º sexto (curto)'] },
-  { d:'2026-11-20', t:'Sexta (feriado) 🎮', itens:['☀️ Matemática: razões trigonométricas + decorar 30°, 45°, 60°','☀️ 📖 Livro: 3º sexto'] },
-  { d:'2026-11-21', t:'Sábado 🎮', itens:['☀️ Matemática: exercícios de triângulo retângulo','☀️ História: ditadura e Nova República (leitura)','📖 Livro: 4º sexto'] },
-  { d:'2026-11-22', t:'Domingo 🎮', itens:['☀️ Química: classificação de cadeias e do carbono','☀️ 📖 Livro: 5º sexto'] },
-  { d:'2026-11-23', t:'Segunda · ✏️ Português e Inglês (tarde)', itens:['☀️ Revisão final: Português e Inglês','☀️ 📖 Livro: 6º sexto — FIM 🏁','🌙 Revisão Física e Biologia'] },
-  { d:'2026-11-24', t:'Terça · ✏️ Física e Biologia (tarde)', itens:['☀️ Revisão final: Física e Biologia','🌙 Redação: escrever 1 artigo de opinião usando o livro','🌙 Espanhol: variantes e Cuba (leve)'] },
-  { d:'2026-11-25', t:'Quarta · ✏️ Redação e Espanhol (tarde)', itens:['☀️ Espanhol: leitura + revisão','☀️ Reler e melhorar a redação','🌙 Matemática: situações-problema','🌙 Química: revisão'] },
-  { d:'2026-11-26', t:'Quinta · ✏️ Matemática e Química (tarde)', itens:['☀️ Revisão final: exercícios de Matemática + Química','🌙 Geografia: Japão e Antártida','🌙 História: revisão'] },
-  { d:'2026-11-27', t:'Sexta · ✏️ Geografia e História (tarde)', itens:['☀️ Revisão final: Geografia e História','🌙 Folga merecida 😎'] },
-  { d:'2026-11-28', t:'Sábado', itens:['☀️ Arte: ciberarte, bioarte, história da arte'] },
-  { d:'2026-11-29', t:'Domingo', itens:['☀️ Música: figuras, compassos, repetição, claves (p.174-179)'] },
-  { d:'2026-11-30', t:'Segunda', itens:['☀️ Revisão Arte e Música (flashcards)'] },
-  { d:'2026-12-01', t:'Terça · ✏️ Arte e Música (tarde)', itens:['☀️ Revisão final: Arte e Música','🏁 Acabou! Agora é esperar as notas'] },
-];
-
-// ---------------- RECOMPENSAS ----------------
-const PRAZO_GTA = new Date('2026-11-19T22:00:00-03:00');
-const META_MATS = ['portugues','ingles','fisica','biologia'];
-const HORAS = { bronze:5, prata:9, ouro:14 };
-const P2_MATS = MATERIAS.map(m => m.id);
+// Matérias, tópicos, cronograma, tarefas, prêmios e regras de recompensa vêm do banco (aba Cadastros).
 
 // ---------------- ESTADO ----------------
-const S = { user:null, perfil:null, aba:'hoje', prog:{}, tent:[], lib:{}, notas:{}, gta:[], quiz:null, prova:null, aberta:null, materia:null };
+const S = { user:null, perfil:null, aba:'hoje', alunos:[], aluno:null, mats:[], todasMats:[], todosTopicos:[], crono:[],
+  grupos:{}, saldos:{}, lanc:[], prog:{}, tent:[], lib:{}, notas:{}, tarefasCad:[], premios:[], tarefas:{}, rev:[], pend:[], recAb:[],
+  pausas:[], quiz:null, prova:null, materia:null, cad:'tarefas', diaTarefa:null };
 const $app = document.getElementById('app');
 const h = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const hojeISO = () => new Date().toLocaleDateString('sv-SE', { timeZone:'America/Sao_Paulo' });
+const addDias = (iso, n) => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return d.toLocaleDateString('sv-SE'); };
+const segunda = iso => addDias(iso, -((new Date(iso + 'T12:00:00').getDay() + 6) % 7));
 const fmtData = iso => new Date(iso + 'T12:00:00').toLocaleDateString('pt-BR', { weekday:'short', day:'2-digit', month:'2-digit' });
 const ehResp = () => S.perfil?.papel === 'responsavel';
 const chT = (m, i) => `${m}:${i}`;
-function toast(msg){ const t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.append(t); setTimeout(()=>t.remove(),2600); }
+const MAT = id => S.mats.find(m => m.id === id);
+const nomeAluno = id => S.alunos.find(a => a.user_id === id)?.nome || '—';
+const val = id => document.getElementById(id)?.value ?? '';
+const num = id => { const v = val(id); return v === '' ? null : Number(v); };
+const GRUPO = { notas:['💰','Notas das provas'], estudos:['🎮','Estudos no app'], casa:['🧹','Tarefas de casa'] };
+const MOEDA = { reais:'R$', minutos:'minutos de tela', pontos:'pontos' };
+function fmtV(moeda, v){
+  v = Number(v) || 0;
+  if (moeda === 'reais') return 'R$ ' + v.toLocaleString('pt-BR', { maximumFractionDigits:2 });
+  if (moeda === 'minutos'){ const s = v < 0 ? '-' : ''; v = Math.abs(Math.round(v)); const hh = Math.floor(v/60), mm = v%60;
+    return s + (hh ? hh + 'h' + (mm ? String(mm).padStart(2,'0') : '') : mm + 'min'); }
+  return v.toLocaleString('pt-BR') + ' pts';
+}
+function toast(msg){ const t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.append(t); setTimeout(()=>t.remove(),3000); }
+const erro = e => { if (e){ toast((e.message || String(e)).replace(/^.*?: /, '')); return true; } return false; };
 
 // ---------------- DADOS ----------------
 async function carregar(){
-  const [p, t, l, n, g] = await Promise.all([
-    sb.from('progresso').select('*'),
-    sb.from('tentativas').select('id,materia,tipo,acertos,total,pct,criado').order('criado', { ascending:false }),
-    sb.from('liberacoes').select('*'),
-    sb.from('notas_p2').select('*'),
-    sb.from('uso_gta').select('*').order('dia'),
+  const a = S.aluno;
+  const [mt, tp, cr, p, t, l, n, g, lc, tf, pr, pz] = await Promise.all([
+    sb.from('materias').select('*').eq('aluno', a).order('ordem').order('nome'),
+    sb.from('topicos').select('*').eq('aluno', a).order('idx'),
+    sb.from('cronograma').select('*').eq('aluno', a).order('dia'),
+    sb.from('progresso').select('*').eq('aluno', a),
+    sb.from('tentativas').select('id,materia,tipo,acertos,total,pct,criado').eq('aluno', a).order('criado', { ascending:false }),
+    sb.from('liberacoes').select('*').eq('aluno', a),
+    sb.from('notas_p2').select('*').eq('aluno', a),
+    sb.from('grupos').select('*').eq('aluno', a),
+    sb.from('lancamentos').select('*').eq('aluno', a).order('data_ref', { ascending:false }).order('id', { ascending:false }).limit(300),
+    sb.from('tarefas').select('*').order('ordem').order('id'),
+    sb.from('premios').select('*').order('custo'),
+    sb.from('pausas').select('*').order('inicio', { ascending:false }),
   ]);
-  S.prog = Object.fromEntries((p.data||[]).map(r => [r.chave, r]));
+  S.todosTopicos = tp.data || [];
+  S.todasMats = (mt.data || []).map(m => ({ ...m, topicos:S.todosTopicos.filter(x => x.materia === m.id && x.ativo) }));
+  S.mats = S.todasMats.filter(m => m.ativa);
+  S.crono = (cr.data || []).map(c => ({ d:c.dia, t:c.titulo, itens:c.itens || [] }));
+  S.prog = Object.fromEntries((p.data || []).map(r => [r.chave, r]));
   S.tent = t.data || [];
-  S.lib = Object.fromEntries((l.data||[]).map(r => [r.materia, r]));
-  S.notas = Object.fromEntries((n.data||[]).map(r => [r.materia, r.nota]));
-  S.gta = g.data || [];
+  S.lib = Object.fromEntries((l.data || []).map(r => [r.materia, r]));
+  S.notas = Object.fromEntries((n.data || []).map(r => [r.materia, r.nota]));
+  S.grupos = Object.fromEntries((g.data || []).map(x => [x.grupo, x]));
+  S.lanc = lc.data || [];
+  S.tarefasCad = tf.data || [];
+  S.premios = pr.data || [];
+  S.pausas = pz.data || [];
+  await Promise.all([carregarSaldos(), carregarTarefas(), contarQuestoes()]);
+}
+async function carregarSaldos(){
+  const r = await Promise.all(['notas','estudos','casa'].map(g => sb.rpc('saldo', { p_aluno:S.aluno, p_grupo:g })));
+  S.saldos = { notas:r[0].data ?? 0, estudos:r[1].data ?? 0, casa:r[2].data ?? 0 };
+}
+async function carregarTarefas(){
+  const hoje = hojeISO();
+  const dias = ehResp() ? [S.diaTarefa || hoje] : [hoje, addDias(hoje, -1)];
+  const res = await Promise.all(dias.map(d => sb.rpc('tarefas_do_dia', { p_aluno:S.aluno, p_dia:d })));
+  S.tarefas = Object.fromEntries(dias.map((d, i) => [d, res[i].data || []]));
+  const rev = S.tarefasCad.filter(t => t.ativa && t.modo === 'revezamento');
+  const r2 = await Promise.all(rev.flatMap(t => [hoje, addDias(hoje, 1)].map(d => sb.rpc('responsaveis', { p_tarefa:t.id, d }))));
+  S.rev = rev.map((t, i) => ({ t, hoje:r2[2*i].data?.[0], amanha:r2[2*i+1].data?.[0] }));
+  if (ehResp()){
+    const [pd, rc] = await Promise.all([
+      sb.from('tarefa_dia').select('*').eq('status','feito').is('decisao', null).order('dia'),
+      sb.from('recursos').select('*').is('decisao_final', null).order('criado'),
+    ]);
+    S.pend = pd.data || []; S.recAb = rc.data || [];
+  }
 }
 
 async function salvar(chave, campos){
   const atual = S.prog[chave] || { chave };
-  const novo = { ...atual, ...campos, chave, atualizado:new Date().toISOString() };
+  const novo = { ...atual, ...campos, chave, aluno:S.aluno, atualizado:new Date().toISOString() };
   if ('estudou' in campos || 'exercicios' in campos){
     const ok = novo.estudou && novo.exercicios;
     novo.concluido_em = ok ? (atual.concluido_em || new Date().toISOString()) : null;
   }
   S.prog[chave] = novo;
-  const { error } = await sb.from('progresso').upsert(novo);
+  const { error } = await sb.from('progresso').upsert(novo, { onConflict:'aluno,chave' });
   if (error) toast('Erro ao salvar: ' + error.message);
 }
 
 // ---------------- CÁLCULOS ----------------
 function progMat(mid){
-  const m = MAT[mid]; let ok = 0;
-  m.topicos.forEach((_, i) => { const p = S.prog[chT(mid,i)]; if (p?.estudou && p?.exercicios) ok++; });
+  const m = MAT(mid); let ok = 0;
+  m.topicos.forEach(t => { const p = S.prog[chT(mid, t.idx)]; if (p?.estudou && p?.exercicios) ok++; });
   return { ok, total:m.topicos.length };
 }
 function melhor(mid, tipo, ateData){
   return S.tent.filter(t => t.materia===mid && t.tipo===tipo && (!ateData || new Date(t.criado) <= ateData) && (tipo!=='treino' || t.total>=5))
     .reduce((mx, t) => Math.max(mx, Number(t.pct)), -1);
 }
-function calcGTA(){
-  const bronzeDet = META_MATS.map(mid => {
-    const m = MAT[mid];
-    const ok = m.topicos.every((_, i) => { const p = S.prog[chT(mid,i)]; return p?.concluido_em && new Date(p.concluido_em) <= PRAZO_GTA; });
-    return { mid, ok };
-  });
+// Meta de estudos (bronze/prata/ouro) — regras em grupos.estudos.config
+function calcMeta(){
+  const c = S.grupos.estudos?.config || {};
+  const mats = (c.materias || []).filter(id => MAT(id));
+  if (!c.prazo || !mats.length) return null;
+  const prazo = new Date(c.prazo);
+  const bronzeDet = mats.map(mid => ({ mid, ok:MAT(mid).topicos.every(t => { const p = S.prog[chT(mid, t.idx)]; return p?.concluido_em && new Date(p.concluido_em) <= prazo; }) }));
   const bronze = bronzeDet.every(x => x.ok);
-  const prataDet = META_MATS.map(mid => ({ mid, v:melhor(mid,'treino',PRAZO_GTA) }));
-  const prata = bronze && prataDet.every(x => x.v >= 70);
-  const ouroDet = META_MATS.map(mid => ({ mid, v:melhor(mid,'prova',PRAZO_GTA) }));
-  const ouro = prata && ouroDet.filter(x => x.v >= 80).length >= 3;
-  const horas = ouro ? HORAS.ouro : prata ? HORAS.prata : bronze ? HORAS.bronze : 0;
-  const usadas = S.gta.reduce((s, r) => s + Number(r.horas), 0);
-  return { bronze, prata, ouro, bronzeDet, prataDet, ouroDet, horas, usadas, saldo:horas - usadas };
+  const prataDet = mats.map(mid => ({ mid, v:melhor(mid, 'treino', prazo) }));
+  const prata = bronze && prataDet.every(x => x.v >= c.treino_min);
+  const qtd = Math.min(Number(c.prova_qtd) || mats.length, mats.length);
+  const ouroDet = mats.map(mid => ({ mid, v:melhor(mid, 'prova', prazo) }));
+  const ouro = prata && ouroDet.filter(x => x.v >= c.prova_min).length >= qtd;
+  const M = c.minutos || {};
+  const nivel = ouro ? 'ouro' : prata ? 'prata' : bronze ? 'bronze' : null;
+  return { c, prazo, mats, qtd, M, bronze, prata, ouro, bronzeDet, prataDet, ouroDet, nivel, valor:nivel ? Number(M[nivel]) || 0 : 0 };
 }
 function calcDinheiro(){
-  const linhas = P2_MATS.map(mid => { const n = S.notas[mid]; const v = (n != null && n >= 8) ? 7 : 0; return { mid, n, v }; });
-  const todas = linhas.every(l => l.n != null);
-  const bonus = todas && linhas.every(l => l.n >= 7) ? 9 : 0;
-  return { linhas, bonus, total:linhas.reduce((s,l) => s + l.v, 0) + bonus, todas };
+  const c = S.grupos.notas?.config || {};
+  const linhas = S.mats.map(m => { const n = S.notas[m.id]; return { mid:m.id, n, v:(n != null && n >= c.nota_min) ? Number(c.por_materia) || 0 : 0 }; });
+  const todas = linhas.length && linhas.every(l => l.n != null);
+  const bonus = todas && linhas.every(l => l.n >= c.bonus_min) ? Number(c.bonus) || 0 : 0;
+  const bruto = linhas.reduce((s, l) => s + l.v, 0) + bonus;
+  return { c, linhas, bonus, todas, total:c.maximo ? Math.min(bruto, c.maximo) : bruto };
+}
+// quanto já foi ganho na janela atual (para mostrar o teto)
+function ganhoJanela(grupo){
+  const g = S.grupos[grupo]; if (!g) return 0;
+  const ini = g.expira === 'semanal' ? segunda(hojeISO()) : '0000';
+  return S.lanc.filter(l => l.grupo === grupo && l.moeda === g.moeda && l.data_ref >= ini && (l.valor > 0 || l.origem === 'estorno'))
+    .reduce((s, l) => s + Number(l.valor), 0);
 }
 
 // ---------------- TELAS ----------------
-const COR = { portugues:'#e5484d', ingles:'#3b82f6', fisica:'#6d4aff', biologia:'#1fa971', redacao:'#f59e0b', espanhol:'#f97316', matematica:'#0ea5e9', quimica:'#14b8a6', geografia:'#84cc16', historia:'#a16207', arte:'#ec4899', musica:'#8b5cf6' };
 const DOM = [['😵','Não sei nada'],['😕','Sei pouco'],['😐','Mais ou menos'],['🙂','Sei bem'],['😎','Explico pra alguém']];
 
 function render(){
   if (!S.user) return telaLogin();
-  const abas = [['hoje','🏠','Hoje'],['agenda','📅','Agenda'],['materias','📚','Matérias'],['premios','🎮','Prêmios']];
-  if (ehResp()) abas.push(['painel','🛡️','Painel']);
+  const abas = [['hoje','🏠','Hoje'],['agenda','📅','Agenda'],['materias','📚','Matérias'],['tarefas','🧹','Tarefas'],['premios','🎁','Prêmios']];
+  if (ehResp()) abas.push(['painel','🛡️','Painel'], ['cad','⚙️','Cadastros']);
   let corpo = '';
   if (S.prova) corpo = telaProva();
   else if (S.quiz) corpo = telaQuiz();
-  else if (S.aba === 'materias' && S.materia) corpo = telaMateria(S.materia);
+  else if (S.aba === 'materias' && S.materia && MAT(S.materia)) corpo = telaMateria(S.materia);
   else if (S.aba === 'painel' && S.verQ) corpo = telaVerQuestoes();
-  else corpo = ({ hoje:telaHoje, agenda:telaAgenda, materias:telaMaterias, premios:telaPremios, painel:telaPainel })[S.aba]();
+  else corpo = ({ hoje:telaHoje, agenda:telaAgenda, materias:telaMaterias, tarefas:telaTarefas, premios:telaPremios, painel:telaPainel, cad:telaCad })[S.aba]();
   const foco = S.quiz || S.prova;
+  const seletor = ehResp() && !foco ? `<div class="alunos">${S.alunos.map(a => `<button data-a="verAluno" data-v="${a.user_id}" class="${a.user_id===S.aluno?'on':''}">${h(a.nome)}</button>`).join('')}</div>` : '';
   $app.innerHTML = `
-    <header><h1>📘 Estudos P2</h1>${foco ? '' : '<button class="sair" data-a="sair">sair</button>'}</header>
+    <header><h1>📘 Estudos</h1>${foco ? '' : '<button class="sair" data-a="sair">sair</button>'}</header>
+    ${seletor}
     <main>${corpo}</main>
     ${foco ? '' : `<nav>${abas.map(([id,ic,nm]) => `<button data-a="aba" data-v="${id}" class="${S.aba===id?'on':''}"><span>${ic}</span>${nm}</button>`).join('')}</nav>`}`;
 }
 
 function telaLogin(){
   $app.innerHTML = `<div id="login" class="card">
-    <div class="big">📘</div><h2>Estudos P2</h2><p class="mut">Entre com seu e-mail e senha.</p>
+    <div class="big">📘</div><h2>Estudos</h2><p class="mut">Entre com seu e-mail e senha.</p>
     <input id="lemail" type="email" placeholder="e-mail" autocomplete="username"><br><br>
     <input id="lsenha" type="password" placeholder="senha" autocomplete="current-password"><br><br>
     <button class="btn" data-a="entrar">Entrar</button></div>`;
@@ -246,7 +288,7 @@ function telaLogin(){
 
 function proximaProva(){
   const hoje = hojeISO();
-  const futuras = MATERIAS.filter(m => m.prova >= hoje).sort((a,b) => a.prova.localeCompare(b.prova));
+  const futuras = S.mats.filter(m => m.prova && m.prova >= hoje).sort((a,b) => a.prova.localeCompare(b.prova));
   if (!futuras.length) return null;
   const d = futuras[0].prova;
   const dias = Math.round((new Date(d+'T12:00:00') - new Date(hoje+'T12:00:00')) / 864e5);
@@ -263,51 +305,64 @@ function blocoDia(dia){
 function oQueFalta(g){
   const itens = [];
   if (!g.bronze) g.bronzeDet.forEach(x => { if (!x.ok){ const p = progMat(x.mid); itens.push([x.mid, `Marcar estudo + exercícios: ${p.ok}/${p.total} tópicos`]); } });
-  else if (!g.prata) g.prataDet.forEach(x => { if (x.v < 70) itens.push([x.mid, `Treino com 70%+ (melhor: ${x.v>=0?x.v+'%':'nenhum'})`]); });
-  else if (!g.ouro) g.ouroDet.forEach(x => { if (x.v < 80) itens.push([x.mid, `Prova valendo com 80%+ (precisa em 3 das 4)`]); });
+  else if (!g.prata) g.prataDet.forEach(x => { if (x.v < g.c.treino_min) itens.push([x.mid, `Treino com ${g.c.treino_min}%+ (melhor: ${x.v>=0?x.v+'%':'nenhum'})`]); });
+  else if (!g.ouro) g.ouroDet.forEach(x => { if (x.v < g.c.prova_min) itens.push([x.mid, `Prova valendo com ${g.c.prova_min}%+ (precisa em ${g.qtd} de ${g.mats.length})`]); });
   return itens;
 }
 
+function trilha(g){
+  const mo = S.grupos.estudos.moeda;
+  return `<div class="trilha">${[['bronze','🥉'],['prata','🥈'],['ouro','🥇']].map(([n, ic]) => `<div class="${g[n]?'on':''}"><span>${ic}</span>${fmtV(mo, g.M[n])}</div>`).join('')}</div>`;
+}
+
 function telaHoje(){
-  const hoje = hojeISO(); const pp = proximaProva(); const g = calcGTA();
-  const diaHoje = CRONO.find(d => d.d===hoje) || CRONO.find(d => d.d > hoje);
-  const faltaGta = PRAZO_GTA - new Date();
-  let gta = '';
-  if (faltaGta > 0){
-    const hh = Math.floor(faltaGta/36e5), mm = Math.floor(faltaGta%36e5/6e4);
-    gta = `<div class="card hero"><div class="row sp"><h2 style="margin:0">🎮 Missão GTA</h2><span class="mut">faltam ${hh}h${String(mm).padStart(2,'0')}</span></div>
-      <div class="trilha"><div class="${g.bronze?'on':''}"><span>🥉</span>5h</div><div class="${g.prata?'on':''}"><span>🥈</span>9h</div><div class="${g.ouro?'on':''}"><span>🥇</span>14h</div></div>
-      <div class="mut" style="margin-bottom:4px">${g.ouro ? 'Você bateu o OURO! 14h garantidas 🔥' : 'Pra subir de nível, falta:'}</div>
-      ${oQueFalta(g).map(([mid, t]) => `<div class="falta" data-a="mat" data-v="${mid}"><span>${MAT[mid].emoji} <b>${h(MAT[mid].nome)}</b><br><small>${h(t)}</small></span><span>›</span></div>`).join('')}</div>`;
+  const hoje = hojeISO(); const pp = proximaProva(); const g = calcMeta();
+  const diaHoje = S.crono.find(d => d.d===hoje) || S.crono.find(d => d.d > hoje);
+  let meta = '';
+  const falta = g ? g.prazo - new Date() : 0;
+  if (g && falta > 0){
+    const hh = Math.floor(falta/36e5), mm = Math.floor(falta%36e5/6e4);
+    meta = `<div class="card hero"><div class="row sp"><h2 style="margin:0">🎮 Missão da semana</h2><span class="mut">faltam ${hh}h${String(mm).padStart(2,'0')}</span></div>
+      ${trilha(g)}
+      <div class="mut" style="margin-bottom:4px">${g.ouro ? 'Você bateu o OURO! 🔥' : 'Pra subir de nível, falta:'}</div>
+      ${oQueFalta(g).map(([mid, t]) => `<div class="falta" data-a="mat" data-v="${mid}"><span>${MAT(mid).emoji} <b>${h(MAT(mid).nome)}</b><br><small>${h(t)}</small></span><span>›</span></div>`).join('')}</div>`;
   }
-  return `<p class="hello">E aí, ${h(S.perfil?.nome || '')}! 👋</p>
+  const tHoje = S.tarefas[hoje] || [];
+  const aFazer = tHoje.filter(t => t.status === 'a_fazer').length;
+  const casa = tHoje.length ? `<div class="card"><div class="row sp"><h2 style="margin:0">🧹 Tarefas de casa</h2><button class="btn sec min" data-a="aba" data-v="tarefas">abrir ›</button></div>
+    <p class="mut" style="margin:6px 0 0">${aFazer ? `${aFazer} para marcar hoje` : 'Tudo marcado hoje ✓'}${S.rev.length ? ' · ' + S.rev.map(r => `${r.t.emoji} hoje: <b>${h(nomeAluno(r.hoje))}</b>`).join(' · ') : ''}</p></div>` : '';
+  const quem = ehResp() ? `Vendo: ${h(nomeAluno(S.aluno))}` : `E aí, ${h(S.perfil?.nome || '')}! 👋`;
+  return `<p class="hello">${quem}</p>
     ${pp ? `<div class="card"><div class="row sp"><div><div class="mut">Próxima prova</div><div class="big">${pp.dias===0?'HOJE':pp.dias===1?'Amanhã':'em '+pp.dias+' dias'}</div></div><span class="tag">${fmtData(pp.d)}</span></div>
       <div class="row" style="margin-top:10px">${pp.mats.map(m => `<button class="btn sec min" data-a="mat" data-v="${m.id}">${m.emoji} ${h(m.nome)}</button>`).join('')}</div></div>` : ''}
-    ${gta}
-    <div class="card"><h2>📅 ${diaHoje?.d===hoje ? 'O que fazer hoje' : 'Próximo dia do plano'}</h2>${diaHoje ? blocoDia(diaHoje) : '<p class="mut">Cronograma encerrado 🎉</p>'}
-      <details><summary>Ver cronograma completo</summary>${CRONO.map(blocoDia).join('')}</details></div>`;
+    ${meta}${casa}
+    ${S.crono.length ? `<div class="card"><h2>📅 ${diaHoje?.d===hoje ? 'O que fazer hoje' : 'Próximo dia do plano'}</h2>${diaHoje ? blocoDia(diaHoje) : '<p class="mut">Cronograma encerrado 🎉</p>'}
+      <details><summary>Ver cronograma completo</summary>${S.crono.map(blocoDia).join('')}</details></div>` : ''}
+    ${!S.mats.length ? '<div class="card"><p class="mut">Ainda não há matérias cadastradas. O pai ou a mãe cadastram na aba ⚙️ Cadastros.</p></div>' : ''}`;
 }
 
 function telaAgenda(){
   const hoje = hojeISO(); const sel = S.diaSel || hoje;
-  const ini = new Date('2026-11-15T12:00:00'); const dias = [];
-  for (let i = 0; i < 21; i++){ const d = new Date(ini); d.setDate(ini.getDate()+i); dias.push(d.toLocaleDateString('sv-SE')); }
+  const primeiro = [hoje, S.crono[0]?.d].filter(Boolean).sort()[0];
+  const ini = addDias(primeiro, -new Date(primeiro + 'T12:00:00').getDay());
+  const dias = Array.from({ length:21 }, (_, i) => addDias(ini, i));
+  const prazo = calcMeta()?.prazo; const diaPrazo = prazo ? prazo.toLocaleDateString('sv-SE', { timeZone:'America/Sao_Paulo' }) : null;
   const cel = d => {
-    const provas = MATERIAS.filter(m => m.prova === d);
-    const cr = CRONO.find(c => c.d === d);
+    const provas = S.mats.filter(m => m.prova === d);
+    const cr = S.crono.find(c => c.d === d);
     const feitos = cr ? cr.itens.filter((_, i) => S.prog[`crono:${d}:${i}`]?.feito).length : 0;
     const n = Number(d.slice(8));
     let chips = '';
     if (provas.length) chips += `<div class="chip prova">✏️ ${provas.map(m => m.emoji).join('')}</div>`;
-    if (d === '2026-11-19') chips += `<div class="chip gta">🎮 GTA</div>`;
-    if (d === '2026-11-20') chips += `<div class="chip fer">feriado</div>`;
+    if (d === diaPrazo) chips += `<div class="chip gta">🎮 meta</div>`;
+    if (S.pausas.some(p => d >= p.inicio && d <= p.fim)) chips += `<div class="chip fer">pausa</div>`;
     if (cr) chips += `<div class="chip ${feitos===cr.itens.length?'ok':''}">${feitos===cr.itens.length?'✓':''} ${feitos}/${cr.itens.length}</div>`;
-    return `<div class="cal-d ${d===hoje?'hoje':''} ${d===sel?'sel':''} ${d<hoje?'passado':''}" data-a="dia" data-v="${d}"><span class="n">${n===1?'1 dez':n}</span>${chips}</div>`;
+    return `<div class="cal-d ${d===hoje?'hoje':''} ${d===sel?'sel':''} ${d<hoje?'passado':''}" data-a="dia" data-v="${d}"><span class="n">${n===1?'1/'+d.slice(5,7):n}</span>${chips}</div>`;
   };
-  const cr = CRONO.find(c => c.d === sel); const provas = MATERIAS.filter(m => m.prova === sel);
-  return `<div class="card" style="padding:10px"><div class="row sp" style="padding:4px 6px 10px"><b>Novembro / Dezembro 2026</b><span class="mut">toque num dia</span></div>
+  const cr = S.crono.find(c => c.d === sel); const provas = S.mats.filter(m => m.prova === sel);
+  return `<div class="card" style="padding:10px"><div class="row sp" style="padding:4px 6px 10px"><b>Próximas 3 semanas</b><span class="mut">toque num dia</span></div>
     <div class="cal">${['D','S','T','Q','Q','S','S'].map(x => `<div class="cal-h">${x}</div>`).join('')}${dias.map(cel).join('')}</div>
-    <div class="row" style="padding:10px 4px 2px;gap:12px;font-size:12px"><span><span class="chip prova">✏️</span> prova</span><span><span class="chip">0/3</span> metas do dia</span><span><span class="chip gta">🎮</span> prazo GTA</span></div></div>
+    <div class="row" style="padding:10px 4px 2px;gap:12px;font-size:12px"><span><span class="chip prova">✏️</span> prova</span><span><span class="chip">0/3</span> metas do dia</span><span><span class="chip gta">🎮</span> prazo da meta</span></div></div>
     <div class="card"><h2>${fmtData(sel)}${sel===hoje?' · hoje':''}</h2>
       ${provas.length ? `<div class="row" style="margin-bottom:8px">${provas.map(m => `<button class="btn sec min" data-a="mat" data-v="${m.id}">✏️ Prova: ${m.emoji} ${h(m.nome)}</button>`).join('')}</div>` : ''}
       ${cr ? blocoDia(cr) : '<p class="mut">Sem metas neste dia.</p>'}</div>`;
@@ -315,22 +370,23 @@ function telaAgenda(){
 
 function telaMaterias(){
   const hoje = hojeISO();
-  const lista = [...MATERIAS].sort((a,b) => a.prova.localeCompare(b.prova));
+  const lista = [...S.mats].sort((a,b) => (a.prova||'9').localeCompare(b.prova||'9'));
+  if (!lista.length) return '<div class="card"><p class="mut">Nenhuma matéria cadastrada ainda.</p></div>';
   return `<p class="hello">Toque numa matéria pra estudar, treinar ou fazer a prova.</p><div class="grid">${lista.map(m => {
     const p = progMat(m.id); const tr = melhor(m.id,'treino'); const pv = melhor(m.id,'prova');
-    return `<div class="mcard" style="--c:${COR[m.id]}" data-a="mat" data-v="${m.id}">
-      <div class="row sp"><span class="em">${m.emoji}</span><span class="tag ${m.prova===hoje?'hoje':''}">${m.prova<hoje?'✔ foi':fmtData(m.prova)}</span></div>
+    return `<div class="mcard" style="--c:${h(m.cor)}" data-a="mat" data-v="${m.id}">
+      <div class="row sp"><span class="em">${m.emoji}</span>${m.prova ? `<span class="tag ${m.prova===hoje?'hoje':''}">${m.prova<hoje?'✔ foi':fmtData(m.prova)}</span>` : ''}</div>
       <b>${h(m.nome)}</b>
-      <div class="bar"><i style="width:${100*p.ok/p.total}%;background:${COR[m.id]}"></i></div>
+      <div class="bar"><i style="width:${p.total ? 100*p.ok/p.total : 0}%;background:${h(m.cor)}"></i></div>
       <div class="mut" style="font-size:12px">${p.ok}/${p.total} tópicos ${tr>=0?'· 🎯 '+tr+'%':''} ${pv>=0?'· 🏛️ '+pv+'%':''}</div></div>`;
   }).join('')}</div>`;
 }
 
 function telaMateria(mid){
-  const m = MAT[mid]; const p = progMat(mid);
-  const topicos = m.topicos.map((t, i) => {
-    const k = chT(mid, i); const r = S.prog[k] || {};
-    return `<div class="topico"><div class="tt">${i+1}. ${h(t)}</div>
+  const m = MAT(mid); const p = progMat(mid);
+  const topicos = m.topicos.map((t, n) => {
+    const k = chT(mid, t.idx); const r = S.prog[k] || {};
+    return `<div class="topico"><div class="tt">${n+1}. ${h(t.nome)}</div>
       <div class="pills"><button class="pill ${r.estudou?'on':''}" data-a="tg" data-k="${k}" data-f="estudou">📖 ${r.estudou?'Estudei ✓':'Estudei'}</button>
       <button class="pill ${r.exercicios?'on':''}" data-a="tg" data-k="${k}" data-f="exercicios">✏️ ${r.exercicios?'Fiz exercícios ✓':'Fiz exercícios'}</button></div>
       <div class="lbl">Quanto eu domino? ${r.dominio ? '· <b>'+DOM[r.dominio-1][1]+'</b>' : ''}</div>
@@ -340,21 +396,23 @@ function telaMateria(mid){
   let extra = '';
   if (mid === 'redacao'){
     const r = S.prog['redacao:texto'] || {};
-    extra = `<div class="topico"><div class="tt">✍️ Minha redação</div><p class="mut">Cole aqui seu artigo de opinião para o pai mandar corrigir.</p><textarea data-a="duv" data-k="redacao:texto" style="min-height:200px">${h(r.duvida)}</textarea></div>`;
+    extra = `<div class="topico"><div class="tt">✍️ Minha redação</div><p class="mut">Cole aqui seu texto para o pai mandar corrigir.</p><textarea data-a="duv" data-k="redacao:texto" style="min-height:200px">${h(r.duvida)}</textarea></div>`;
   }
   let acoes = '';
   if (mid !== 'redacao'){
     const l = S.lib[mid]; const aberta = l && new Date(l.ate) > new Date();
     const tr = melhor(mid,'treino'); const pv = melhor(mid,'prova');
-    acoes = `<div class="card"><h2>🎯 Treino livre</h2><p class="mut">10 questões sorteadas com gabarito comentado. Refaça quantas vezes quiser. ${tr>=0?'Seu melhor: <b>'+tr+'%</b>':''}</p>
+    const botaoProva = pv>=0 && !aberta ? '<span class="tag ok">Prova feita ✓</span>'
+      : aberta ? (ehResp() ? '<span class="tag ok">Liberada — a criança começa no aparelho dela</span>' : `<button class="btn ok" data-a="iniciarProva" data-v="${mid}">Começar prova agora</button>`)
+      : `<button class="btn sec" data-a="liberar" data-v="${mid}">🔐 Liberar prova (pai/mãe)</button>`;
+    acoes = `<div class="card"><h2>🎯 Treino livre</h2><p class="mut">10 questões sorteadas com gabarito comentado. Refaça quantas vezes quiser. ${tr>=0?'Melhor: <b>'+tr+'%</b>':''}</p>
       <button class="btn" data-a="treinar" data-v="${mid}">Me testa!</button></div>
-      <div class="card"><h2>🏛️ Prova valendo</h2><p class="mut">Só com o pai ou a mãe do lado. Tem tempo e é uma vez só. ${pv>=0?'Resultado: <b>'+pv+'%</b>':''}</p>
-      ${pv>=0 && !aberta ? '<span class="tag ok">Prova feita ✓</span>' : aberta ? `<button class="btn ok" data-a="iniciarProva" data-v="${mid}">Começar prova agora</button>` : `<button class="btn sec" data-a="liberar" data-v="${mid}">🔐 Liberar prova (pai/mãe)</button>`}</div>`;
+      <div class="card"><h2>🏛️ Prova valendo</h2><p class="mut">Só com o pai ou a mãe do lado. Tem tempo e é uma vez só. ${pv>=0?'Resultado: <b>'+pv+'%</b>':''}</p>${botaoProva}</div>`;
   }
   return `<button class="voltar" data-a="voltarMats">‹ Matérias</button>
-    <div class="mhead" style="--c:${COR[mid]}"><div class="row sp"><span class="em">${m.emoji}</span><span class="tag" style="background:#ffffff33;color:#fff">Prova ${fmtData(m.prova)}</span></div>
+    <div class="mhead" style="--c:${h(m.cor)}"><div class="row sp"><span class="em">${m.emoji}</span>${m.prova ? `<span class="tag" style="background:#ffffff33;color:#fff">Prova ${fmtData(m.prova)}</span>` : ''}</div>
     <div class="big" style="margin-top:6px">${h(m.nome)}</div><div style="opacity:.9">${p.ok} de ${p.total} tópicos concluídos</div>
-    <div class="bar" style="background:#ffffff40;margin-top:8px"><i style="width:${100*p.ok/p.total}%;background:#fff"></i></div></div>
+    <div class="bar" style="background:#ffffff40;margin-top:8px"><i style="width:${p.total ? 100*p.ok/p.total : 0}%;background:#fff"></i></div></div>
     ${topicos}${extra}${acoes}`;
 }
 
@@ -363,10 +421,10 @@ function telaQuiz(){
   if (!it){
     const pct = Math.round(100*q.acertos/q.lista.length);
     return `<div class="card" style="text-align:center"><div class="big">${pct>=70?'🔥':'💪'}</div><h2>${q.acertos} de ${q.lista.length} · ${pct}%</h2>
-      <p class="mut">${pct>=70 ? 'Mandou bem! Isso conta pra meta.' : 'Revisa os tópicos e tenta de novo. Precisa de 70%.'}</p>
+      <p class="mut">${ehResp() ? 'Teste do responsável: não fica registrado.' : pct>=70 ? 'Mandou bem! Isso conta pra meta.' : 'Revisa os tópicos e tenta de novo.'}</p>
       <button class="btn" data-a="fecharQuiz">Voltar pra matéria</button></div>`;
   }
-  return `<div class="card"><div class="row sp"><span class="tag">${MAT[q.materia].emoji} ${h(MAT[q.materia].nome)}</span><span class="tag">${q.i+1} de ${q.lista.length}</span></div>
+  return `<div class="card"><div class="row sp"><span class="tag">${MAT(q.materia).emoji} ${h(MAT(q.materia).nome)}</span><span class="tag">${q.i+1} de ${q.lista.length}</span></div>
     <div class="bar" style="margin:12px 0"><i style="width:${100*q.i/q.lista.length}%;background:var(--ac)"></i></div>
     ${it.topico ? `<div class="mut">${h(it.topico)}</div>` : ''}
     <p class="enun">${h(it.enunciado)}</p>
@@ -374,7 +432,7 @@ function telaQuiz(){
       let c = ''; if (q.resp != null){ if (i===it.correta) c='certa'; else if (i===q.resp) c='errada'; }
       return `<button class="alt ${c}" data-a="resp" data-v="${i}" ${q.resp!=null?'disabled':''}><b>${'ABCDE'[i]})</b> ${h(a)}</button>`;
     }).join('')}
-    ${q.resp != null ? `<p><b>${q.resp===it.correta?'✅ Acertou!':'❌ Errou.'}</b> ${h(it.explicacao||'')}</p><button class="btn" data-a="proxima">${q.i+1===q.lista.length?'Ver resultado':'Próxima →'}</button>` : ''}
+    ${q.resp != null ? `<p><b>${q.resp===it.correta?'✅ Acertou!':'❌ Errou.'}</b> ${h(it.explicacao||'')}</p><button class="btn" data-a="proxima" ${q.salvando?'disabled':''}>${q.i+1===q.lista.length?'Ver resultado':'Próxima →'}</button>` : ''}
     <br><button class="voltar" data-a="fecharQuiz">Sair do treino</button></div>`;
 }
 
@@ -389,32 +447,79 @@ function telaProva(){
       <button class="btn" data-a="fecharProva">Voltar</button>`;
   }
   const falta = Math.max(0, new Date(p.ate) - new Date());
-  return `<div class="card hero" style="position:sticky;top:8px;z-index:3"><div class="row sp"><b>🏛️ Prova · ${h(MAT[p.materia].nome)}</b><span class="big" id="relogio">${Math.floor(falta/6e4)}:${String(Math.floor(falta%6e4/1e3)).padStart(2,'0')}</span></div>
+  return `<div class="card hero" style="position:sticky;top:8px;z-index:3"><div class="row sp"><b>🏛️ Prova · ${h(MAT(p.materia).nome)}</b><span class="big" id="relogio">${Math.floor(falta/6e4)}:${String(Math.floor(falta%6e4/1e3)).padStart(2,'0')}</span></div>
     <div class="mut">${Object.keys(p.resp).length} de ${p.lista.length} respondidas · sem consulta 👀</div></div>
     ${p.lista.map((q, n) => `<div class="card"><p class="enun">${n+1}. ${h(q.enunciado)}</p>
       ${q.alternativas.map((a, i) => `<button class="alt ${p.resp[q.id]===i?'sel':''}" data-a="marcar" data-q="${h(q.id)}" data-v="${i}"><b>${'ABCDE'[i]})</b> ${h(a)}</button>`).join('')}</div>`).join('')}
     <button class="btn ok" data-a="enviarProva">Enviar prova</button>`;
 }
 
+// ---------- Tarefas da casa ----------
+function itemTarefa(t, dia){
+  const k = `data-t="${t.tarefa}" data-d="${dia}"`;
+  const mo = S.grupos.casa?.moeda || 'pontos';
+  let st = '', bts = '';
+  if (t.decisao === 'validado') st = `<span class="tag ok">✅ validado · +${fmtV(mo, t.valor)}</span>`;
+  else if (t.decisao === 'rejeitado') st = `<span class="tag bad">🚫 não validado</span>`;
+  else if (t.status === 'feito') st = `<span class="tag warn">⏳ esperando pai/mãe</span>`;
+  else if (t.status === 'nao_feito') st = `<span class="tag bad">❌ não feito</span>`;
+  else st = `<span class="tag">vale ${fmtV(mo, t.pontos)}</span>`;
+  if (t.pode_marcar){
+    if (t.status === 'a_fazer') bts = `<button class="btn ok min" data-a="tMarcar" data-s="feito" ${k}>✅ Fiz</button><button class="btn sec min" data-a="tMarcar" data-s="nao_feito" ${k}>Não fiz</button>`;
+    else bts = `<button class="btn sec min" data-a="tMarcar" data-s="" ${k}>desfazer</button>`;
+  }
+  if (ehResp() && t.status === 'feito' && !t.decisao)
+    bts += `<button class="btn ok min" data-a="tDecidir" data-s="validado" ${k} data-al="${S.aluno}">Validar</button><button class="btn sec min" data-a="tDecidir" data-s="rejeitado" ${k} data-al="${S.aluno}">Rejeitar</button>`;
+  let rec = '';
+  if (t.recurso_id) rec = `<div class="mut" style="margin-top:6px">📣 Recurso: “${h(t.recurso_comentario)}” → ${t.recurso_decisao ? `<b>${t.recurso_decisao==='validado'?'aceito':'negado'}</b>${t.recurso_resposta?' · '+h(t.recurso_resposta):''}` : 'aguardando pai/mãe'}</div>`;
+  else if (t.pode_recorrer) rec = `<details><summary>Não concordo (recurso, até 5 dias)</summary><textarea id="rc-${t.tarefa}-${dia}" placeholder="Explique o que aconteceu"></textarea><br><button class="btn sec min" data-a="tRecurso" ${k}>Enviar recurso</button></details>`;
+  return `<div class="nivel" style="flex-wrap:wrap"><b class="ic">${t.emoji}</b><div style="flex:1;min-width:160px"><b>${h(t.nome)}</b><div>${st}</div></div><div class="row">${bts}</div>${rec ? `<div style="flex-basis:100%">${rec}</div>` : ''}</div>`;
+}
+function telaTarefas(){
+  const hoje = hojeISO();
+  const dias = Object.keys(S.tarefas).sort().reverse();
+  const pausa = d => S.pausas.find(p => d >= p.inicio && d <= p.fim);
+  const blocos = dias.map(d => { const L = S.tarefas[d]; const pz = pausa(d);
+    return `<div class="card"><h2>${d===hoje?'Hoje':d===addDias(hoje,-1)?'Ontem':fmtData(d)} <span class="mut">· ${fmtData(d)}</span></h2>
+      ${pz ? `<p class="mut">⏸️ Dia pausado${pz.motivo?' ('+h(pz.motivo)+')':''}: nada é cobrado.</p>` : ''}
+      ${L.length ? L.map(t => itemTarefa(t, d)).join('') : (pz ? '' : '<p class="mut">Nenhuma tarefa neste dia.</p>')}
+      ${!ehResp() && d!==hoje ? '<p class="mut">Dá pra marcar o dia de ontem até meia-noite de hoje. Depois, o que não foi marcado vira “não feito”.</p>' : ''}</div>`; }).join('');
+  const rev = S.rev.length ? `<div class="card"><h2>🔁 Revezamento</h2>${S.rev.map(r => `<div class="row sp" style="padding:6px 0"><span>${r.t.emoji} ${h(r.t.nome)}</span><span class="mut">hoje: <b>${h(nomeAluno(r.hoje))}</b> · amanhã: <b>${h(nomeAluno(r.amanha))}</b></span></div>`).join('')}</div>` : '';
+  const filtro = ehResp() ? `<div class="card"><div class="row"><span class="mut">Dia:</span><input type="date" id="tdia" value="${S.diaTarefa||hoje}" max="${hoje}" style="flex:1"><button class="btn sec min" data-a="tDia">ver</button></div><p class="mut" style="margin:6px 0 0">Pai e mãe marcam qualquer dia passado. Validação fica no Painel.</p></div>` : '';
+  const mo = S.grupos.casa?.moeda || 'pontos';
+  return `<div class="card hero"><div class="mut">${GRUPO.casa[0]} Saldo das tarefas de casa</div><div class="big">${fmtV(mo, S.saldos.casa)}</div><div class="mut">Troque na aba 🎁 Prêmios</div></div>
+    ${filtro}${rev}${blocos}`;
+}
+
 function telaPremios(){
-  const g = calcGTA(); const d = calcDinheiro();
-  const nv = (ok, ic, nome, hrs, det) => `<div class="nivel"><b class="ic">${ok?ic:'🔒'}</b><div style="flex:1"><b>${nome} · ${hrs}h</b><div class="mut">${det}</div></div>${ok?'<span class="tag ok">conquistado</span>':''}</div>`;
-  const nm = mid => MAT[mid].emoji;
-  return `<div class="card hero"><div class="mut">GTA no fim de semana</div><div class="big">${g.horas}h conquistadas</div>
-    <div class="mut">Usadas ${g.usadas}h · Saldo ${Math.max(0,g.saldo)}h · prazo quinta 19/11 às 22h</div></div>
-    <div class="card"><h2>🎮 Níveis</h2>
-    ${nv(g.bronze,'🥉','Bronze',5,'Estudo + exercícios marcados em tudo: '+g.bronzeDet.map(x=>nm(x.mid)+(x.ok?'✅':'⏳')).join(' '))}
-    ${nv(g.prata,'🥈','Prata',9,'Treino 70%+ nas 4: '+g.prataDet.map(x=>nm(x.mid)+' '+(x.v>=0?x.v+'%':'—')).join(' · '))}
-    ${nv(g.ouro,'🥇','Ouro',14,'Prova valendo 80%+ em 3 das 4: '+g.ouroDet.map(x=>nm(x.mid)+' '+(x.v>=0?x.v+'%':'—')).join(' · '))}
-    <p class="mut">Horas usadas de sexta a domingo · máx. 6h por dia · domingo até 18h</p></div>
-    <div class="card"><h2>💰 Notas da P2 · até R$ 100</h2><p class="mut">R$ 7 por matéria com nota 8 ou mais + R$ 9 se nenhuma ficar abaixo de 7</p>
-    <table>${d.linhas.map(l => `<tr><td>${MAT[l.mid].emoji} ${h(MAT[l.mid].nome)}</td><td>${l.n ?? '—'}</td><td style="text-align:right">${l.v?'<b>R$ '+l.v+'</b>':''}</td></tr>`).join('')}
-    <tr><td>⭐ Bônus</td><td></td><td style="text-align:right">${d.bonus?'<b>R$ 9</b>':d.todas?'—':'…'}</td></tr></table>
-    <div class="row sp" style="margin-top:10px"><b>Total</b><span class="big">R$ ${d.total}</span></div></div>`;
+  const G = S.grupos; if (!G.casa) return '<div class="card"><p class="mut">Carregando…</p></div>';
+  const g = calcMeta(); const d = calcDinheiro();
+  const cartao = gr => { const x = G[gr]; const ganho = ganhoJanela(gr);
+    return `<div class="saldo"><div class="mut">${GRUPO[gr][0]} ${GRUPO[gr][1]}</div><div class="big">${fmtV(x.moeda, S.saldos[gr])}</div>
+      <div class="mut">${x.expira==='semanal'?'zera domingo 23h59':'acumula'}${x.teto?` · ganho ${x.expira==='semanal'?'na semana':'total'}: ${fmtV(x.moeda, ganho)} de ${fmtV(x.moeda, x.teto)}`:''}</div></div>`; };
+  const mo = G.estudos.moeda;
+  const nv = (ok, ic, nome, v, det) => `<div class="nivel"><b class="ic">${ok?ic:'🔒'}</b><div style="flex:1"><b>${nome} · ${fmtV(mo, v)}</b><div class="mut">${det}</div></div>${ok?'<span class="tag ok">conquistado</span>':''}</div>`;
+  const em = mid => MAT(mid)?.emoji || mid;
+  const niveis = g ? `<div class="card"><h2>🎮 Missão (prazo ${g.prazo.toLocaleString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})})</h2>
+    ${nv(g.bronze,'🥉','Bronze',g.M.bronze,'Estudo + exercícios marcados em tudo: '+g.bronzeDet.map(x=>em(x.mid)+(x.ok?'✅':'⏳')).join(' '))}
+    ${nv(g.prata,'🥈','Prata',g.M.prata,`Treino ${g.c.treino_min}%+ em todas: `+g.prataDet.map(x=>em(x.mid)+' '+(x.v>=0?x.v+'%':'—')).join(' · '))}
+    ${nv(g.ouro,'🥇','Ouro',g.M.ouro,`Prova valendo ${g.c.prova_min}%+ em ${g.qtd} de ${g.mats.length}: `+g.ouroDet.map(x=>em(x.mid)+' '+(x.v>=0?x.v+'%':'—')).join(' · '))}
+    <p class="mut">O pai ou a mãe lançam o nível conquistado no saldo depois do prazo.</p></div>` : '';
+  const mn = G.notas.moeda;
+  const notas = S.mats.length ? `<div class="card"><h2>💰 Notas das provas${d.c.maximo?' · até '+fmtV(mn, d.c.maximo):''}</h2><p class="mut">${fmtV(mn, d.c.por_materia)} por matéria com nota ${d.c.nota_min} ou mais + ${fmtV(mn, d.c.bonus)} se nenhuma ficar abaixo de ${d.c.bonus_min}</p>
+    <table>${d.linhas.map(l => `<tr><td>${MAT(l.mid).emoji} ${h(MAT(l.mid).nome)}</td><td>${l.n ?? '—'}</td><td style="text-align:right">${l.v?'<b>'+fmtV(mn, l.v)+'</b>':''}</td></tr>`).join('')}
+    <tr><td>⭐ Bônus</td><td></td><td style="text-align:right">${d.bonus?'<b>'+fmtV(mn, d.bonus)+'</b>':d.todas?'—':'…'}</td></tr></table>
+    <div class="row sp" style="margin-top:10px"><b>Total previsto</b><span class="big">${fmtV(mn, d.total)}</span></div></div>` : '';
+  const mc = G.casa.moeda;
+  const premios = S.premios.filter(p => p.ativo && (!p.alunos || p.alunos.includes(S.aluno)));
+  const loja = `<div class="card"><h2>🛍️ Loja de prêmios</h2>${premios.map(p => `<div class="nivel"><b class="ic">${p.emoji}</b><div style="flex:1"><b>${h(p.nome)}</b><div class="mut">${fmtV(mc, p.custo)}</div></div>
+      ${ehResp() ? '' : `<button class="btn ${S.saldos.casa >= p.custo ? 'ok' : 'sec'} min" data-a="resgatar" data-v="${p.id}" ${S.saldos.casa >= p.custo ? '' : 'disabled'}>Trocar</button>`}</div>`).join('') || '<p class="mut">Nenhum prêmio cadastrado ainda.</p>'}</div>`;
+  const ext = `<div class="card"><h2>📒 Extrato</h2>${S.lanc.slice(0, 40).map(l => `<div class="row sp" style="padding:6px 0;border-top:1px solid var(--line)"><span>${GRUPO[l.grupo][0]} ${h(l.descricao)}<br><small class="mut">${fmtData(l.data_ref)}</small></span><b style="color:${l.valor<0?'var(--bad)':'var(--ok)'}">${l.valor>0?'+':''}${fmtV(l.moeda, l.valor)}</b></div>`).join('') || '<p class="mut">Nenhum lançamento ainda.</p>'}</div>`;
+  return `<div class="card"><div class="saldos">${['estudos','casa','notas'].map(cartao).join('')}</div></div>${niveis}${loja}${notas}${ext}`;
 }
 
 function telaVerQuestoes(){
-  const m = MAT[S.verQ]; const L = S.listaQ || [];
+  const m = MAT(S.verQ); const L = S.listaQ || [];
   const bloco = tipo => { const qs = L.filter(q => q.tipo===tipo);
     return `<h2 style="margin:18px 4px 6px">${tipo==='treino'?'🎯 Treino':'🏛️ Prova valendo'} (${qs.length})</h2>` + (qs.map((q, n) => `<div class="card">
       <div class="row sp"><span class="tag">${h(q.topico||'')}</span><button class="btn sec min" data-a="delQ" data-v="${h(q.id)}">apagar</button></div>
@@ -422,12 +527,12 @@ function telaVerQuestoes(){
       ${q.alternativas.map((a, i) => `<div class="alt ${i===q.correta?'certa':''}"><b>${'ABCDE'[i]})</b> ${h(a)}</div>`).join('')}
       <p class="mut">💡 ${h(q.explicacao||'')}</p></div>`).join('') || '<p class="mut">Nenhuma.</p>'); };
   return `<button class="voltar" data-a="fecharVerQ">‹ Painel</button>
-    <div class="mhead" style="--c:${COR[m.id]}"><span class="em">${m.emoji}</span><div class="big">${h(m.nome)}</div><div>Todas as questões, com a resposta certa marcada em verde</div></div>
+    <div class="mhead" style="--c:${h(m.cor)}"><span class="em">${m.emoji}</span><div class="big">${h(m.nome)}</div><div>Todas as questões de ${h(nomeAluno(S.aluno))}, com a resposta certa em verde</div></div>
     ${S.listaQ ? bloco('treino') + bloco('prova') : '<p class="mut">Carregando…</p>'}`;
 }
 async function abrirQuestoes(mid){
   S.verQ = mid; S.listaQ = null; render(); window.scrollTo(0,0);
-  const { data: qs } = await sb.from('questoes').select('*').eq('materia', mid).order('id');
+  const { data: qs } = await sb.from('questoes').select('*').eq('aluno', S.aluno).eq('materia', mid).order('id');
   const { data: gb } = await sb.from('gabarito').select('*').in('questao_id', (qs||[]).map(q => q.id));
   const G = Object.fromEntries((gb||[]).map(g => [g.questao_id, g]));
   S.listaQ = (qs||[]).map(q => ({ ...q, correta:G[q.id]?.correta, explicacao:G[q.id]?.explicacao }));
@@ -435,39 +540,137 @@ async function abrirQuestoes(mid){
 }
 
 function telaPainel(){
-  const linhas = MATERIAS.map(m => {
+  const nomeT = id => { const t = S.tarefasCad.find(x => x.id === id); return t ? t.emoji + ' ' + h(t.nome) : '#' + id; };
+  const pend = `<div class="card"><h2>✅ Tarefas esperando validação (${S.pend.length})</h2>${S.pend.map(p => `<div class="nivel" style="flex-wrap:wrap"><div style="flex:1;min-width:160px"><b>${nomeT(p.tarefa)}</b><div class="mut">${h(nomeAluno(p.aluno))} · ${fmtData(p.dia)} · ${fmtV(S.grupos.casa?.moeda||'pontos', p.valor)}</div></div>
+      <div class="row"><button class="btn ok min" data-a="tDecidir" data-s="validado" data-t="${p.tarefa}" data-d="${p.dia}" data-al="${p.aluno}">Validar</button><button class="btn sec min" data-a="tDecidir" data-s="rejeitado" data-t="${p.tarefa}" data-d="${p.dia}" data-al="${p.aluno}">Rejeitar</button></div></div>`).join('') || '<p class="mut">Nada pendente.</p>'}</div>`;
+  const rec = S.recAb.length ? `<div class="card"><h2>📣 Recursos abertos</h2>${S.recAb.map(r => `<div class="topico"><b>${nomeT(r.tarefa)}</b> <span class="mut">· ${h(nomeAluno(r.aluno))} · ${fmtData(r.dia)}</span>
+      <p>“${h(r.comentario)}”</p><input id="rr-${r.id}" placeholder="Resposta (opcional)"><br><br>
+      <div class="row"><button class="btn ok min" data-a="tResolver" data-v="${r.id}" data-s="validado">Aceitar (validar)</button><button class="btn sec min" data-a="tResolver" data-v="${r.id}" data-s="rejeitado">Manter rejeitada</button></div><p class="mut">A decisão é final.</p></div>`).join('')}</div>` : '';
+  const linhas = S.mats.map(m => {
     const p = progMat(m.id);
-    const doms = m.topicos.map((_, i) => S.prog[chT(m.id,i)]?.dominio).filter(Boolean);
+    const doms = m.topicos.map(t => S.prog[chT(m.id, t.idx)]?.dominio).filter(Boolean);
     const media = doms.length ? (doms.reduce((a,b)=>a+b,0)/doms.length).toFixed(1) : '—';
     const tr = melhor(m.id,'treino'), pv = melhor(m.id,'prova');
     return `<tr><td>${m.emoji} ${h(m.nome)}</td><td>${p.ok}/${p.total}</td><td>${media}</td><td>${tr>=0?tr+'%':'—'}</td><td>${pv>=0?pv+'%':'—'}</td></tr>`;
   }).join('');
   const duvidas = Object.values(S.prog).filter(r => r.duvida && r.chave !== 'redacao:texto' && !r.chave.startsWith('crono:')).map(r => {
-    const [mid, i] = r.chave.split(':'); return `<div class="nivel"><div><b>${MAT[mid]?.emoji||''} ${h(MAT[mid]?.topicos[i]||r.chave)}</b><div class="mut">${h(r.duvida)}</div></div></div>`;
+    const [mid, i] = r.chave.split(':'); const tp = S.todosTopicos.find(t => t.materia === mid && t.idx === Number(i));
+    return `<div class="nivel"><div><b>${MAT(mid)?.emoji||''} ${h(tp?.nome || r.chave)}</b><div class="mut">${h(r.duvida)}</div></div></div>`;
   }).join('');
-  return `<div class="card"><h2>🛡️ Como ele está</h2><table><tr><th>Matéria</th><th>Tópicos</th><th>Domínio</th><th>Treino</th><th>Prova</th></tr>${linhas}</table></div>
-    <div class="card"><h2>🗂️ Questões cadastradas</h2><table><tr><th>Matéria</th><th>Treino</th><th>Prova</th></tr>${MATERIAS.map(m => `<tr data-a="verQ" data-v="${m.id}" style="cursor:pointer"><td>${m.emoji} ${h(m.nome)}</td><td>${S.qtd?.[m.id]?.treino||0}</td><td>${S.qtd?.[m.id]?.prova||0}</td><td style="color:var(--ac);font-weight:700">ver ›</td></tr>`).join('')}</table></div>
+  const G = S.grupos; const g = calcMeta(); const d = calcDinheiro();
+  const refMeta = g ? 'meta:' + g.c.prazo : '';
+  const metaLancada = g && S.lanc.some(l => l.origem === 'nivel' && l.origem_ref === refMeta);
+  const lancar = `<div class="card"><h2>🧾 Lançar recompensas de ${h(nomeAluno(S.aluno))}</h2>
+    ${g ? `<div class="nivel"><div style="flex:1"><b>🎮 Missão: ${g.nivel ? g.nivel.toUpperCase() + ' · ' + fmtV(G.estudos.moeda, g.valor) : 'nenhum nível'}</b><div class="mut">${metaLancada ? 'Já lançada ✓' : g.prazo > new Date() ? 'Prazo ainda não acabou' : 'Prazo encerrado'}</div></div>
+      ${!metaLancada && g.valor ? `<button class="btn min" data-a="lMeta">Lançar</button>` : ''}</div>` : ''}
+    <div class="nivel"><div style="flex:1"><b>💰 Notas: ${fmtV(G.notas?.moeda, d.total)}</b><div class="mut">${d.todas ? 'Todas as notas lançadas' : 'Faltam notas'}</div></div>
+      <input id="lnRef" value="P2 ${new Date().getFullYear()}" style="width:110px"><button class="btn min" data-a="lNotas" ${d.total ? '' : 'disabled'}>Lançar</button></div>
+    <h2 style="margin-top:14px">⏱️ Registrar uso / ajuste</h2>
+    <div class="row"><select id="luG" style="flex:2">${['estudos','casa','notas'].map(x => `<option value="${x}">${GRUPO[x][0]} ${GRUPO[x][1]} (${MOEDA[G[x]?.moeda]})</option>`).join('')}</select>
+      <input id="luV" type="number" step="any" placeholder="valor" style="flex:1"></div><br>
+    <div class="row"><input id="luD" type="date" value="${hojeISO()}" style="flex:1"><input id="luT" placeholder="descrição (ex.: GTA sábado)" style="flex:2"></div><br>
+    <div class="row"><button class="btn sec" data-a="lUso" style="flex:1">➖ Usou / pagou</button><button class="btn" data-a="lCredito" style="flex:1">➕ Crédito extra</button></div>
+    <p class="mut">Minutos de tela: digite em minutos (2h = 120). Para corrigir um erro, faça um lançamento ao contrário.</p></div>`;
+  return `${pend}${rec}${lancar}
+    <div class="card"><h2>🛡️ Como ${h(nomeAluno(S.aluno))} está</h2><table><tr><th>Matéria</th><th>Tópicos</th><th>Domínio</th><th>Treino</th><th>Prova</th></tr>${linhas}</table></div>
+    <div class="card"><h2>🗂️ Questões cadastradas</h2><table><tr><th>Matéria</th><th>Treino</th><th>Prova</th></tr>${S.mats.map(m => `<tr data-a="verQ" data-v="${m.id}" style="cursor:pointer"><td>${m.emoji} ${h(m.nome)}</td><td>${S.qtd?.[m.id]?.treino||0}</td><td>${S.qtd?.[m.id]?.prova||0}</td><td style="color:var(--ac);font-weight:700">ver ›</td></tr>`).join('')}</table></div>
     <div class="card"><h2>❓ Dúvidas anotadas</h2>${duvidas || '<p class="mut">Nenhuma ainda.</p>'}</div>
-    <div class="card"><h2>📋 Relatório para o Claude</h2><p class="mut">Copia o progresso dele para colar na conversa e pedir questões no nível certo.</p>
+    <div class="card"><h2>📋 Relatório para o Claude</h2><p class="mut">Copia o progresso para colar na conversa e pedir questões no nível certo.</p>
       <button class="btn sec" data-a="relatorio">Copiar relatório</button></div>
-    <div class="card"><h2>⏱️ Registrar horas de GTA usadas</h2><div class="row"><input id="gdia" type="date" value="${hojeISO()}" style="flex:2"><input id="ghoras" type="number" step="0.5" min="0.5" placeholder="horas" style="flex:1"></div><br>
-      <button class="btn" data-a="regGta">Registrar</button>
-      ${S.gta.map(r => `<div class="nivel"><span style="flex:1">${fmtData(r.dia)} · ${r.horas}h</span><button class="btn sec min" data-a="delGta" data-v="${r.id}">apagar</button></div>`).join('')}</div>
-    <div class="card"><h2>💰 Lançar notas da P2</h2><table>${P2_MATS.map(mid => `<tr><td>${MAT[mid].emoji} ${h(MAT[mid].nome)}</td><td style="width:100px"><input data-a="nota" data-v="${mid}" type="number" step="0.1" min="0" max="10" value="${S.notas[mid] ?? ''}"></td></tr>`).join('')}</table></div>
-    <div class="card"><h2>📥 Importar questões</h2><p class="mut">Escolha o arquivo .json que o Claude mandou:</p>
+    <div class="card"><h2>💰 Lançar notas das provas</h2><table>${S.mats.map(m => `<tr><td>${m.emoji} ${h(m.nome)}</td><td style="width:100px"><input data-a="nota" data-v="${m.id}" type="number" step="0.1" min="0" max="10" value="${S.notas[m.id] ?? ''}"></td></tr>`).join('')}</table></div>
+    <div class="card"><h2>📥 Importar questões para ${h(nomeAluno(S.aluno))}</h2><p class="mut">Escolha o arquivo .json que o Claude mandou. O campo "materia" precisa ser um código cadastrado: ${S.todasMats.map(m => '<code>' + h(m.id) + '</code>').join(' ')}</p>
       <input type="file" id="impf" accept=".json,application/json,text/plain"><p class="mut">…ou cole o conteúdo aqui:</p>
       <textarea id="imp" style="min-height:140px" placeholder='[{"id":"...","materia":"portugues", ...}]'></textarea><br><br>
       <button class="btn" data-a="importar">Importar</button></div>`;
 }
 
+// ---------- Cadastros (pais) ----------
+function telaCad(){
+  const sub = [['tarefas','🧹 Tarefas'],['premios','🛍️ Prêmios'],['materias','📚 Matérias'],['regras','🎁 Recompensas'],['pausas','⏸️ Pausas']];
+  const corpo = ({ tarefas:cadTarefas, premios:cadPremios, materias:cadMaterias, regras:cadRegras, pausas:cadPausas })[S.cad]();
+  return `<div class="subabas">${sub.map(([id, nm]) => `<button data-a="cadAba" data-v="${id}" class="${S.cad===id?'on':''}">${nm}</button>`).join('')}</div>${corpo}`;
+}
+const ckAlunos = (pref, sel) => S.alunos.map(a => `<label class="ckin"><input type="checkbox" id="${pref}-${a.user_id}" ${sel?.includes(a.user_id)?'checked':''}> ${h(a.nome)}</label>`).join('');
+const lerAlunos = pref => S.alunos.map(a => a.user_id).filter(id => document.getElementById(`${pref}-${id}`)?.checked);
+
+function formTarefa(t){
+  const id = t?.id ?? 'novo'; const p = `t${id}`;
+  return `<div class="topico ${t && !t.ativa ? 'inativo' : ''}">
+    <div class="row"><input id="${p}-emoji" value="${h(t?.emoji ?? '✅')}" style="width:60px"><input id="${p}-nome" value="${h(t?.nome ?? '')}" placeholder="Nome da tarefa" style="flex:1"></div>
+    <div class="row" style="margin-top:8px"><label class="mut">Vale</label><input id="${p}-pontos" type="number" min="0" step="any" value="${t?.pontos ?? 10}" style="width:90px"><span class="mut">${MOEDA[S.grupos.casa?.moeda || 'pontos']}</span>
+      <select id="${p}-modo" style="flex:1"><option value="todos" ${t?.modo!=='revezamento'?'selected':''}>Todo dia, para cada um marcado</option><option value="revezamento" ${t?.modo==='revezamento'?'selected':''}>Revezamento entre os marcados</option></select></div>
+    <div class="row" style="margin-top:8px">${ckAlunos(p + '-al', t?.alunos ?? S.alunos.map(a => a.user_id))}</div>
+    <div class="row" style="margin-top:8px"><label class="mut">Começa em</label><input id="${p}-base" type="date" value="${t?.base ?? hojeISO()}" style="flex:1"></div>
+    <p class="mut">No revezamento, o 1º marcado (na ordem acima) faz no dia de início, e a vez alterna a cada dia. Mudar o valor só afeta marcações futuras.</p>
+    <div class="row">${t ? `<button class="btn min" data-a="cTarefaSalvar" data-v="${id}">Salvar</button><button class="btn sec min" data-a="cTarefaAtiva" data-v="${id}">${t.ativa ? 'Desativar' : 'Reativar'}</button>` : `<button class="btn min" data-a="cTarefaSalvar" data-v="novo">Criar tarefa</button>`}</div>
+    ${t?.modo === 'revezamento' && t.ativa ? `<details><summary>Trocar o responsável de um dia</summary><div class="row" style="margin-top:8px"><input type="date" id="${p}-tdia" value="${hojeISO()}" style="flex:1">
+      <select id="${p}-tal" style="flex:1">${t.alunos.map(a => `<option value="${a}">${h(nomeAluno(a))}</option>`).join('')}</select><button class="btn sec min" data-a="cTroca" data-v="${id}">Trocar</button></div>
+      <p class="mut">Só muda aquele dia; o revezamento dos outros dias continua igual.</p></details>` : ''}</div>`;
+}
+function cadTarefas(){
+  return `<div class="card"><h2>🧹 Tarefas da casa</h2>${S.tarefasCad.map(formTarefa).join('') || '<p class="mut">Nenhuma.</p>'}</div>
+    <div class="card"><h2>➕ Nova tarefa</h2>${formTarefa(null)}</div>`;
+}
+function formPremio(p){
+  const id = p?.id ?? 'novo'; const k = `p${id}`;
+  return `<div class="topico ${p && !p.ativo ? 'inativo' : ''}"><div class="row"><input id="${k}-emoji" value="${h(p?.emoji ?? '🎁')}" style="width:60px"><input id="${k}-nome" value="${h(p?.nome ?? '')}" placeholder="Ex.: Tomar sorvete" style="flex:1"></div>
+    <div class="row" style="margin-top:8px"><label class="mut">Custa</label><input id="${k}-custo" type="number" min="0" step="any" value="${p?.custo ?? 50}" style="width:100px"><span class="mut">${MOEDA[S.grupos.casa?.moeda || 'pontos']}</span></div>
+    <div class="row" style="margin-top:8px"><span class="mut">Para:</span>${ckAlunos(k + '-al', p ? (p.alunos ?? S.alunos.map(a => a.user_id)) : S.alunos.map(a => a.user_id))}</div><br>
+    <div class="row">${p ? `<button class="btn min" data-a="cPremioSalvar" data-v="${id}">Salvar</button><button class="btn sec min" data-a="cPremioAtivo" data-v="${id}">${p.ativo ? 'Desativar' : 'Reativar'}</button>` : `<button class="btn min" data-a="cPremioSalvar" data-v="novo">Criar prêmio</button>`}</div></div>`;
+}
+function cadPremios(){
+  return `<div class="card"><h2>🛍️ Prêmios de fim de semana</h2><p class="mut">Pagos com o saldo das tarefas de casa.</p>${S.premios.map(formPremio).join('') || '<p class="mut">Nenhum.</p>'}</div>
+    <div class="card"><h2>➕ Novo prêmio</h2>${formPremio(null)}</div>`;
+}
+function cadMaterias(){
+  const tops = m => S.todosTopicos.filter(t => t.materia === m.id);
+  return `<div class="card"><h2>📚 Matérias de ${h(nomeAluno(S.aluno))}</h2><p class="mut">Troque o aluno no topo. Desativar esconde sem apagar o histórico.</p>
+    ${S.todasMats.map(m => `<details class="topico ${m.ativa ? '' : 'inativo'}"><summary>${m.emoji} ${h(m.nome)} <span class="mut">(${h(m.id)})${m.ativa ? '' : ' · desativada'}</span></summary>
+      <div class="row" style="margin-top:8px"><input id="m-${m.id}-emoji" value="${h(m.emoji)}" style="width:60px"><input id="m-${m.id}-nome" value="${h(m.nome)}" style="flex:1"><input id="m-${m.id}-cor" type="color" value="${h(m.cor)}" style="width:56px;padding:2px"></div>
+      <div class="row" style="margin-top:8px"><label class="mut">Prova</label><input id="m-${m.id}-prova" type="date" value="${m.prova ?? ''}" style="flex:1"></div>
+      <div class="lbl">Tópicos</div>
+      ${tops(m).map(t => `<div class="row" style="margin-top:6px"><input id="tp-${m.id}-${t.idx}" value="${h(t.nome)}" style="flex:1;${t.ativo?'':'opacity:.5'}"><label class="ckin"><input type="checkbox" id="tpa-${m.id}-${t.idx}" ${t.ativo?'checked':''}> ativo</label></div>`).join('')}
+      <div class="row" style="margin-top:6px"><input id="tpn-${m.id}" placeholder="+ novo tópico" style="flex:1"></div><br>
+      <div class="row"><button class="btn min" data-a="cMatSalvar" data-v="${m.id}">Salvar</button><button class="btn sec min" data-a="cMatAtiva" data-v="${m.id}">${m.ativa ? 'Desativar' : 'Reativar'}</button></div></details>`).join('') || '<p class="mut">Nenhuma ainda.</p>'}</div>
+    <div class="card"><h2>➕ Nova matéria para ${h(nomeAluno(S.aluno))}</h2><div class="row"><input id="mn-emoji" value="📘" style="width:60px"><input id="mn-nome" placeholder="Nome (ex.: Ciências)" style="flex:1"></div><br>
+      <div class="row"><input id="mn-id" placeholder="código (ex.: ciencias) — usado na importação" style="flex:1"><input id="mn-cor" type="color" value="#3b82f6" style="width:56px;padding:2px"></div><br>
+      <button class="btn" data-a="cMatNova">Criar matéria</button></div>`;
+}
+function cadRegras(){
+  const G = S.grupos; if (!G.casa) return '';
+  const f = (id, lbl, v, extra = '') => `<label class="campo"><span class="mut">${lbl}</span><input id="${id}" value="${h(v ?? '')}" ${extra}></label>`;
+  const base = gr => { const x = G[gr];
+    return `<div class="row"><label class="campo"><span class="mut">Recompensa</span><select id="g-${gr}-moeda">${Object.entries(MOEDA).map(([k, n]) => `<option value="${k}" ${x.moeda===k?'selected':''}>${n}</option>`).join('')}</select></label>
+      ${f(`g-${gr}-teto`, 'Teto (máximo ganho; vazio = sem teto)', x.teto, 'type="number" min="0" step="any"')}
+      <label class="campo"><span class="mut">Saldo</span><select id="g-${gr}-expira"><option value="nunca" ${x.expira==='nunca'?'selected':''}>acumula</option><option value="semanal" ${x.expira==='semanal'?'selected':''}>zera domingo 23h59</option></select></label></div>`; };
+  const c = G.estudos.config, n = G.notas.config;
+  const prazoLocal = c.prazo ? new Date(c.prazo).toLocaleString('sv-SE', { timeZone:'America/Sao_Paulo' }).slice(0,16).replace(' ', 'T') : '';
+  return `<p class="hello">Regras de ${h(nomeAluno(S.aluno))}. Mudanças valem daqui pra frente; o que já foi lançado não muda.</p>
+    <div class="card"><h2>🎮 Estudos no app</h2>${base('estudos')}
+      <div class="lbl">Missão (níveis)</div><div class="row">${f('ge-prazo','Prazo',prazoLocal,'type="datetime-local"')}</div>
+      <div class="row" style="margin-top:6px"><span class="mut">Matérias da missão:</span>${S.mats.map(m => `<label class="ckin"><input type="checkbox" id="ge-m-${m.id}" ${(c.materias||[]).includes(m.id)?'checked':''}> ${m.emoji} ${h(m.nome)}</label>`).join('')}</div>
+      <div class="row">${f('ge-tmin','Prata: treino mínimo (%)',c.treino_min,'type="number"')}${f('ge-pmin','Ouro: prova mínima (%)',c.prova_min,'type="number"')}${f('ge-pqtd','Ouro: em quantas matérias',c.prova_qtd,'type="number"')}</div>
+      <div class="row">${f('ge-b','🥉 Bronze vale',c.minutos?.bronze,'type="number" step="any"')}${f('ge-p','🥈 Prata vale',c.minutos?.prata,'type="number" step="any"')}${f('ge-o','🥇 Ouro vale',c.minutos?.ouro,'type="number" step="any"')}</div>
+      <p class="mut">Valores na unidade escolhida (minutos de tela: 14h = 840).</p><button class="btn" data-a="cRegra" data-v="estudos">Salvar</button></div>
+    <div class="card"><h2>💰 Notas das provas</h2>${base('notas')}
+      <div class="row">${f('gn-por','Valor por matéria',n.por_materia,'type="number" step="any"')}${f('gn-min','com nota mínima',n.nota_min,'type="number" step="any"')}</div>
+      <div class="row">${f('gn-bonus','Bônus',n.bonus,'type="number" step="any"')}${f('gn-bmin','se nenhuma nota abaixo de',n.bonus_min,'type="number" step="any"')}${f('gn-max','Máximo por rodada',n.maximo,'type="number" step="any"')}</div>
+      <button class="btn" data-a="cRegra" data-v="notas">Salvar</button></div>
+    <div class="card"><h2>🧹 Tarefas de casa</h2>${base('casa')}<p class="mut">Quanto vale cada tarefa e cada prêmio se define nas abas Tarefas e Prêmios.</p><button class="btn" data-a="cRegra" data-v="casa">Salvar</button></div>`;
+}
+function cadPausas(){
+  return `<div class="card"><h2>⏸️ Dias pausados</h2><p class="mut">Viagem, doença etc. Nesses dias nenhuma tarefa é cobrada e o revezamento não anda. Vale para os dois.</p>
+    ${S.pausas.map(p => `<div class="row sp" style="padding:8px 0;border-top:1px solid var(--line)"><span>${fmtData(p.inicio)} → ${fmtData(p.fim)}${p.motivo?' · '+h(p.motivo):''}</span><button class="btn sec min" data-a="cPausaDel" data-v="${p.id}">remover</button></div>`).join('') || '<p class="mut">Nenhuma.</p>'}
+    <div class="lbl">Nova pausa</div><div class="row"><input id="pz-ini" type="date" style="flex:1"><input id="pz-fim" type="date" style="flex:1"></div><br>
+    <input id="pz-mot" placeholder="motivo (opcional)"><br><br><button class="btn" data-a="cPausa">Pausar estes dias</button>
+    <p class="mut">Remover uma pausa antiga muda de quem foi a vez nos dias seguintes a ela.</p></div>`;
+}
+
 // ---------------- AÇÕES ----------------
 async function liberarProva(mid){
   const min = 30;
-  if (ehResp()){
-    await gravarLiberacao(sb, mid, min);
-    return;
-  }
-  const html = `<div class="modal" id="mlib"><div class="card"><h2>🔐 Liberar prova de ${h(MAT[mid].nome)}</h2>
+  if (ehResp()){ await gravarLiberacao(sb, mid, min); return; }
+  const html = `<div class="modal" id="mlib"><div class="card"><h2>🔐 Liberar prova de ${h(MAT(mid).nome)}</h2>
     <p class="mut">Pai ou mãe: entre com o seu login. Tempo de prova: ${min} minutos.</p>
     <input id="remail" type="email" placeholder="e-mail do responsável"><br><br><input id="rsenha" type="password" placeholder="senha"><br><br>
     <div class="row"><button class="btn sec" id="rcanc">Cancelar</button><button class="btn" id="rok" style="flex:1">Liberar</button></div></div></div>`;
@@ -487,7 +690,7 @@ async function liberarProva(mid){
 }
 async function gravarLiberacao(cli, mid, min, uid){
   const ate = new Date(Date.now() + min*6e4).toISOString();
-  const { error } = await cli.from('liberacoes').upsert({ materia:mid, ate, liberada_por: uid || S.user.id });
+  const { error } = await cli.from('liberacoes').upsert({ aluno:S.aluno, materia:mid, ate, liberada_por: uid || S.user.id }, { onConflict:'aluno,materia' });
   if (error){ toast('Erro: ' + error.message); return; }
   S.lib[mid] = { materia:mid, ate };
   toast('Prova liberada por ' + min + ' minutos');
@@ -495,14 +698,14 @@ async function gravarLiberacao(cli, mid, min, uid){
 }
 
 async function iniciarProva(mid){
-  const { data, error } = await sb.from('questoes').select('id,enunciado,alternativas,topico').eq('materia', mid).eq('tipo','prova');
+  const { data, error } = await sb.from('questoes').select('id,enunciado,alternativas,topico').eq('aluno', S.aluno).eq('materia', mid).eq('tipo','prova');
   if (error || !data?.length){ toast('Ainda não há questões de prova para essa matéria'); return; }
   S.prova = { materia:mid, ate:S.lib[mid].ate, lista:data.sort(() => Math.random()-.5), resp:{} };
   render();
 }
 
 async function treinar(mid){
-  const { data: qs, error } = await sb.from('questoes').select('id,enunciado,alternativas,topico').eq('materia', mid).eq('tipo','treino');
+  const { data: qs, error } = await sb.from('questoes').select('id,enunciado,alternativas,topico').eq('aluno', S.aluno).eq('materia', mid).eq('tipo','treino');
   if (error || !qs?.length){ toast('Ainda sem questões de treino — cobra o pai pelas fotos 😅'); return; }
   const { data: gb } = await sb.from('gabarito').select('*').in('questao_id', qs.map(q => q.id));
   const G = Object.fromEntries((gb||[]).map(g => [g.questao_id, g]));
@@ -512,104 +715,181 @@ async function treinar(mid){
 }
 
 function relatorio(){
-  const linhas = MATERIAS.map(m => {
-    const tops = m.topicos.map((t, i) => { const r = S.prog[chT(m.id,i)] || {};
-      return `  - ${t}: ${r.estudou?'estudou':'não estudou'}, ${r.exercicios?'fez exercícios':'sem exercícios'}, domínio ${r.dominio||'?'}/5${r.duvida?`, dúvida: "${r.duvida}"`:''}`; }).join('\n');
+  const linhas = S.mats.map(m => {
+    const tops = m.topicos.map(t => { const r = S.prog[chT(m.id, t.idx)] || {};
+      return `  - ${t.nome}: ${r.estudou?'estudou':'não estudou'}, ${r.exercicios?'fez exercícios':'sem exercícios'}, domínio ${r.dominio||'?'}/5${r.duvida?`, dúvida: "${r.duvida}"`:''}`; }).join('\n');
     const tr = melhor(m.id,'treino'), pv = melhor(m.id,'prova');
-    return `${m.nome} (prova ${m.prova}) — melhor treino: ${tr>=0?tr+'%':'—'} · prova valendo: ${pv>=0?pv+'%':'—'}\n${tops}`;
+    return `${m.nome} [código ${m.id}]${m.prova ? ' (prova ' + m.prova + ')' : ''} — melhor treino: ${tr>=0?tr+'%':'—'} · prova valendo: ${pv>=0?pv+'%':'—'}\n${tops}`;
   }).join('\n\n');
   const red = S.prog['redacao:texto']?.duvida;
-  return `RELATÓRIO DE ESTUDOS — ${new Date().toLocaleString('pt-BR')}\n\n${linhas}${red ? `\n\nREDAÇÃO PARA CORRIGIR:\n${red}` : ''}`;
+  return `RELATÓRIO DE ESTUDOS — ${nomeAluno(S.aluno)} — ${new Date().toLocaleString('pt-BR')}\n\n${linhas}${red ? `\n\nREDAÇÃO PARA CORRIGIR:\n${red}` : ''}`;
+}
+
+async function recarregar(){ await carregar(); render(); }
+
+const acoes = {
+  async entrar(){ const { error } = await sb.auth.signInWithPassword({ email:val('lemail').trim(), password:val('lsenha') }); if (error) toast('E-mail ou senha errados'); },
+  async sair(){ await sb.auth.signOut(); },
+  async aba(el){ S.aba = el.dataset.v; S.materia = null; S.verQ = null; render(); window.scrollTo(0,0);
+    if (['tarefas','painel','hoje'].includes(S.aba)){ await carregarTarefas(); render(); } },
+  async verAluno(el){ S.aluno = el.dataset.v; try { localStorage.setItem('aluno', S.aluno); } catch {} S.materia = null; S.verQ = null; await recarregar(); },
+  async dom(el){ await salvar(el.dataset.k, { dominio:Number(el.dataset.v) }); render(); },
+  async treinar(el){ await treinar(el.dataset.v); },
+  mat(el){ S.aba = 'materias'; S.materia = el.dataset.v; render(); window.scrollTo(0,0); },
+  voltarMats(){ S.materia = null; render(); },
+  async tg(el){ const k = el.dataset.k, f = el.dataset.f; await salvar(k, { [f]: !(S.prog[k]?.[f]) }); render(); },
+  resp(el){ const q = S.quiz; if (q.resp != null) return; q.resp = Number(el.dataset.v); if (q.resp === q.lista[q.i].correta) q.acertos++; render(); },
+  async proxima(){
+    const q = S.quiz; if (q.salvando) return;
+    if (q.i + 1 >= q.lista.length && !ehResp()){
+      q.salvando = true;   // evita gravar duas vezes com clique duplo
+      const pct = Math.round(1000*q.acertos/q.lista.length)/10;
+      const { data, error } = await sb.from('tentativas').insert({ materia:q.materia, tipo:'treino', acertos:q.acertos, total:q.lista.length, pct }).select().single();
+      if (error) toast('Erro ao salvar o resultado: ' + error.message); else S.tent.unshift(data);
+      q.salvando = false;
+    }
+    q.i++; q.resp = null; render(); window.scrollTo(0,0);
+  },
+  fecharQuiz(){ S.quiz = null; render(); },
+  async liberar(el){ await liberarProva(el.dataset.v); },
+  async iniciarProva(el){ await iniciarProva(el.dataset.v); },
+  marcar(el){ S.prova.resp[el.dataset.q] = Number(el.dataset.v); render(); },
+  async enviarProva(){
+    const p = S.prova; if (p.enviando) return;
+    if (!p.auto && Object.keys(p.resp).length < p.lista.length && !window.confirm('Tem questão sem resposta. Enviar mesmo assim?')) return;
+    p.enviando = true;
+    const { data, error } = await sb.rpc('corrigir_prova', { p_materia:p.materia, p_respostas:p.resp });
+    p.enviando = false;
+    if (erro(error)) return;
+    p.resultado = data; await carregar(); render(); window.scrollTo(0,0);
+  },
+  fecharProva(){ S.prova = null; render(); },
+  async relatorio(){ try { await navigator.clipboard.writeText(relatorio()); toast('Relatório copiado! Cola na conversa com o Claude.'); } catch { toast('Não consegui copiar'); } },
+  dia(el){ S.diaSel = el.dataset.v; render(); },
+  async verQ(el){ await abrirQuestoes(el.dataset.v); },
+  fecharVerQ(){ S.verQ = null; S.listaQ = null; render(); },
+  async delQ(el){ const v = el.dataset.v; if (!confirm('Apagar esta questão?')) return; const { error } = await sb.from('questoes').delete().eq('id', v); if (erro(error)) return; S.listaQ = S.listaQ.filter(q => q.id !== v); await contarQuestoes(); render(); },
+  async importar(){
+    const f = document.getElementById('impf').files[0];
+    const txt = f ? await f.text() : val('imp');
+    if (!txt.trim()){ toast('Escolha o arquivo primeiro 😉'); return; }
+    if (await importar(txt)){ await contarQuestoes(); render(); }
+  },
+  // tarefas
+  async tMarcar(el){ const { error } = await sb.rpc('marcar_tarefa', { p_tarefa:Number(el.dataset.t), p_dia:el.dataset.d, p_status:el.dataset.s || null, p_aluno:S.aluno }); if (erro(error)) return; await carregarTarefas(); render(); },
+  async tDecidir(el){ const { error } = await sb.rpc('decidir_tarefa', { p_tarefa:Number(el.dataset.t), p_dia:el.dataset.d, p_aluno:el.dataset.al, p_decisao:el.dataset.s }); if (erro(error)) return;
+    toast(el.dataset.s === 'validado' ? 'Validada ✓' : 'Rejeitada'); await recarregar(); },
+  async tRecurso(el){ const c = val(`rc-${el.dataset.t}-${el.dataset.d}`).trim(); if (!c){ toast('Escreva o motivo'); return; }
+    const { error } = await sb.rpc('abrir_recurso', { p_tarefa:Number(el.dataset.t), p_dia:el.dataset.d, p_comentario:c }); if (erro(error)) return; toast('Recurso enviado'); await carregarTarefas(); render(); },
+  async tResolver(el){ const { error } = await sb.rpc('resolver_recurso', { p_id:Number(el.dataset.v), p_decisao:el.dataset.s, p_resposta:val(`rr-${el.dataset.v}`) || null }); if (erro(error)) return; toast('Recurso resolvido'); await recarregar(); },
+  async tDia(){ S.diaTarefa = val('tdia') || hojeISO(); await carregarTarefas(); render(); },
+  async resgatar(el){ const p = S.premios.find(x => x.id === Number(el.dataset.v)); if (!confirm(`Trocar ${fmtV(S.grupos.casa.moeda, p.custo)} por "${p.nome}"?`)) return;
+    const { error } = await sb.rpc('resgatar', { p_premio:p.id }); if (erro(error)) return; toast(`🎉 ${p.nome}! Avise o pai ou a mãe.`); await recarregar(); },
+  // lançamentos
+  async lMeta(){ const g = calcMeta(); if (!confirm(`Lançar ${fmtV(S.grupos.estudos.moeda, g.valor)} (${g.nivel}) para ${nomeAluno(S.aluno)}?`)) return;
+    const dRef = g.prazo.toLocaleDateString('sv-SE', { timeZone:'America/Sao_Paulo' });
+    const { error } = await sb.rpc('lancar', { p_aluno:S.aluno, p_grupo:'estudos', p_valor:g.valor, p_descricao:`Missão: nível ${g.nivel}`, p_data_ref:dRef, p_origem:'nivel', p_origem_ref:'meta:' + g.c.prazo });
+    if (erro(error)) return; toast('Lançado ✓'); await recarregar(); },
+  async lNotas(){ const d = calcDinheiro(); const ref = val('lnRef').trim() || 'notas'; if (!confirm(`Lançar ${fmtV(S.grupos.notas.moeda, d.total)} (${ref}) para ${nomeAluno(S.aluno)}?`)) return;
+    const { error } = await sb.rpc('lancar', { p_aluno:S.aluno, p_grupo:'notas', p_valor:d.total, p_descricao:`Notas: ${ref}`, p_origem:'notas', p_origem_ref:ref });
+    if (error?.message?.includes('lancamentos_unico')){ toast('Essa rodada já foi lançada'); return; } if (erro(error)) return; toast('Lançado ✓'); await recarregar(); },
+  async lUso(){ await lancarManual(-1); },
+  async lCredito(){ await lancarManual(1); },
+  // cadastros
+  cadAba(el){ S.cad = el.dataset.v; render(); },
+  async cTarefaSalvar(el){ const id = el.dataset.v, p = `t${id}`;
+    const reg = { nome:val(`${p}-nome`).trim(), emoji:val(`${p}-emoji`).trim() || '✅', pontos:num(`${p}-pontos`) ?? 0, modo:val(`${p}-modo`), alunos:lerAlunos(`${p}-al`), base:val(`${p}-base`) || hojeISO() };
+    if (!reg.nome || !reg.alunos.length){ toast('Dê um nome e marque ao menos uma criança'); return; }
+    const { error } = id === 'novo' ? await sb.from('tarefas').insert(reg) : await sb.from('tarefas').update(reg).eq('id', id);
+    if (erro(error)) return; toast('Salvo ✓'); await recarregar(); },
+  async cTarefaAtiva(el){ const t = S.tarefasCad.find(x => x.id === Number(el.dataset.v)); const { error } = await sb.from('tarefas').update({ ativa:!t.ativa }).eq('id', t.id); if (erro(error)) return; await recarregar(); },
+  async cTroca(el){ const id = Number(el.dataset.v); const { error } = await sb.from('trocas').upsert({ tarefa:id, dia:val(`t${id}-tdia`), aluno:val(`t${id}-tal`), por:S.user.id }, { onConflict:'tarefa,dia' });
+    if (erro(error)) return; toast('Troca registrada'); await recarregar(); },
+  async cPremioSalvar(el){ const id = el.dataset.v, k = `p${id}`; const al = lerAlunos(`${k}-al`);
+    const reg = { nome:val(`${k}-nome`).trim(), emoji:val(`${k}-emoji`).trim() || '🎁', custo:num(`${k}-custo`), alunos:al.length === S.alunos.length ? null : al };
+    if (!reg.nome || !(reg.custo > 0) || !al.length){ toast('Nome, custo maior que zero e ao menos uma criança'); return; }
+    const { error } = id === 'novo' ? await sb.from('premios').insert(reg) : await sb.from('premios').update(reg).eq('id', id);
+    if (erro(error)) return; toast('Salvo ✓'); await recarregar(); },
+  async cPremioAtivo(el){ const p = S.premios.find(x => x.id === Number(el.dataset.v)); const { error } = await sb.from('premios').update({ ativo:!p.ativo }).eq('id', p.id); if (erro(error)) return; await recarregar(); },
+  async cMatSalvar(el){ const id = el.dataset.v;
+    const { error } = await sb.from('materias').update({ nome:val(`m-${id}-nome`).trim(), emoji:val(`m-${id}-emoji`).trim() || '📘', cor:val(`m-${id}-cor`), prova:val(`m-${id}-prova`) || null }).eq('aluno', S.aluno).eq('id', id);
+    if (erro(error)) return;
+    const tops = S.todosTopicos.filter(t => t.materia === id);
+    for (const t of tops){ const nome = val(`tp-${id}-${t.idx}`).trim(); const ativo = document.getElementById(`tpa-${id}-${t.idx}`).checked;
+      if (nome && (nome !== t.nome || ativo !== t.ativo)){ const r = await sb.from('topicos').update({ nome, ativo }).eq('aluno', S.aluno).eq('materia', id).eq('idx', t.idx); if (erro(r.error)) return; } }
+    const novo = val(`tpn-${id}`).trim();
+    if (novo){ const idx = tops.reduce((mx, t) => Math.max(mx, t.idx), -1) + 1; const r = await sb.from('topicos').insert({ aluno:S.aluno, materia:id, idx, nome:novo }); if (erro(r.error)) return; }
+    toast('Salvo ✓'); await recarregar(); },
+  async cMatAtiva(el){ const m = S.todasMats.find(x => x.id === el.dataset.v); const { error } = await sb.from('materias').update({ ativa:!m.ativa }).eq('aluno', S.aluno).eq('id', m.id); if (erro(error)) return; await recarregar(); },
+  async cMatNova(){ const nome = val('mn-nome').trim();
+    const id = (val('mn-id').trim() || nome).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+    if (!nome || !id){ toast('Dê um nome'); return; }
+    if (S.todasMats.some(m => m.id === id)){ toast('Já existe uma matéria com o código ' + id); return; }
+    const { error } = await sb.from('materias').insert({ aluno:S.aluno, id, nome, emoji:val('mn-emoji').trim() || '📘', cor:val('mn-cor'), ordem:S.todasMats.length });
+    if (erro(error)) return; toast('Matéria criada: código ' + id); await recarregar(); },
+  async cRegra(el){ const gr = el.dataset.v; const x = S.grupos[gr];
+    const reg = { moeda:val(`g-${gr}-moeda`), teto:num(`g-${gr}-teto`), expira:val(`g-${gr}-expira`), config:{ ...x.config } };
+    if (reg.teto != null && !(reg.teto > 0)) reg.teto = null;
+    if (gr === 'estudos'){ const pz = val('ge-prazo');
+      Object.assign(reg.config, { prazo:pz ? new Date(pz + ':00-03:00').toISOString() : null, materias:S.mats.map(m => m.id).filter(id => document.getElementById(`ge-m-${id}`)?.checked),
+        treino_min:num('ge-tmin') ?? 70, prova_min:num('ge-pmin') ?? 80, prova_qtd:num('ge-pqtd') ?? 1, minutos:{ bronze:num('ge-b') ?? 0, prata:num('ge-p') ?? 0, ouro:num('ge-o') ?? 0 } }); }
+    if (gr === 'notas') Object.assign(reg.config, { por_materia:num('gn-por') ?? 0, nota_min:num('gn-min') ?? 0, bonus:num('gn-bonus') ?? 0, bonus_min:num('gn-bmin') ?? 0, maximo:num('gn-max') });
+    if (reg.moeda !== x.moeda && !confirm('Mudar o tipo de recompensa começa um saldo novo nesse tipo (o histórico continua no extrato). Continuar?')) return;
+    const { error } = await sb.from('grupos').update(reg).eq('aluno', S.aluno).eq('grupo', gr); if (erro(error)) return; toast('Regras salvas ✓'); await recarregar(); },
+  async cPausa(){ const ini = val('pz-ini'), fim = val('pz-fim') || val('pz-ini'); if (!ini){ toast('Escolha as datas'); return; }
+    const { error } = await sb.from('pausas').insert({ inicio:ini, fim, motivo:val('pz-mot') || null }); if (erro(error)) return; toast('Pausa criada'); await recarregar(); },
+  async cPausaDel(el){ if (!confirm('Remover esta pausa?')) return; const { error } = await sb.from('pausas').delete().eq('id', el.dataset.v); if (erro(error)) return; await recarregar(); },
+};
+async function lancarManual(sinal){
+  const g = val('luG'), v = Math.abs(num('luV') || 0), desc = val('luT').trim();
+  if (!v || !desc){ toast('Preencha valor e descrição'); return; }
+  const { error } = await sb.rpc('lancar', { p_aluno:S.aluno, p_grupo:g, p_valor:sinal * v, p_descricao:desc, p_data_ref:val('luD') || null, p_origem:sinal < 0 ? 'uso' : 'manual' });
+  if (erro(error)) return; toast('Lançado ✓'); await recarregar();
 }
 
 $app.addEventListener('click', async e => {
-  const el = e.target.closest('[data-a]'); if (!el) return;
-  const a = el.dataset.a, v = el.dataset.v;
-  if (a === 'entrar'){
-    const { error } = await sb.auth.signInWithPassword({ email:document.getElementById('lemail').value.trim(), password:document.getElementById('lsenha').value });
-    if (error) toast('E-mail ou senha errados'); return;
-  }
-  if (a === 'sair'){ await sb.auth.signOut(); return; }
-  if (a === 'aba'){ S.aba = v; S.materia = null; S.verQ = null; render(); window.scrollTo(0,0); return; }
-  if (a === 'abrir'){ S.aberta = S.aberta === v ? null : v; render(); return; }
-  if (a === 'dom'){ await salvar(el.dataset.k, { dominio:Number(v) }); render(); return; }
-  if (a === 'treinar'){ await treinar(v); return; }
-  if (a === 'mat'){ S.aba = 'materias'; S.materia = v; render(); window.scrollTo(0,0); return; }
-  if (a === 'voltarMats'){ S.materia = null; render(); return; }
-  if (a === 'tg'){ const k = el.dataset.k, f = el.dataset.f; await salvar(k, { [f]: !(S.prog[k]?.[f]) }); render(); return; }
-  if (a === 'resp'){ const q = S.quiz; q.resp = Number(v); if (q.resp === q.lista[q.i].correta) q.acertos++; render(); return; }
-  if (a === 'proxima'){
-    const q = S.quiz; q.i++; q.resp = null;
-    if (q.i >= q.lista.length){
-      const pct = Math.round(1000*q.acertos/q.lista.length)/10;
-      const { data } = await sb.from('tentativas').insert({ materia:q.materia, tipo:'treino', acertos:q.acertos, total:q.lista.length, pct }).select().single();
-      if (data) S.tent.unshift(data);
-    }
-    render(); window.scrollTo(0,0); return;
-  }
-  if (a === 'fecharQuiz'){ S.quiz = null; render(); return; }
-  if (a === 'liberar'){ await liberarProva(v); return; }
-  if (a === 'iniciarProva'){ await iniciarProva(v); return; }
-  if (a === 'marcar'){ S.prova.resp[el.dataset.q] = Number(v); render(); return; }
-  if (a === 'enviarProva'){
-    const p = S.prova;
-    if (!p.auto && Object.keys(p.resp).length < p.lista.length && !confirmarEnvio()) return;
-    const { data, error } = await sb.rpc('corrigir_prova', { p_materia:p.materia, p_respostas:p.resp });
-    if (error){ toast(error.message); return; }
-    p.resultado = data; await carregar(); render(); window.scrollTo(0,0); return;
-  }
-  if (a === 'fecharProva'){ S.prova = null; render(); return; }
-  if (a === 'relatorio'){ try { await navigator.clipboard.writeText(relatorio()); toast('Relatório copiado! Cola na conversa com o Claude.'); } catch { toast('Não consegui copiar'); } return; }
-  if (a === 'regGta'){
-    const horas = Number(document.getElementById('ghoras').value); const dia = document.getElementById('gdia').value;
-    if (!horas || !dia) return;
-    const { data, error } = await sb.from('uso_gta').insert({ dia, horas }).select().single();
-    if (error){ toast(error.message); return; } S.gta.push(data); render(); return;
-  }
-  if (a === 'delGta'){ await sb.from('uso_gta').delete().eq('id', v); S.gta = S.gta.filter(r => String(r.id) !== v); render(); return; }
-  if (a === 'dia'){ S.diaSel = v; render(); return; }
-  if (a === 'verQ'){ await abrirQuestoes(v); return; }
-  if (a === 'fecharVerQ'){ S.verQ = null; S.listaQ = null; render(); return; }
-  if (a === 'delQ'){ if (!confirm('Apagar esta questão?')) return; const { error } = await sb.from('questoes').delete().eq('id', v); if (error){ toast(error.message); return; } S.listaQ = S.listaQ.filter(q => q.id !== v); await contarQuestoes(); render(); return; }
-  if (a === 'importar'){
-    const f = document.getElementById('impf').files[0];
-    const txt = f ? await f.text() : document.getElementById('imp').value;
-    if (!txt.trim()){ toast('Escolha o arquivo primeiro 😉'); return; }
-    if (await importar(txt)){ document.getElementById('imp').value = ''; document.getElementById('impf').value = ''; await contarQuestoes(); render(); }
-    return;
-  }
+  const el = e.target.closest('[data-a]'); if (!el || el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') return;
+  const fn = acoes[el.dataset.a]; if (!fn) return;
+  if (el.tagName === 'BUTTON'){ if (el.dataset.ocupado) return; el.dataset.ocupado = '1'; }
+  try { await fn(el); } finally { delete el.dataset.ocupado; }
 });
 
-// Ações de checkbox (precisam ver o estado novo)
+// Ações de campo (precisam ver o valor novo)
 $app.addEventListener('change', async e => {
   const el = e.target;
-  if (el.dataset.a === 'ck'){ await salvar(el.dataset.k, { [el.dataset.f]: el.checked }); render(); }
   if (el.dataset.a === 'crono'){ await salvar(el.dataset.k, { feito: el.checked }); if (S.aba === 'agenda') render(); }
   if (el.dataset.a === 'duv'){ await salvar(el.dataset.k, { duvida: el.value }); toast('Salvo'); }
   if (el.dataset.a === 'nota'){
     const n = el.value === '' ? null : Number(el.value);
-    const { error } = n == null ? await sb.from('notas_p2').delete().eq('materia', el.dataset.v) : await sb.from('notas_p2').upsert({ materia:el.dataset.v, nota:n });
+    const { error } = n == null ? await sb.from('notas_p2').delete().eq('aluno', S.aluno).eq('materia', el.dataset.v) : await sb.from('notas_p2').upsert({ aluno:S.aluno, materia:el.dataset.v, nota:n }, { onConflict:'aluno,materia' });
     if (error) toast(error.message); else { S.notas[el.dataset.v] = n; toast('Nota salva'); }
   }
 });
 
 async function importar(txt){
-  let arr; try { arr = JSON.parse(txt.replace(/^\uFEFF/, '').trim()); } catch (e) { toast('Não consegui ler o arquivo: ' + e.message.slice(0,80)); return false; }
+  let arr; try { arr = JSON.parse(txt.replace(/^﻿/, '').trim()); } catch (e) { toast('Não consegui ler o arquivo: ' + e.message.slice(0,80)); return false; }
   if (!Array.isArray(arr)){ toast('Arquivo em formato inesperado'); return false; }
-  const qs = arr.map(q => ({ id:q.id, materia:q.materia, topico:q.topico || null, tipo:q.tipo, enunciado:q.enunciado, alternativas:q.alternativas }));
+  const cods = new Set(S.todasMats.map(m => m.id));
+  const sem = [...new Set(arr.map(q => q.materia).filter(m => !cods.has(m)))];
+  if (sem.length){ toast(`Matéria não cadastrada para ${nomeAluno(S.aluno)}: ${sem.join(', ')}`); return false; }
+  const ids = arr.map(q => q.id);
+  const { data: existentes } = await sb.from('questoes').select('id,aluno').in('id', ids);
+  const deOutro = (existentes || []).filter(q => q.aluno !== S.aluno).map(q => q.id);
+  if (deOutro.length){ toast(`IDs já usados por outro aluno (${deOutro.slice(0,3).join(', ')}…). Peça IDs novos ao Claude.`); return false; }
+  const qs = arr.map(q => ({ id:q.id, aluno:S.aluno, materia:q.materia, topico:q.topico || null, tipo:q.tipo, enunciado:q.enunciado, alternativas:q.alternativas }));
   const gb = arr.map(q => ({ questao_id:q.id, correta:q.correta, explicacao:q.explicacao || null }));
   const r1 = await sb.from('questoes').upsert(qs); if (r1.error){ toast('Erro: ' + r1.error.message); return false; }
   const r2 = await sb.from('gabarito').upsert(gb); if (r2.error){ toast('Erro: ' + r2.error.message); return false; }
   const t = arr.filter(q => q.tipo==='treino').length;
-  toast(`✅ ${arr.length} questões importadas (${t} treino · ${arr.length-t} prova)`);
+  toast(`✅ ${arr.length} questões importadas para ${nomeAluno(S.aluno)} (${t} treino · ${arr.length-t} prova)`);
+  document.getElementById('imp').value = ''; document.getElementById('impf').value = '';
   return true;
 }
 async function contarQuestoes(){
   if (!ehResp()) return;
-  const { data } = await sb.from('questoes').select('materia,tipo');
+  const { data } = await sb.from('questoes').select('materia,tipo').eq('aluno', S.aluno);
   S.qtd = {}; (data||[]).forEach(q => { const k = S.qtd[q.materia] ||= { treino:0, prova:0 }; k[q.tipo]++; });
 }
-function confirmarEnvio(){ return window.confirm('Tem questão sem resposta. Enviar mesmo assim?'); }
 
 // Relógio da prova
 setInterval(() => {
@@ -617,18 +897,21 @@ setInterval(() => {
   const r = document.getElementById('relogio'); if (!r) return;
   const falta = Math.max(0, new Date(S.prova.ate) - new Date());
   r.textContent = `${Math.floor(falta/6e4)}:${String(Math.floor(falta%6e4/1e3)).padStart(2,'0')}`;
-  if (falta === 0 && !S.prova.auto){ S.prova.auto = true; document.querySelector('[data-a="enviarProva"]')?.click(); }
+  if (falta === 0 && !S.prova.auto){ S.prova.auto = true; acoes.enviarProva(); }
 }, 1000);
 
 // ---------------- INÍCIO ----------------
 async function iniciarSessao(session){
   S.user = session?.user || null;
   if (!S.user){ S.perfil = null; render(); return; }
-  const { data } = await sb.from('perfis').select('*').eq('user_id', S.user.id).maybeSingle();
+  const { data: perfis } = await sb.from('perfis').select('*');
+  const data = (perfis || []).find(p => p.user_id === S.user.id);
   if (!data){ $app.innerHTML = `<div id="login" class="card"><h2>Quase lá</h2><p class="mut">Seu login funciona, mas ainda não foi cadastrado no app. Fala com o pai.</p><button class="btn sec" data-a="sair">Sair</button></div>`; return; }
   S.perfil = data;
+  S.alunos = (perfis || []).filter(p => p.papel === 'aluno').sort((a, b) => a.nome.localeCompare(b.nome));
+  if (data.papel === 'aluno') S.aluno = data.user_id;
+  else { let salvo = null; try { salvo = localStorage.getItem('aluno'); } catch {} S.aluno = S.alunos.some(a => a.user_id === salvo) ? salvo : S.alunos[0]?.user_id; }
   await carregar();
-  await contarQuestoes();
   render();
 }
 sb.auth.onAuthStateChange((_ev, session) => {
