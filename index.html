@@ -156,7 +156,7 @@ async function carregar(){
     sb.from('topicos').select('*').eq('aluno', a).order('idx'),
     sb.from('cronograma').select('*').eq('aluno', a).order('dia'),
     sb.from('progresso').select('*').eq('aluno', a),
-    sb.from('tentativas').select('id,materia,tipo,acertos,total,pct,criado').eq('aluno', a).order('criado', { ascending:false }),
+    sb.from('tentativas').select('id,materia,tipo,acertos,total,pct,criado,detalhes').eq('aluno', a).order('criado', { ascending:false }),
     sb.from('liberacoes').select('*').eq('aluno', a),
     sb.from('notas_p2').select('*').eq('aluno', a),
     sb.from('grupos').select('*').eq('aluno', a),
@@ -268,6 +268,7 @@ function render(){
   else if (S.quiz) corpo = telaQuiz();
   else if (S.aba === 'materias' && S.materia && MAT(S.materia)) corpo = telaMateria(S.materia);
   else if (S.aba === 'painel' && S.verQ) corpo = telaVerQuestoes();
+  else if (S.aba === 'painel' && S.anMat) corpo = telaAnalise();
   else corpo = ({ hoje:telaHoje, agenda:telaAgenda, materias:telaMaterias, tarefas:telaTarefas, premios:telaPremios, painel:telaPainel, cad:telaCad })[S.aba]();
   const foco = S.quiz || S.prova;
   const seletor = ehResp() && !foco ? `<div class="alunos">${S.alunos.map(a => `<button data-a="verAluno" data-v="${a.user_id}" class="${a.user_id===S.aluno?'on':''}">${h(a.nome)}</button>`).join('')}</div>` : '';
@@ -573,6 +574,8 @@ function telaPainel(){
     <p class="mut">Minutos de tela: digite em minutos (2h = 120). Para corrigir um erro, faça um lançamento ao contrário.</p></div>`;
   return `${pend}${rec}${lancar}
     <div class="card"><h2>🛡️ Como ${h(nomeAluno(S.aluno))} está</h2><table><tr><th>Matéria</th><th>Tópicos</th><th>Domínio</th><th>Treino</th><th>Prova</th></tr>${linhas}</table></div>
+    <div class="card"><h2>📊 Desempenho nas questões</h2><p class="mut">Tentativas, acertos e erros questão por questão, repetições e tópicos fracos.</p><table><tr><th>Matéria</th><th>Treinos</th><th>Provas</th><th>Melhor</th></tr>${S.mats.map(m => { const T = S.tent.filter(t => t.materia === m.id); const tr = T.filter(t => t.tipo === 'treino'), pv = T.filter(t => t.tipo === 'prova');
+      return T.length ? `<tr data-a="analise" data-v="${m.id}" style="cursor:pointer"><td>${m.emoji} ${h(m.nome)}</td><td>${tr.length}</td><td>${pv.length}</td><td>${Math.max(...T.map(t => Number(t.pct)))}%</td><td style="color:var(--ac);font-weight:700">ver ›</td></tr>` : ''; }).join('') || '<tr><td class="mut">Nenhum teste feito ainda.</td></tr>'}</table></div>
     <div class="card"><h2>🗂️ Questões cadastradas</h2><table><tr><th>Matéria</th><th>Treino</th><th>Prova</th></tr>${S.mats.map(m => `<tr data-a="verQ" data-v="${m.id}" style="cursor:pointer"><td>${m.emoji} ${h(m.nome)}</td><td>${S.qtd?.[m.id]?.treino||0}</td><td>${S.qtd?.[m.id]?.prova||0}</td><td style="color:var(--ac);font-weight:700">ver ›</td></tr>`).join('')}</table></div>
     <div class="card"><h2>❓ Dúvidas anotadas</h2>${duvidas || '<p class="mut">Nenhuma ainda.</p>'}</div>
     <div class="card"><h2>📋 Relatório para o Claude</h2><p class="mut">Copia o progresso para colar na conversa e pedir questões no nível certo.</p>
@@ -582,6 +585,70 @@ function telaPainel(){
       <input type="file" id="impf" accept=".json,application/json,text/plain"><p class="mut">…ou cole o conteúdo aqui:</p>
       <textarea id="imp" style="min-height:140px" placeholder='[{"id":"...","materia":"portugues", ...}]'></textarea><br><br>
       <button class="btn" data-a="importar">Importar</button></div>`;
+}
+
+
+// ---------- Análise de desempenho (pais) ----------
+async function abrirAnalise(mid){
+  S.anMat = mid; S.banco = null; render(); window.scrollTo(0,0);
+  const { data: qs } = await sb.from('questoes').select('id,topico,tipo,enunciado,alternativas').eq('aluno', S.aluno).eq('materia', mid);
+  const { data: gb } = await sb.from('gabarito').select('*').in('questao_id', (qs||[]).map(q => q.id));
+  const G = Object.fromEntries((gb||[]).map(g => [g.questao_id, g]));
+  S.banco = Object.fromEntries((qs||[]).map(q => [q.id, { ...q, correta:G[q.id]?.correta, explicacao:G[q.id]?.explicacao }]));
+  render();
+}
+// detalhes da prova trazem o texto; os do treino, só {id, r, c}
+const normDet = d => (d || []).map(x => ({ id:x.id, r:x.r ?? x.resposta ?? null, c:x.c ?? x.correta }));
+function telaAnalise(){
+  const mid = S.anMat; const m = MAT(mid); const B = S.banco;
+  const T = S.tent.filter(t => t.materia === mid).sort((a, b) => a.criado.localeCompare(b.criado));
+  const voltar = `<button class="voltar" data-a="fecharAnalise">‹ Painel</button>
+    <select data-a="anMat" style="margin-bottom:8px">${S.mats.map(x => `<option value="${x.id}" ${x.id===mid?'selected':''}>${x.emoji} ${h(x.nome)}</option>`).join('')}</select>`;
+  if (!B) return voltar + '<p class="mut">Carregando…</p>';
+  // clique duplo: mesma matéria/resultado gravada com menos de 3 s de diferença
+  const dup = new Set(); T.forEach((t, i) => { const a = T[i-1]; if (a && a.tipo === t.tipo && a.acertos === t.acertos && a.total === t.total && new Date(t.criado) - new Date(a.criado) < 3000) dup.add(t.id); });
+  const validas = T.filter(t => !dup.has(t.id));
+  const tr = validas.filter(t => t.tipo === 'treino'), pv = validas.filter(t => t.tipo === 'prova');
+  const media = L => L.length ? Math.round(L.reduce((s, t) => s + Number(t.pct), 0) / L.length) + '%' : '—';
+  // estatística por questão
+  const Q = {};
+  validas.forEach(t => normDet(t.detalhes).forEach(d => { const q = Q[d.id] ||= { vezes:0, acertos:0, tipo:t.tipo }; q.vezes++; if (d.r === d.c) q.acertos++; }));
+  const ids = Object.keys(Q); const comDet = validas.filter(t => t.detalhes?.length).length;
+  const bancoTreino = Object.values(B).filter(q => q.tipo === 'treino').length;
+  const vistasTreino = ids.filter(id => B[id]?.tipo === 'treino').length;
+  const repetidas = ids.filter(id => Q[id].vezes > 1);
+  const respostas = ids.reduce((s, id) => s + Q[id].vezes, 0);
+  const erradas = ids.filter(id => Q[id].acertos < Q[id].vezes).sort((a, b) => (Q[b].vezes - Q[b].acertos) - (Q[a].vezes - Q[a].acertos) || Q[a].acertos/Q[a].vezes - Q[b].acertos/Q[b].vezes);
+  const sempreErra = erradas.filter(id => Q[id].acertos === 0 && Q[id].vezes > 1);
+  const errouDepoisAcertou = ids.filter(id => Q[id].vezes > 1 && Q[id].acertos > 0 && Q[id].acertos < Q[id].vezes);
+  // por tópico
+  const top = {}; ids.forEach(id => { const k = B[id]?.topico || 'sem tópico'; const x = top[k] ||= { v:0, a:0 }; x.v += Q[id].vezes; x.a += Q[id].acertos; });
+  const linhaQ = id => { const q = B[id]; const x = Q[id];
+    return `<div class="nivel"><div style="flex:1"><b>${q ? h(q.enunciado.slice(0, 110)) + (q.enunciado.length > 110 ? '…' : '') : h(id) + ' (apagada)'}</b><div class="mut">${h(q?.topico || '')} · ${x.tipo === 'prova' ? 'prova' : 'treino'}</div></div>
+      <span class="tag ${x.acertos === x.vezes ? 'ok' : x.acertos === 0 ? 'bad' : 'warn'}">${x.acertos}/${x.vezes}</span></div>`; };
+  const detTent = t => { const D = normDet(t.detalhes);
+    if (!D.length) return '<p class="mut">Sem detalhe por questão (teste feito antes desta versão).</p>';
+    return D.map((d, n) => { const q = B[d.id]; const ok = d.r === d.c;
+      return `<div class="topico"><b>${ok ? '✅' : '❌'} ${n+1}. ${q ? h(q.enunciado) : h(d.id) + ' (questão apagada)'}</b>
+        ${q ? q.alternativas.map((a, i) => `<div class="alt ${i===d.c?'certa':i===d.r?'errada':''}" style="cursor:default"><b>${'ABCDE'[i]})</b> ${h(a)}${i===d.r?' ← marcou':''}</div>`).join('') : ''}
+        ${d.r == null ? '<p class="mut">Não respondeu.</p>' : ''}${q?.explicacao ? `<p class="mut">💡 ${h(q.explicacao)}</p>` : ''}</div>`; }).join(''); };
+  const quando = iso => new Date(iso).toLocaleString('pt-BR', { weekday:'short', day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+  return `${voltar}
+    <div class="mhead" style="--c:${h(m.cor)}"><span class="em">${m.emoji}</span><div class="big">${h(m.nome)}</div><div>Desempenho de ${h(nomeAluno(S.aluno))}</div></div>
+    <div class="card"><h2>Resumo</h2><table>
+      <tr><td>🎯 Treinos</td><td><b>${tr.length}</b></td><td>média ${media(tr)} · melhor ${tr.length ? Math.max(...tr.map(t => Number(t.pct))) + '%' : '—'}</td></tr>
+      <tr><td>🏛️ Provas valendo</td><td><b>${pv.length}</b></td><td>${pv.map(t => t.pct + '%').join(', ') || '—'}</td></tr>
+      <tr><td>📈 Evolução dos treinos</td><td colspan="2">${tr.map(t => t.pct + '%').join(' → ') || '—'}</td></tr>
+      <tr><td>👀 Questões de treino vistas</td><td colspan="2"><b>${vistasTreino}</b> de ${bancoTreino}${bancoTreino && vistasTreino < bancoTreino ? ` · ${bancoTreino - vistasTreino} nunca apareceram` : ''}</td></tr>
+      <tr><td>🔁 Repetidas</td><td colspan="2"><b>${repetidas.length}</b> questões apareceram mais de uma vez${respostas ? ` · ${respostas} respostas no total` : ''}</td></tr>
+      <tr><td>❌ Sempre erra</td><td colspan="2"><b>${sempreErra.length}</b> (erradas toda vez, vistas 2+ vezes)</td></tr>
+      <tr><td>🔀 Instáveis</td><td colspan="2"><b>${errouDepoisAcertou.length}</b> (ora acerta, ora erra: pode ser chute)</td></tr>
+    </table>
+    ${dup.size ? `<p class="mut">⚠️ ${dup.size} tentativa(s) gravada(s) em dobro por clique duplo foram ignoradas.</p>` : ''}
+    ${comDet < validas.length ? `<p class="mut">${validas.length - comDet} tentativa(s) antigas não têm detalhe por questão; os números acima usam só as ${comDet} com detalhe.</p>` : ''}</div>
+    ${Object.keys(top).length ? `<div class="card"><h2>Acerto por tópico</h2><table>${Object.entries(top).sort((a, b) => a[1].a/a[1].v - b[1].a/b[1].v).map(([k, x]) => `<tr><td>${h(k)}</td><td style="width:120px"><div class="bar"><i style="width:${100*x.a/x.v}%;background:${x.a/x.v >= .7 ? 'var(--ok)' : x.a/x.v >= .5 ? 'var(--warn)' : 'var(--bad)'}"></i></div></td><td style="text-align:right">${Math.round(100*x.a/x.v)}% <span class="mut">(${x.a}/${x.v})</span></td></tr>`).join('')}</table></div>` : ''}
+    ${erradas.length ? `<div class="card"><h2>Questões que ele erra (${erradas.length})</h2><p class="mut">Acertos / vezes que apareceu. As piores primeiro.</p>${erradas.slice(0, 30).map(linhaQ).join('')}</div>` : ''}
+    <div class="card"><h2>Todas as tentativas (${T.length})</h2>${[...T].reverse().map(t => `<details class="topico"><summary>${t.tipo === 'prova' ? '🏛️ Prova' : '🎯 Treino'} · ${quando(t.criado)} · <b>${t.acertos}/${t.total} (${t.pct}%)</b>${dup.has(t.id) ? ' · <span class="tag warn">duplicada</span>' : ''}</summary>${detTent(t)}</details>`).join('') || '<p class="mut">Nenhuma.</p>'}</div>`;
 }
 
 // ---------- Cadastros (pais) ----------
@@ -710,7 +777,7 @@ async function treinar(mid){
   const { data: gb } = await sb.from('gabarito').select('*').in('questao_id', qs.map(q => q.id));
   const G = Object.fromEntries((gb||[]).map(g => [g.questao_id, g]));
   const lista = qs.sort(() => Math.random()-.5).slice(0,10).map(q => ({ ...q, correta:G[q.id]?.correta, explicacao:G[q.id]?.explicacao }));
-  S.quiz = { materia:mid, lista, i:0, acertos:0, resp:null };
+  S.quiz = { materia:mid, lista, i:0, acertos:0, resp:null, det:[] };
   render();
 }
 
@@ -730,21 +797,21 @@ async function recarregar(){ await carregar(); render(); }
 const acoes = {
   async entrar(){ const { error } = await sb.auth.signInWithPassword({ email:val('lemail').trim(), password:val('lsenha') }); if (error) toast('E-mail ou senha errados'); },
   async sair(){ await sb.auth.signOut(); },
-  async aba(el){ S.aba = el.dataset.v; S.materia = null; S.verQ = null; render(); window.scrollTo(0,0);
+  async aba(el){ S.aba = el.dataset.v; S.materia = null; S.verQ = null; S.anMat = null; render(); window.scrollTo(0,0);
     if (['tarefas','painel','hoje'].includes(S.aba)){ await carregarTarefas(); render(); } },
-  async verAluno(el){ S.aluno = el.dataset.v; try { localStorage.setItem('aluno', S.aluno); } catch {} S.materia = null; S.verQ = null; await recarregar(); },
+  async verAluno(el){ S.aluno = el.dataset.v; try { localStorage.setItem('aluno', S.aluno); } catch {} S.materia = null; S.verQ = null; S.anMat = null; await recarregar(); },
   async dom(el){ await salvar(el.dataset.k, { dominio:Number(el.dataset.v) }); render(); },
   async treinar(el){ await treinar(el.dataset.v); },
   mat(el){ S.aba = 'materias'; S.materia = el.dataset.v; render(); window.scrollTo(0,0); },
   voltarMats(){ S.materia = null; render(); },
   async tg(el){ const k = el.dataset.k, f = el.dataset.f; await salvar(k, { [f]: !(S.prog[k]?.[f]) }); render(); },
-  resp(el){ const q = S.quiz; if (q.resp != null) return; q.resp = Number(el.dataset.v); if (q.resp === q.lista[q.i].correta) q.acertos++; render(); },
+  resp(el){ const q = S.quiz; if (q.resp != null) return; q.resp = Number(el.dataset.v); const it = q.lista[q.i]; q.det.push({ id:it.id, r:q.resp, c:it.correta }); if (q.resp === it.correta) q.acertos++; render(); },
   async proxima(){
     const q = S.quiz; if (q.salvando) return;
     if (q.i + 1 >= q.lista.length && !ehResp()){
       q.salvando = true;   // evita gravar duas vezes com clique duplo
       const pct = Math.round(1000*q.acertos/q.lista.length)/10;
-      const { data, error } = await sb.from('tentativas').insert({ materia:q.materia, tipo:'treino', acertos:q.acertos, total:q.lista.length, pct }).select().single();
+      const { data, error } = await sb.from('tentativas').insert({ materia:q.materia, tipo:'treino', acertos:q.acertos, total:q.lista.length, pct, detalhes:q.det }).select().single();
       if (error) toast('Erro ao salvar o resultado: ' + error.message); else S.tent.unshift(data);
       q.salvando = false;
     }
@@ -768,6 +835,8 @@ const acoes = {
   dia(el){ S.diaSel = el.dataset.v; render(); },
   async verQ(el){ await abrirQuestoes(el.dataset.v); },
   fecharVerQ(){ S.verQ = null; S.listaQ = null; render(); },
+  async analise(el){ await abrirAnalise(el.dataset.v); },
+  fecharAnalise(){ S.anMat = null; render(); },
   async delQ(el){ const v = el.dataset.v; if (!confirm('Apagar esta questão?')) return; const { error } = await sb.from('questoes').delete().eq('id', v); if (erro(error)) return; S.listaQ = S.listaQ.filter(q => q.id !== v); await contarQuestoes(); render(); },
   async importar(){
     const f = document.getElementById('impf').files[0];
@@ -857,6 +926,7 @@ $app.addEventListener('click', async e => {
 // Ações de campo (precisam ver o valor novo)
 $app.addEventListener('change', async e => {
   const el = e.target;
+  if (el.dataset.a === 'anMat'){ await abrirAnalise(el.value); return; }
   if (el.dataset.a === 'crono'){ await salvar(el.dataset.k, { feito: el.checked }); if (S.aba === 'agenda') render(); }
   if (el.dataset.a === 'duv'){ await salvar(el.dataset.k, { duvida: el.value }); toast('Salvo'); }
   if (el.dataset.a === 'nota'){
