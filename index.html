@@ -202,7 +202,7 @@ const S = { user:null, perfil:null, aba:'hoje', alunos:[], aluno:null, mats:[], 
   grupos:{}, saldos:{}, lanc:[], prog:{}, tent:[], lib:{}, notas:{}, tarefasCad:[], premios:[], tarefas:{}, rev:[], pend:[], recAb:[],
   pausas:[], quiz:null, prova:null, materia:null, cad:'tarefas', diaTarefa:null,
   saldoT:0, saldosFam:{}, fam:{ crono:{}, provas:[], progCrono:{} }, agenda:{}, agIni:null, agSel:null, agView:'semana', agFiltro:'todos',
-  resgates:[], resgPend:[], limites:{}, qtdLoja:{}, sheet:null, mais:null, pEstudo:{} };
+  resgates:[], resgPend:[], limites:{}, qtdLoja:{}, sheet:null, mais:null, pEstudo:{}, treinoEstado:{} };
 const $app = document.getElementById('app');
 const h = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const hojeISO = () => new Date().toLocaleDateString('sv-SE', { timeZone:'America/Sao_Paulo' });
@@ -269,6 +269,36 @@ function autoFeito(texto, d){
   const minPct = /\b70\b/.test(n) ? (Number(c.treino_min) || 70) : 0;
   return ms.every(m => treino ? treinoNoDia(m.id, d, minPct) : estudoNoDia(m.id, d));
 }
+async function carregarEstadoTreino(mid){
+  const { data } = await sb.rpc('treino_estado', { p_aluno:S.aluno, p_materia:mid });
+  const r = Array.isArray(data) ? data[0] : data;
+  S.treinoEstado[mid] = r ? { total:r.total, dominadas:r.dominadas, erradas:r.erradas || [], novas:r.novas || [], minimo:r.minimo, pontos:r.pontos, bonus:r.bonus_dado } : null;
+}
+async function iniciarConclusao(mid){
+  await carregarEstadoTreino(mid); const e = S.treinoEstado[mid];
+  if (!e || !(e.erradas.length + e.novas.length)){ toast('Todas as questões já estão certas'); render(); return; }
+  const emb = L => [...L].sort(() => Math.random() - .5);
+  const lote = [...emb(e.erradas), ...emb(e.novas)].slice(0, 10);   // as erradas primeiro, depois as ainda não respondidas
+  const { data: qs, error } = await sb.from('questoes').select('id,enunciado,alternativas,topico').eq('aluno', S.aluno).eq('materia', mid).in('id', lote);
+  if (error || !qs?.length){ toast('Não consegui abrir as questões'); return; }
+  const { data: gb } = await sb.from('gabarito').select('*').in('questao_id', lote);
+  const G = Object.fromEntries((gb || []).map(g => [g.questao_id, g]));
+  const lista = emb(qs.map(q => ({ ...q, correta:G[q.id]?.correta, explicacao:G[q.id]?.explicacao })));
+  S.quiz = { materia:mid, lista, i:0, acertos:0, resp:null, det:[], modo:'revisao' };
+  render(); window.scrollTo(0, 0);
+}
+function concluirCard(mid){
+  const e = S.treinoEstado[mid]; if (!e) return '';
+  const pend = e.erradas.length + e.novas.length; const pontos = e.pontos ?? 150;
+  let msg;
+  if (!e.total) msg = 'Ainda não há questões de treino nesta matéria.';
+  else if (e.total < e.minimo) msg = `Esta matéria tem ${e.total} questões de treino. Com ${e.minimo} ou mais, concluir o treino dá +${pts(pontos)} pontos. Faltam ${e.minimo - e.total} questões.`;
+  else if (e.bonus && !pend) msg = '✅ Treino concluído! Todas as questões estão certas.';
+  else msg = `Você refaz só as que errou e as que ainda não respondeu. Quando todas as ${e.total} estiverem certas, ganha +${pts(pontos)} pontos.`;
+  return `<div class="card"><h2>✅ Concluir treino</h2><p class="mut">${msg}</p>
+    ${e.total ? `<div class="bar" style="margin:8px 0"><i style="width:${Math.round(100 * e.dominadas / e.total)}%"></i></div><div class="row"><span class="tag ok">${e.dominadas} certas</span><span class="tag ${e.erradas.length ? 'bad' : ''}">${e.erradas.length} erradas</span><span class="tag">${e.novas.length} sem responder</span></div>` : ''}
+    <br><button class="btn" data-a="concluirTreino" data-v="${mid}" ${pend ? '' : 'disabled'}>${pend ? (e.dominadas || e.erradas.length ? 'Continuar o treino' : 'Concluir treino') : 'Tudo certo ✓'}</button></div>`;
+}
 async function atualizaPontos(antes){
   await carregarSaldos(); await carregarLoja();
   const dif = S.saldoT - antes; if (dif > 0) toast(`🎉 +${pts(dif)} pontos!`);
@@ -277,7 +307,7 @@ const descPremio = (p, n) => n > 1 ? `${p.nome} × ${n}` : p.nome;
 
 // ---------------- DADOS ----------------
 async function carregar(){
-  const a = S.aluno;
+  const a = S.aluno; S.treinoEstado = {};
   const [mt, tp, cr, p, t, l, n, g, lc, tf, pr, pz] = await Promise.all([
     sb.from('materias').select('*').eq('aluno', a).order('ordem').order('nome'),
     sb.from('topicos').select('*').eq('aluno', a).order('idx'),
@@ -531,7 +561,7 @@ function hojeAluno(){
       <div class="mut" style="margin-bottom:4px">${g.ouro ? 'Você bateu o OURO! 🔥' : 'Pra subir de nível, falta:'}</div>
       ${oQueFalta(g).map(([mid, t]) => `<div class="falta" data-a="mat" data-v="${mid}"><span>${MAT(mid).emoji} <b>${h(MAT(mid).nome)}</b><br><small>${h(t)}</small></span><span>›</span></div>`).join('')}</div>`;
   }
-  const ganhos = S.lanc.filter(l => ['topico', 'treino', 'prova'].includes(l.origem) && l.data_ref === hoje && l.valor > 0);
+  const ganhos = S.lanc.filter(l => ['topico', 'treino', 'prova', 'conclusao'].includes(l.origem) && l.data_ref === hoje && l.valor > 0);
   const ganhosCard = ganhos.length ? `<div class="card"><div class="row sp"><h2 style="margin:0">Pontos de estudo hoje</h2>${ptsTag(ganhos.reduce((x, l) => x + Number(l.valor), 0))}</div>${ganhos.map(l => `<div class="ext"><span>${h(l.descricao)}</span><b class="pos">+${pts(l.valor)}</b></div>`).join('')}</div>` : '';
   const teto = Number(S.grupos.casa?.teto_semana) || 0; const sem = ganhoSemana('casa');
   const cap = teto ? `<div class="card"><div class="row sp"><b>Pontos de tarefas nesta semana</b><span class="mut">${pts(sem)} de ${pts(teto)}</span></div><div class="bar ouro" style="margin-top:8px"><i style="width:${Math.min(100, Math.round(100 * sem / teto))}%"></i></div></div>` : '';
@@ -669,6 +699,7 @@ function telaMateria(mid){
       : `<button class="btn sec" data-a="liberar" data-v="${mid}">🔐 Liberar prova (pai/mãe)</button>`;
     acoes = `<div class="card"><h2>🎯 Treino livre</h2><p class="mut">10 questões sorteadas com gabarito comentado. Refaça quantas vezes quiser. ${tr>=0?'Melhor: <b>'+tr+'%</b>':''}</p>
       <button class="btn" data-a="treinar" data-v="${mid}">Me testa!</button></div>
+      ${concluirCard(mid)}
       <div class="card"><h2>🏛️ Prova valendo</h2><p class="mut">Só com o pai ou a mãe do lado. Tem tempo e é uma vez só. ${pv>=0?'Resultado: <b>'+pv+'%</b>':''}</p>${botaoProva}</div>`;
   }
   return `<button class="voltar" data-a="voltarMats">‹ Matérias</button>
@@ -680,6 +711,14 @@ function telaMateria(mid){
 
 function telaQuiz(){
   const q = S.quiz; const it = q.lista[q.i];
+  if (!it && q.modo === 'revisao'){
+    const e = S.treinoEstado[q.materia]; const falta = e ? e.erradas.length + e.novas.length : null; const completo = e && falta === 0 && e.total >= e.minimo;
+    const txt = ehResp() ? 'Teste do responsável: não fica registrado.' : falta == null ? '' : completo ? 'Treino concluído! Todas as questões estão certas.'
+      : falta === 0 ? `Todas certas! Falta a matéria ter ${e.minimo} questões de treino para dar o bônus.` : `Faltam ${falta} questões para chegar a 100%.`;
+    return `<div class="card" style="text-align:center"><div class="big">${completo ? '🏆' : q.acertos === q.lista.length ? '🔥' : '💪'}</div><h2>${q.acertos} de ${q.lista.length} nesta rodada</h2><p class="mut">${txt}</p>
+      ${!ehResp() && falta > 0 ? `<button class="btn" data-a="concluirTreino" data-v="${q.materia}">Continuar (faltam ${falta})</button><br><br>` : ''}
+      <button class="btn sec" data-a="fecharQuiz">Voltar pra matéria</button></div>`;
+  }
   if (!it){
     const pct = Math.round(100*q.acertos/q.lista.length);
     return `<div class="card" style="text-align:center"><div class="big">${pct>=70?'🔥':'💪'}</div><h2>${q.acertos} de ${q.lista.length} · ${pct}%</h2>
@@ -758,7 +797,8 @@ function comoGanhar(){
     <table style="margin-top:8px"><tr><td>🧹 Cada tarefa de casa</td><td style="text-align:right">o valor dela</td></tr>
     <tr><td>📖 Tópico concluído</td><td style="text-align:right"><b>+${pts(c.pts_topico ?? 30)}</b></td></tr>
     <tr><td>🎯 Treino com ${c.treino_min ?? 70}%+</td><td style="text-align:right"><b>+${pts(c.pts_treino ?? 40)}</b></td></tr>
-    <tr><td>🏛️ Prova valendo com ${c.prova_min ?? 80}%+</td><td style="text-align:right"><b>+${pts(c.pts_prova ?? 100)}</b></td></tr></table>${missao}${notas}</details></div>`;
+    <tr><td>🏛️ Prova valendo com ${c.prova_min ?? 80}%+</td><td style="text-align:right"><b>+${pts(c.pts_prova ?? 100)}</b></td></tr>
+    <tr><td>✅ Concluir o treino (100% das questões)</td><td style="text-align:right"><b>+${pts(c.pts_conclusao ?? 150)}</b></td></tr></table>${missao}${notas}</details></div>`;
 }
 function telaLoja(){
   const w = S.aluno; if (!S.grupos.casa) return '<div class="card"><p class="mut">Carregando…</p></div>';
@@ -836,7 +876,7 @@ function telaAlunos(){
   }).join('');
   return `<div class="card saldo-card"><small style="font-weight:800">Saldo de ${h(nomeAluno(S.aluno))}</small><div class="big">${coin}${pts(S.saldoT)}</div><small>${reais(S.saldoT)} · tarefas nesta semana: ${pts(sem)}${teto ? ' de ' + pts(teto) : ''}</small></div>
     <div class="card"><h2>Como ${h(nomeAluno(S.aluno))} está</h2>${S.mats.length ? `<table><tr><th>Matéria</th><th>Tópicos</th><th>Domínio</th><th>Treino</th><th>Prova</th></tr>${linhas}</table>` : '<p class="vazio">Nenhuma matéria cadastrada.</p>'}</div>
-    <div class="card"><h2>Desempenho nas questões</h2><p class="mut">Tentativas, acertos e erros questão por questão, repetições e tópicos fracos.</p><table><tr><th>Matéria</th><th>Treinos</th><th>Provas</th><th>Melhor</th></tr>${S.mats.map(m => { const T = S.tent.filter(t => t.materia === m.id); const tr = T.filter(t => t.tipo === 'treino'), pv = T.filter(t => t.tipo === 'prova');
+    <div class="card"><h2>Desempenho nas questões</h2><p class="mut">Tentativas, acertos e erros questão por questão, repetições e tópicos fracos.</p><table><tr><th>Matéria</th><th>Treinos</th><th>Provas</th><th>Melhor</th></tr>${S.mats.map(m => { const T = S.tent.filter(t => t.materia === m.id && t.tipo !== 'revisao'); const tr = T.filter(t => t.tipo === 'treino'), pv = T.filter(t => t.tipo === 'prova');
       return T.length ? `<tr data-a="analise" data-v="${m.id}" style="cursor:pointer"><td>${m.emoji} ${h(m.nome)}</td><td>${tr.length}</td><td>${pv.length}</td><td>${Math.max(...T.map(t => Number(t.pct)))}%</td><td style="color:var(--ac);font-weight:800">ver ›</td></tr>` : ''; }).join('') || '<tr><td class="mut">Nenhum teste feito ainda.</td></tr>'}</table></div>
     <div class="card"><h2>Questões cadastradas</h2><table><tr><th>Matéria</th><th>Treino</th><th>Prova</th></tr>${S.mats.map(m => `<tr data-a="verQ" data-v="${m.id}" style="cursor:pointer"><td>${m.emoji} ${h(m.nome)}</td><td>${S.qtd?.[m.id]?.treino || 0}</td><td>${S.qtd?.[m.id]?.prova || 0}</td><td style="color:var(--ac);font-weight:800">ver ›</td></tr>`).join('')}</table></div>
     <div class="card"><h2>Dúvidas anotadas</h2>${duvidas || '<p class="vazio">Nenhuma ainda.</p>'}</div>
@@ -1028,6 +1068,7 @@ function cadRegras(){
       <p class="mut">Hoje: ${reais(G.casa.teto_semana)} por semana. Tarefa nova não aumenta o custo, o teto segura. Vazio = sem teto.</p><button class="btn" data-a="cRegra" data-v="casa">Salvar</button></div>
     <div class="card"><h2>📖 Estudos no app</h2>
       <div class="row">${f('ge-pt', 'Tópico concluído', c.pts_topico, 'type="number" step="any"')}${f('ge-ptr', 'Treino aprovado', c.pts_treino, 'type="number" step="any"')}${f('ge-ppr', 'Prova aprovada', c.pts_prova, 'type="number" step="any"')}</div>
+      <div class="row">${f('ge-pco', 'Treino concluído (100%)', c.pts_conclusao, 'type="number" step="any"')}${f('ge-qmin', 'Mínimo de questões na matéria', c.concluir_min_questoes, 'type="number"')}</div>
       <div class="row">${f('ge-tmin', 'Treino aprovado a partir de (%)', c.treino_min, 'type="number"')}${f('ge-pmin', 'Prova aprovada a partir de (%)', c.prova_min, 'type="number"')}</div>
       <div class="lbl">Missão (níveis)</div><div class="row">${f('ge-prazo', 'Prazo', prazoLocal, 'type="datetime-local"')}</div>
       <div class="row" style="margin-top:6px"><span class="mut">Matérias da missão:</span>${S.mats.map(m => `<label class="ckin"><input type="checkbox" id="ge-m-${m.id}" ${(c.materias || []).includes(m.id) ? 'checked' : ''}> ${m.emoji} ${h(m.nome)}</label>`).join('')}</div>
@@ -1139,7 +1180,8 @@ const acoes = {
   async verAluno(el){ S.aluno = el.dataset.v; try { localStorage.setItem('aluno', S.aluno); } catch {} S.materia = null; S.verQ = null; S.anMat = null; await recarregar(); },
   async dom(el){ await salvar(el.dataset.k, { dominio:Number(el.dataset.v) }); render(); },
   async treinar(el){ await treinar(el.dataset.v); },
-  mat(el){ S.aba = 'materias'; S.materia = el.dataset.v; render(); window.scrollTo(0,0); },
+  async mat(el){ S.aba = 'materias'; S.materia = el.dataset.v; render(); window.scrollTo(0,0); await carregarEstadoTreino(el.dataset.v); render(); },
+  async concluirTreino(el){ await iniciarConclusao(el.dataset.v); },
   voltarMats(){ S.materia = null; render(); },
   async tg(el){ const k = el.dataset.k, f = el.dataset.f; const antes = S.saldoT; await salvar(k, { [f]: !(S.prog[k]?.[f]) }); render(); if (!ehResp()){ await atualizaPontos(antes); render(); } },
   resp(el){ const q = S.quiz; if (q.resp != null) return; q.resp = Number(el.dataset.v); const it = q.lista[q.i]; q.det.push({ id:it.id, r:q.resp, c:it.correta }); if (q.resp === it.correta) q.acertos++; render(); },
@@ -1149,8 +1191,8 @@ const acoes = {
       q.salvando = true;   // evita gravar duas vezes com clique duplo
       const saldoAntes = S.saldoT;
       const pct = Math.round(1000*q.acertos/q.lista.length)/10;
-      const { data, error } = await sb.from('tentativas').insert({ materia:q.materia, tipo:'treino', acertos:q.acertos, total:q.lista.length, pct, detalhes:q.det }).select().single();
-      if (error) toast('Erro ao salvar o resultado: ' + error.message); else { S.tent.unshift(data); await atualizaPontos(saldoAntes); }
+      const { data, error } = await sb.from('tentativas').insert({ materia:q.materia, tipo:q.modo === 'revisao' ? 'revisao' : 'treino', acertos:q.acertos, total:q.lista.length, pct, detalhes:q.det }).select().single();
+      if (error) toast('Erro ao salvar o resultado: ' + error.message); else { S.tent.unshift(data); await atualizaPontos(saldoAntes); await carregarEstadoTreino(q.materia); }
       q.salvando = false;
     }
     q.i++; q.resp = null; render(); window.scrollTo(0,0);
@@ -1241,7 +1283,7 @@ const acoes = {
     if (gr === 'estudos'){ const pz = val('ge-prazo'); reg.config = { ...x.config };
       Object.assign(reg.config, { prazo:pz ? new Date(pz + ':00-03:00').toISOString() : null, materias:S.mats.map(m => m.id).filter(id => document.getElementById(`ge-m-${id}`)?.checked),
         treino_min:num('ge-tmin') ?? 70, prova_min:num('ge-pmin') ?? 80, prova_qtd:num('ge-pqtd') ?? 1,
-        pts_topico:num('ge-pt') ?? 30, pts_treino:num('ge-ptr') ?? 40, pts_prova:num('ge-ppr') ?? 100,
+        pts_topico:num('ge-pt') ?? 30, pts_treino:num('ge-ptr') ?? 40, pts_prova:num('ge-ppr') ?? 100, pts_conclusao:num('ge-pco') ?? 150, concluir_min_questoes:num('ge-qmin') ?? 50,
         pontos:{ bronze:num('ge-b') ?? 0, prata:num('ge-p') ?? 0, ouro:num('ge-o') ?? 0 } }); delete reg.config.minutos; }
     if (gr === 'notas'){ reg.config = { ...x.config }; Object.assign(reg.config, { por_materia:num('gn-por') ?? 0, nota_min:num('gn-min') ?? 0, bonus:num('gn-bonus') ?? 0, bonus_min:num('gn-bmin') ?? 0, maximo:num('gn-max') }); }
     const { error } = await sb.from('grupos').update(reg).eq('aluno', S.aluno).eq('grupo', gr); if (erro(error)) return; toast('Regras salvas ✓'); await recarregar(); },
