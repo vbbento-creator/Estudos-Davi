@@ -15,7 +15,7 @@ Atenção: o app aponta para o banco de **produção** (URL e chave pública no 
 4. `supabase/migrations/20261119_03_fechar_funcoes_anon.sql` e `..._04_dias_da_semana.sql`.
 5. `supabase/migrations/20261119_05_cofrinho.sql`: **Cofrinho**, pontos como moeda única (ver abaixo).
 
-Rodar a 05 no SQL Editor **junto com a publicação do novo `index.html`**: o app antigo não entende o banco novo. Antes de rodar, lance no app antigo a missão e as notas que estiverem pendentes. Se já existir qualquer lançamento, a migração para sem mudar nada (converter: 1 min de tela = 2 pontos, R$ 1 = 10 pontos).
+Rodar a 05 no SQL Editor **junto com a publicação do novo `index.html`**: o app antigo não entende o banco novo. Lançamentos que já existirem são convertidos para pontos (tarefas × 2, 1 min de tela = 2 pontos, R$ 1 = 10 pontos).
 
 ### Regras principais
 - Cada criança vê só os próprios dados; pai e mãe veem tudo (RLS + `pode_ver()`).

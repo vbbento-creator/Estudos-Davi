@@ -7,16 +7,15 @@
 --   • pontos de estudo caem sozinhos (tópico, treino, prova)
 --   • tarefas com período do dia (manhã, tarde, noite) e agenda de tarefas
 -- Pré-requisito: migrações 01 a 04. Rodar inteira no SQL Editor (é uma transação).
--- Antes de rodar: lance a missão e as notas que estiverem pendentes no app antigo.
--- Se já existir qualquer lançamento, a migração para e não muda nada.
+-- Lançamentos que já existirem são convertidos para pontos (veja o início do script).
 -- =====================================================
 begin;
 
-do $$ begin
-  if exists (select 1 from lancamentos) then
-    raise exception 'Já existem lançamentos no livro-razão (reais, minutos ou pontos). Converta-os antes: 1 min = 2 pontos, R$ 1 = 10 pontos.';
-  end if;
-end $$;
+-- Lançamentos que já existam (missão, notas, tarefas) são convertidos para pontos:
+--   tarefas (pontos) × 2, para acompanhar o novo valor de 20 por tarefa; 1 min de tela = 2 pontos; R$ 1 = 10 pontos.
+update lancamentos set valor = valor * 2  where moeda = 'pontos' and grupo = 'casa';
+update lancamentos set valor = valor * 2,  moeda = 'pontos' where moeda = 'minutos';
+update lancamentos set valor = valor * 10, moeda = 'pontos' where moeda = 'reais';
 
 -- ---------- 1. Moeda única ----------
 do $$ declare c record; begin
@@ -323,6 +322,7 @@ end $$;
 
 -- ---------- 5. Dados iniciais ----------
 update tarefas set pontos = 20 where pontos = 10;     -- 24,5 tarefas por semana × 20 = 490
+update materias set emoji = '🗣️' where emoji = '🇬🇧';   -- bandeira não aparece no Windows (vira "GB")
 
 insert into premios (nome, emoji, custo, tipo, unidade, limite, limite_periodo, limite_grupo, divide)
 select * from (values
