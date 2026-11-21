@@ -1,6 +1,6 @@
-# Pendências e ideias do Cofrinho
+# Pendências e ideias do Cofrinho (backlog)
 
-Situação conferida no banco de produção em 21/11/2026.
+Situação conferida no banco de produção em 21/11/2026. Na próxima sessão, conferir de novo no Supabase (só lendo) o que mudou.
 
 ## 1. Pendências que dependem de você
 
@@ -14,47 +14,40 @@ Situação conferida no banco de produção em 21/11/2026.
 - [ ] **Médias do bimestre.** Quando saírem, lançar em Mais › Lançar médias e pontos. Se alguma ficar abaixo de 7, decidir se usa o botão "Tirar" daquela matéria.
 - [ ] **Guardar as senhas da Brisa e da Juju** em lugar seguro. Elas ficaram no histórico de uma conversa anterior.
 - [ ] **Cadastrar as matérias da Juju.** Hoje ela não tem nenhuma e só ganha pontos com tarefas.
+- [ ] **Testar as telas novas no uso real** (no ar desde 21/11, testadas só no banco, não no navegador): Trocar na Agenda, ½ Metade (Aprovar e Agenda), recurso contra metade, Compra que já aconteceu (com aviso de saldo negativo e de limite) e Tema (Mais e fim da tela Hoje da criança). Anotar na seção 3 o que aparecer de estranho.
 
-## 2. Ideias novas (a desenvolver)
-
-### 2.1 Alterar o responsável pela tarefa ✅ no ar desde 21/11
-- Na **Agenda**, pai ou mãe tocam em **Trocar** numa tarefa ainda não marcada, escolhem a criança e **Só este dia** ou **Deste dia em diante**.
-- Revezamento, deste dia em diante: o revezamento **recomeça pela criança escolhida**. Uma troca de um dia só, feita antes, continua valendo.
-- "Todos": a criança escolhida faz **no lugar** da outra. Só dá para passar para quem ainda não faz essa tarefa no dia.
-- Não dá para trocar um dia que a criança já marcou. O "Trocar o responsável de um dia" saiu de Cadastros.
-- Banco: migração `20261121_08_trocar_responsavel.sql` (só acrescenta; o app antigo continua funcionando). Testes: `06_testes_trocar_responsavel.sql`.
-
-### 2.2 Validar a tarefa pela metade ✅ no ar desde 21/11
-- Pai ou mãe têm **Rejeitar · ½ Metade · Validar** (em Aprovar e na Agenda). "½ Metade" pede o motivo, **😤 Reclamou** ou **🐢 Enrolou**, e um comentário opcional. Credita 50% dos pontos.
-- A criança vê "validado pela metade · +10 · reclamou: …" e pode recorrer.
-- Recurso contra a metade: **Validar inteira** (credita a diferença) ou **Manter a metade**. Recurso contra rejeição: também pode virar metade (pede o motivo).
-- No teto semanal conta só o que foi creditado (a decisão acerta o extrato pela diferença).
-- Banco: migração `20261121_10_metade.sql`. **O app antigo não entende "metade"**: aplicar junto com o novo `index.html`. Testes: `08_testes_metade.sql`.
-
-### 2.3 Pai e mãe lançarem compras/gastos ✅ no ar desde 21/11
-- Em **Mais › Lançar médias e pontos › 🛍️ Compra que já aconteceu**: item da loja (custo × quantidade vira o total sugerido, editável; no jantar dividido, o jantar inteiro) ou "Outro" com descrição; data livre (qualquer dia até hoje, sem valor pré-preenchido); uma ou mais crianças.
-- O total é dividido igualmente, aceitando meio ponto (95 ÷ 2 = 47,5). Sem saldo ou acima do limite, o app avisa na confirmação mas deixa lançar.
-- Vira pedido já combinado (entregue) e conta no limite da semana ou do mês **da data da compra**. Na criança aparece no extrato como "Loja: …". Para desfazer: ➕ Dar pontos no Ajuste manual.
-- Banco: migração `20261121_09_compra_pais.sql` (só acrescenta). Testes: `07_testes_compra_pais.sql`.
-
-### 2.4 Escolher tema claro ou escuro ✅ no ar desde 21/11
-- Pai e mãe escolhem em **Mais › 🎨 Tema**; as crianças, no fim da tela **Hoje** (elas não têm a aba Mais). Opções: Automático (segue o aparelho), Claro e Escuro, guardadas em cada aparelho.
-- Só no app (`index.html`), não mexe no banco.
+## 2. Ideias a desenvolver
 
 ### 2.5 Missão automática
-- Hoje o app já calcula o nível, mas pai ou mãe precisam tocar em "Lançar" (Mais › Lançar médias e pontos) depois do prazo. Dá para o crédito cair sozinho quando o prazo acabar.
+- **Hoje:** o app calcula o nível (bronze, prata, ouro) a partir de `grupos.config` do grupo `estudos` (`prazo`, `materias`, `treino_min`, `prova_min`, `prova_qtd`, `pontos`), mas pai ou mãe precisam tocar em "Lançar" (Mais › Lançar médias e pontos) depois do prazo. O lançamento usa `origem = 'nivel'` e `origem_ref = 'meta:<prazo>'`.
+- **Ideia:** o crédito cair sozinho quando o prazo acabar.
+- **Em aberto (perguntar antes de programar):**
+  - Como dispara: rotina agendada no banco (pg_cron) ou quando alguém abre o app depois do prazo?
+  - O cálculo do nível hoje está no app (`calcMeta()` no `index.html`). Passar para o banco, para não depender do aparelho?
+  - Pai ou mãe ainda conferem antes (ex.: aviso "Missão lançada: prata, +250") ou cai direto?
+  - O que acontece se a missão de 19/11 do Johann ainda não tiver sido lançada quando isso entrar no ar?
+- **Exige:** banco (função e talvez agendamento) + app.
 
-### Publicação de 2.1 a 2.4
-- Migrações 08, 09 e 10 aplicadas em produção em 21/11 (a 10 pelo SQL Editor) e `index.html` publicado no mesmo dia.
-- **Conferir no uso real:** as telas novas (Trocar na Agenda, Compra que já aconteceu, ½ Metade, Tema) foram testadas só no banco, não no navegador. Anotar aqui qualquer comportamento estranho.
+### Testes que ficaram por fazer
+- `02_testes.sql`, `03_testes_cofrinho.sql` e `04_testes_perda_estudo.sql` precisam de um backup dos dados de produção e não foram rodados de novo depois das migrações 08 a 10. Os testes que criam os próprios dados (05 a 08) passaram com as migrações 01 a 10.
 
 ## 3. Para ficar de olho
 
-- **Primeiro uso real:** o app já está em uso (treinos do Johann e tarefas validadas de 18 a 20/11). Anotar aqui qualquer tela com comportamento estranho e o que apareceu.
+- **Telas novas de 21/11** (ver seção 1): anotar aqui qualquer comportamento estranho e o que apareceu.
 - **Agenda dos pais:** os itens de estudo marcados sozinho aparecem só na visão da criança. Para pai e mãe, aparecem como estão no banco.
 - **Botão "Não fiz":** foi retirado. O que não for marcado vira "não feito" sozinho.
+- **Aplicar migração pelo Claude:** a ferramenta do Supabase recusa sozinha migrações com `drop` (aconteceu com a 10). Nesses casos, aplicar pelo SQL Editor do painel.
 
 ## 4. Manutenção, sem urgência
 
 - [ ] **Ligar a proteção contra senhas vazadas** no painel do Supabase (Authentication › Settings). O aviso continua aberto.
-- [ ] **Apagar as cópias antigas de 18/11** (`backup_20261118` e `backup_20261118_pre_migracao`, com 8 tabelas cada) quando não forem mais necessárias. Não tem volta.
+- [ ] **Apagar as cópias antigas de 18/11** (`backup_20261118` e `backup_20261118_pre_migracao`, com 8 tabelas cada) quando não forem mais necessárias. Não tem volta. Elas também geram 16 avisos de "RLS sem política" no Supabase.
+
+## 5. Feito
+
+### 21/11/2026: ideias 2.1 a 2.4 (migrações 08, 09 e 10 + `index.html`)
+Design e plano em `docs/superpowers/`.
+- **2.1 Trocar quem faz a tarefa:** na **Agenda**, pai ou mãe tocam em **Trocar** numa tarefa ainda não marcada, escolhem a criança e **Só este dia** ou **Deste dia em diante**. Revezamento, deste dia em diante: recomeça pela criança escolhida (uma troca de um dia feita antes continua valendo). "Todos": a escolhida faz no lugar da outra, só se ainda não faz a tarefa no dia. Não se troca dia já marcado. Saiu de Cadastros. Migração 08, testes 06.
+- **2.2 Validar pela metade:** **Rejeitar · ½ Metade · Validar** em Aprovar e na Agenda; motivo **Reclamou** ou **Enrolou** + comentário opcional; 50% dos pontos; a criança vê e pode recorrer. Recurso contra a metade: validar inteira ou manter a metade; contra rejeição, também pode virar metade. No teto conta só o creditado. Migração 10, testes 08.
+- **2.3 Compra lançada pelos pais:** **Mais › Lançar médias e pontos › 🛍️ Compra que já aconteceu**; item da loja (total sugerido editável) ou "Outro"; data livre até hoje; total dividido igualmente entre as crianças marcadas (aceita meio ponto); avisa saldo negativo e limite, mas deixa; conta no limite da data da compra; desfazer com ➕ Dar pontos. Migração 09, testes 07.
+- **2.4 Tema:** Automático, Claro ou Escuro, guardado em cada aparelho. Pais em **Mais › 🎨 Tema**; crianças no fim da tela **Hoje**. Só app.
