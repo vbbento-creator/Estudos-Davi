@@ -622,12 +622,16 @@ function hojePais(){
 
 function agendaItens(w, d){ return (S.agenda[w] || []).filter(r => r.dia === d); }
 // tarefa avulsa = tarefa com data de fim (só um dia: base = ate)
-const ehAvulsa = id => !!S.tarefasCad.find(t => t.id === id)?.ate;
+const avulsa = t => !!t?.ate && t.ate === t.base;
+const ehAvulsa = id => avulsa(S.tarefasCad.find(t => t.id === id));
+// alguma criança já marcou (ou teve decisão) nessa tarefa, dentro da janela carregada da Agenda
+const jaMarcada = id => S.alunos.some(a => (S.agenda[a.user_id] || []).some(x => x.tarefa === id && (x.status === 'feito' || x.decisao)));
+// dia permitido para avulsa: janela da Agenda e fora de dia pausado
+const diaAvulsaOk = d => d >= addDias(hojeISO(), -7) && d <= addDias(hojeISO(), 27) && !S.pausas.some(p => d >= p.inicio && d <= p.fim);
 const tagAvulsa = id => ehAvulsa(id) ? ' <span class="tag">avulsa</span>' : '';
 // pai ou mãe criam uma tarefa só para o dia selecionado (dentro da janela da Agenda, fora de dia pausado)
-function blocoAvulsa(d, pausa){
-  const hoje = hojeISO();
-  if (pausa || d < addDias(hoje, -7) || d > addDias(hoje, 27)) return '';
+function blocoAvulsa(d){
+  if (!diaAvulsaOk(d)) return '';
   if (S.avulsaAberta !== d) return `<div class="row" style="margin-top:10px"><button class="btn sec min" data-a="avAbrir" data-v="${d}">+ Tarefa avulsa</button></div>`;
   const pre = S.agFiltro === 'todos' ? S.alunos.map(a => a.user_id) : [S.agFiltro];
   return `<div class="topico" style="box-shadow:none;border:1px solid var(--line);margin-top:10px"><b>Tarefa avulsa · só ${diaCurto(d)}</b>
@@ -658,7 +662,7 @@ function linhaAgenda(r, w){
     if (r.status === 'feito' && !r.decisao) acoes = `<button class="btn bad min" data-a="tDecidir" data-s="rejeitado" ${k}>Rejeitar</button><button class="btn warn min" data-a="tMetade" data-k="ag|${r.tarefa}|${r.dia}|${w}">½ Metade</button><button class="btn ok min" data-a="tDecidir" data-s="validado" ${k}>Validar</button>`;
     else if (!r.decisao && r.dia <= hoje && r.status !== 'feito') acoes = `<button class="btn sec min" data-a="tMarcar" data-s="feito" ${k}>Marcar como feita</button>`;
     if (!r.decisao && r.status !== 'feito') acoes += `<button class="btn ghost min" data-a="tTrocar" ${k}>Trocar</button>`;
-    if (ehAvulsa(r.tarefa) && !S.alunos.some(a => agendaItens(a.user_id, r.dia).some(x => x.tarefa === r.tarefa && (x.status === 'feito' || x.decisao))))
+    if (ehAvulsa(r.tarefa) && !jaMarcada(r.tarefa))
       acoes += `<button class="btn ghost min" data-a="avRemover" data-v="${r.tarefa}">Remover</button>`;
   } else if (!r.decisao && (r.dia === hoje || r.dia === ontem) && ['a_fazer', 'feito'].includes(r.status)){
     btn = `data-a="tMarcar" data-s="${r.status === 'a_fazer' ? 'feito' : ''}" ${k}`;
@@ -711,7 +715,7 @@ function telaAgenda(){
       ${provasDia.map(p => `<div class="row" style="margin-top:8px"><span class="chip prova">Prova</span><b>${p.emoji} ${h(p.nome)}</b>${ehResp() ? av(p.aluno, true) : ''}</div>`).join('')}
       ${fimMeta ? '<div class="row" style="margin-top:8px"><span class="chip meta">Fim da missão</span><b>Prazo do bronze, prata e ouro</b></div>' : ''}
       ${blocos}
-      ${ehResp() ? blocoAvulsa(sel, pausa) : ''}
+      ${ehResp() ? blocoAvulsa(sel) : ''}
       ${!ehResp() && sel > hoje ? '<p class="mut" style="margin:8px 0 0">Você marca só hoje e ontem.</p>' : ''}</div>`;
 }
 
@@ -1079,7 +1083,7 @@ const lerDias = pref => { const d = SEMANA.map((_, i) => i).filter(i => document
 const lerAlunos = pref => S.alunos.map(a => a.user_id).filter(id => document.getElementById(`${pref}-${id}`)?.checked);
 
 function formTarefa(t){
-  const id = t?.id ?? 'novo'; const p = `t${id}`; const av = !!t?.ate;
+  const id = t?.id ?? 'novo'; const p = `t${id}`; const av = avulsa(t); const trava = av && (jaMarcada(t.id) || t.ate < addDias(hojeISO(), -7));
   return `<div class="topico ${t && !t.ativa ? 'inativo' : ''}" style="${t ? 'box-shadow:none;border:1px solid var(--line);margin-top:8px' : ''}">
     ${av ? `<span class="tag">avulsa · ${t.ate.slice(8)}/${t.ate.slice(5, 7)}</span>` : ''}
     <div class="row"><input id="${p}-emoji" value="${h(t?.emoji ?? '✅')}" style="width:60px"><input id="${p}-nome" value="${h(t?.nome ?? '')}" placeholder="Nome da tarefa" style="flex:1"></div>
@@ -1087,21 +1091,22 @@ function formTarefa(t){
       <select id="${p}-periodo" style="flex:1"><option value="">O dia todo</option>${Object.entries(PERIODO).map(([k, n]) => `<option value="${k}" ${t?.periodo === k ? 'selected' : ''}>${n}</option>`).join('')}</select></div>
     ${av ? '' : `<div class="row" style="margin-top:8px"><select id="${p}-modo" style="flex:1"><option value="todos" ${t?.modo !== 'revezamento' ? 'selected' : ''}>Todo dia, para cada um marcado</option><option value="revezamento" ${t?.modo === 'revezamento' ? 'selected' : ''}>Revezamento entre os marcados</option></select></div>`}
     <div class="row" style="margin-top:8px">${ckAlunos(p + '-al', t?.alunos ?? S.alunos.map(a => a.user_id))}</div>
-    ${av ? `<div class="row" style="margin-top:8px"><label class="mut">Dia</label><input id="${p}-base" type="date" value="${t.base}" style="flex:1"></div>` : `<div class="row" style="margin-top:8px"><span class="mut">Dias:</span>${SEMANA.map((d, i) => `<label class="ckin"><input type="checkbox" id="${p}-ds-${i}" ${!t?.dias_semana || t.dias_semana.includes(i) ? 'checked' : ''}> ${d}</label>`).join('')}</div>
+    ${av ? `<div class="row" style="margin-top:8px"><label class="mut">Dia</label><input id="${p}-base" type="date" value="${t.base}" style="flex:1" ${trava ? 'disabled' : ''}></div>${trava ? '<p class="mut" style="margin:4px 0 0">Já marcada ou antiga: o dia não muda.</p>' : ''}` : `<div class="row" style="margin-top:8px"><span class="mut">Dias:</span>${SEMANA.map((d, i) => `<label class="ckin"><input type="checkbox" id="${p}-ds-${i}" ${!t?.dias_semana || t.dias_semana.includes(i) ? 'checked' : ''}> ${d}</label>`).join('')}</div>
     <div class="row" style="margin-top:8px"><label class="mut">Começa em</label><input id="${p}-base" type="date" value="${t?.base ?? hojeISO()}" style="flex:1"></div>
     <p class="mut">No revezamento, o 1º marcado (na ordem acima) faz no primeiro dia válido a partir do início, e a vez alterna a cada dia em que a tarefa acontece. Mudar o valor só afeta marcações futuras.</p>`}
     <div class="row">${t ? `<button class="btn min" data-a="cTarefaSalvar" data-v="${id}">Salvar</button><button class="btn sec min" data-a="cTarefaAtiva" data-v="${id}">${t.ativa ? 'Desativar' : 'Reativar'}</button>` : `<button class="btn min" data-a="cTarefaSalvar" data-v="novo">Criar tarefa</button>`}</div>
     ${t?.ativa && !av ? '<p class="mut">Para trocar quem faz num dia (ou dali em diante), use o botão Trocar na Agenda.</p>' : ''}</div>`;
 }
 function possivelSemana(a){
-  return S.tarefasCad.filter(t => t.ativa && !t.ate && t.alunos.includes(a)).reduce((s, t) => {
+  return S.tarefasCad.filter(t => t.ativa && !avulsa(t) && t.alunos.includes(a)).reduce((s, t) => {
     const dias = t.dias_semana ? t.dias_semana.length : 7;
     return s + Number(t.pontos) * (t.modo === 'revezamento' ? dias / t.alunos.length : dias);
   }, 0);
 }
 const IDEIAS = [['🪥', 'Escovar os dentes (manhã)', 'manha'], ['🪥', 'Escovar os dentes (noite)', 'noite'], ['🤝', 'Não brigar com o irmão', ''], ['🎒', 'Arrumar a mochila', 'noite'], ['📚', 'Fazer a lição de casa', 'tarde'], ['🛁', 'Tomar banho sem reclamar', 'noite']];
 function cadTarefas(){
-  const hoje = hojeISO(); const encerradas = S.tarefasCad.filter(t => t.ate && t.ate < hoje); const vigentes = S.tarefasCad.filter(t => !(t.ate && t.ate < hoje));
+  const hoje = hojeISO(); const fim = addDias(hoje, -1);   // a de ontem ainda pode ser marcada
+  const encerradas = S.tarefasCad.filter(t => t.ate && t.ate < fim); const vigentes = S.tarefasCad.filter(t => !(t.ate && t.ate < fim));
   const teto = Number(S.grupos.casa?.teto_semana) || 0;
   const resumo = S.alunos.map(a => { const x = possivelSemana(a.user_id); const passa = teto && x > teto;
     return `<div class="row sp" style="padding:6px 0"><span>${av(a.user_id, true)} ${h(a.nome)}</span><span class="${passa ? 'tag warn' : 'mut'}">${pts(x)} pontos possíveis por semana${teto ? ' · teto ' + pts(teto) : ''}</span></div>`; }).join('');
@@ -1373,9 +1378,13 @@ const acoes = {
   // cadastros
   cadAba(el){ S.cad = el.dataset.v; render(); },
   async cTarefaSalvar(el){ const id = el.dataset.v, p = `t${id}`;
-    const av = S.tarefasCad.find(x => x.id === Number(id))?.ate;
+    const t0 = S.tarefasCad.find(x => x.id === Number(id)); const av = avulsa(t0);
     const reg = { nome:val(`${p}-nome`).trim(), emoji:val(`${p}-emoji`).trim() || '✅', pontos:num(`${p}-pontos`) ?? 0, alunos:lerAlunos(`${p}-al`), base:val(`${p}-base`) || hojeISO(), periodo:val(`${p}-periodo`) || null };
-    if (av) reg.ate = reg.base; else Object.assign(reg, { modo:val(`${p}-modo`), dias_semana:lerDias(p) });
+    if (av){
+      if (reg.base !== t0.base && (jaMarcada(t0.id) || t0.ate < addDias(hojeISO(), -7))) reg.base = t0.base;   // já marcada ou antiga: o dia não muda
+      else if (reg.base !== t0.base && !diaAvulsaOk(reg.base)){ toast('Escolha um dia da Agenda (até 7 dias atrás) que não esteja pausado'); return; }
+      reg.ate = reg.base;
+    } else Object.assign(reg, { modo:val(`${p}-modo`), dias_semana:lerDias(p) });
     if (!reg.nome || !reg.alunos.length){ toast('Dê um nome e marque ao menos uma criança'); return; }
     if (reg.dias_semana && !reg.dias_semana.length){ toast('Marque ao menos um dia da semana'); return; }
     const { error } = id === 'novo' ? await sb.from('tarefas').insert(reg) : await sb.from('tarefas').update(reg).eq('id', id);

@@ -29,6 +29,9 @@ Object.assign(S, { perfil:{ papel:'responsavel' }, user:{ id:'p' }, alunos:[{ us
   agenda:{ [J]:[ { dia:hoje, tarefa:1, nome:'Lavar carro', emoji:'🚗', pontos:10, status:'a_fazer' }, { dia:hoje, tarefa:2, nome:'Arrumar quarto', emoji:'🧹', pontos:10, status:'a_fazer' },
                  { dia:hoje, tarefa:4, nome:'Regar', emoji:'🌱', pontos:4, status:'feito' } ],
            [U]:[ { dia:hoje, tarefa:1, nome:'Lavar carro', emoji:'🚗', pontos:10, status:'a_fazer' } ] } });
+// cenário inicial, restaurado depois de cada salvar (salvar recarrega do banco simulado, que volta vazio)
+const cenario = JSON.stringify({ perfil:S.perfil, alunos:S.alunos, grupos:S.grupos, pausas:S.pausas, fam:S.fam, tarefasCad:S.tarefasCad, agenda:S.agenda });
+const restaura = () => Object.assign(S, JSON.parse(cenario), { agFiltro:'todos', agSel:hojeISO(), trocaAberta:null, avulsaAberta:null });
 const txt = s => s.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
 const ok = (c, m) => console.log((c ? 'OK   ' : 'FALHA') + ' ' + m);
 let a = telaAgenda();
@@ -71,3 +74,35 @@ Object.assign(campos, { 't1-nome':{ value:'Lavar carro' }, 't1-emoji':{ value:'�
 await acoes.cTarefaSalvar({ dataset:{ v:'1' } });
 const g = gravado.find(x => x.k === 'update')?.reg || {};
 ok(g.base === nd && g.ate === nd && !('modo' in g) && !('dias_semana' in g) && g.pontos === 12, 'salvar avulsa: base = ate = ' + nd + ' ' + JSON.stringify(g));
+
+// --- correções da revisão
+restaura();
+// (a) tarefa com fim mas sem ser de um dia só (futuro "Termina em") não é avulsa
+S.tarefasCad.push({ id:5, nome:'Férias', emoji:'🏖️', pontos:5, modo:'todos', alunos:[J], base:addDias(hoje, -2), ate:addDias(hoje, 5), ativa:true, dias_semana:null, periodo:null });
+const c2 = cadTarefas();
+ok(c2.includes('id="t5-modo"') && !txt(c2.split('id="t5-nome"')[0].split('id="t4-nome"').pop()).includes('avulsa'), 'tarefa com fim de vários dias: formulário completo, sem etiqueta avulsa');
+S.tarefasCad.pop();
+restaura();
+// (b) avulsa de ontem continua na lista principal (a criança ainda marca); a de anteontem vai para Encerradas
+S.tarefasCad.push({ id:6, nome:'Ontem', emoji:'📦', pontos:5, modo:'todos', alunos:[J], base:addDias(hoje, -1), ate:addDias(hoje, -1), ativa:true, dias_semana:null, periodo:null });
+const c3 = cadTarefas(); const enc3 = c3.split('<details')[1] || '';
+ok(c3.includes('id="t6-nome"') && !enc3.includes('id="t6-nome"'), 'avulsa de ontem fora de Encerradas');
+S.tarefasCad.pop();
+// (c) avulsa já marcada: Dia travado e salvar não muda o dia
+restaura();
+S.agenda[J].find(x => x.tarefa === 4).status = 'feito';
+const c4 = cadTarefas(); const f4 = c4.split('id="t4-nome"')[1] || '';
+ok(/id="t4-base"[^>]*disabled/.test(f4), 'avulsa marcada: campo Dia travado');
+gravado.length = 0;
+Object.assign(campos, { 't4-nome':{ value:'Regar' }, 't4-emoji':{ value:'🌱' }, 't4-pontos':{ value:'4' }, 't4-periodo':{ value:'' }, 't4-base':{ value:addDias(hoje, 3) }, 't4-al-j':{ checked:true } });
+await acoes.cTarefaSalvar({ dataset:{ v:'4' } });
+restaura();
+const g4 = gravado.find(x => x.k === 'update')?.reg || {};
+ok(g4.base === hoje && g4.ate === hoje, 'avulsa marcada: salvar mantém o dia ' + JSON.stringify(g4));
+// (d) cadastro também respeita a janela e o dia pausado
+restaura(); gravado.length = 0; Object.assign(campos, { 't1-nome':{ value:'Lavar carro' }, 't1-emoji':{ value:'🚗' }, 't1-pontos':{ value:'12' }, 't1-periodo':{ value:'' }, 't1-al-j':{ checked:true }, 't1-al-u':{ checked:true } }); campos['t1-base'] = { value:addDias(hoje, 2) };
+await acoes.cTarefaSalvar({ dataset:{ v:'1' } });
+ok(!gravado.length, 'avulsa movida para dia pausado: não salva');
+restaura(); gravado.length = 0; campos['t1-base'] = { value:addDias(hoje, 40) };
+await acoes.cTarefaSalvar({ dataset:{ v:'1' } });
+ok(!gravado.length, 'avulsa movida para fora da Agenda (+40): não salva');
