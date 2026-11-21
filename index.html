@@ -17,12 +17,12 @@
   --prova:#CF3B3A;--estudo:#2C6BE0;--meta:#7B4CD1;--metabg:#ECE4FA;
   --shadow:0 1px 2px #16201d14,0 6px 20px #16201d0d;
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+:root[data-theme="dark"]{
   --bg:#0F1513;--card:#18211E;--txt:#E8F0EC;--mut:#9AABA4;--line:#2A3631;
   --ac:#3CC4A3;--ac-ink:#06201A;--soft:#163A31;
   --ok:#3CC4A3;--okbg:#163A31;--warn:#F5B83A;--warnbg:#3A2E10;--warn-ink:#FFE2A0;--bad:#FF7B7A;--badbg:#3F1F1F;
   --prova:#FF7B7A;--estudo:#7BA7FF;--meta:#B596F5;--metabg:#2C2147;
-  --shadow:0 1px 2px #00000066,0 6px 20px #00000040;color-scheme:dark}}
+  --shadow:0 1px 2px #00000066,0 6px 20px #00000040;color-scheme:dark}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.45 var(--font-body);padding-bottom:96px}
 h1,h2,h3{font-family:var(--font-display);text-wrap:balance;line-height:1.15}
@@ -185,6 +185,13 @@ td,th{padding:8px 4px;border-bottom:1px solid var(--line);text-align:left}
 .vazio{color:var(--mut);padding:8px 0}
 .aviso{background:var(--warnbg);color:var(--warn-ink);border-radius:14px;padding:10px 12px;font-size:14px;font-weight:700}
 </style>
+<script>
+// Tema: Automático (segue o aparelho), Claro ou Escuro; guardado neste aparelho
+(function(){ const mq = matchMedia('(prefers-color-scheme: dark)');
+  window.aplicarTema = function(){ let t = 'auto'; try { t = localStorage.getItem('tema') || 'auto'; } catch {}
+    document.documentElement.dataset.theme = t === 'escuro' || (t === 'auto' && mq.matches) ? 'dark' : 'light'; };
+  aplicarTema(); mq.addEventListener('change', aplicarTema); })();
+</script>
 </head>
 <body>
 <div id="app"></div>
@@ -574,6 +581,7 @@ function hojeAluno(){
       <div class="row" style="margin-top:10px">${pp.mats.map(m => `<button class="btn sec min" data-a="mat" data-v="${m.id}">${m.emoji} ${h(m.nome)}</button>`).join('')}</div></div>` : ''}
     ${ganhosCard}${meta}${cap}
     ${!S.mats.length ? '<div class="card"><p class="mut">Ainda não há matérias cadastradas. O pai ou a mãe cadastram em Mais › Cadastros.</p></div>' : ''}
+    ${temaCard()}
     <button class="sair" data-a="sair">Sair</button>`;
 }
 function hojePais(){
@@ -908,6 +916,11 @@ function painelImportar(){
     <textarea id="imp" style="min-height:140px" placeholder='[{"id":"...","materia":"portugues", ...}]'></textarea><br><br>
     <button class="btn" data-a="importar">Importar</button></div>`;
 }
+function temaAtual(){ try { return localStorage.getItem('tema') || 'auto'; } catch { return 'auto'; } }
+function temaCard(){
+  return `<div class="card"><h2>🎨 Tema</h2><div class="seg">${[['auto', 'Automático'], ['claro', 'Claro'], ['escuro', 'Escuro']].map(([v, n]) => `<button data-a="tema" data-v="${v}" aria-pressed="${temaAtual() === v}">${n}</button>`).join('')}</div>
+    <p class="mut" style="margin:8px 0 0">Vale só neste aparelho. Automático segue o tema do aparelho.</p></div>`;
+}
 function telaMais(){
   const voltar = '<button class="voltar" data-a="maisVoltar">‹ Mais</button>';
   if (S.mais === 'cad') return voltar + telaCad();
@@ -915,6 +928,7 @@ function telaMais(){
   if (S.mais === 'importar') return voltar + painelImportar();
   const it = [['cad', '⚙️', 'Cadastros', 'tarefas, loja e preços, matérias, regras e pausas'], ['lancar', '🧾', 'Lançar médias e pontos', 'médias do bimestre, missão e ajustes'], ['importar', '📥', 'Importar questões', 'arquivo do Claude'], ['relatorio', '📋', 'Relatório para o Claude', 'copia o progresso de ' + nomeAluno(S.aluno)]];
   return `<div class="card"><div class="lista">${it.map(([id, e, n, s]) => `<button data-a="${id === 'relatorio' ? 'relatorio' : 'maisAbre'}" data-v="${id}"><span>${e} <b>${n}</b><br><small class="mut">${s}</small></span><span class="mut">›</span></button>`).join('')}</div></div>
+    ${temaCard()}
     <button class="sair" data-a="sair">Sair</button>`;
 }
 
@@ -1161,6 +1175,7 @@ const acoes = {
   agFiltro(el){ S.agFiltro = el.dataset.v; render(); },
   maisAbre(el){ S.mais = el.dataset.v; render(); window.scrollTo(0, 0); },
   maisVoltar(){ S.mais = null; render(); },
+  tema(el){ try { localStorage.setItem('tema', el.dataset.v); } catch {} window.aplicarTema(); render(); },
   step(el){ const p = S.premios.find(x => x.id === Number(el.dataset.v)); const l = S.limites[p.id]; const max = l ? Math.max(1, l.limite - l.usado) : 99;
     S.qtdLoja[p.id] = Math.min(max, Math.max(1, (S.qtdLoja[p.id] || 1) + Number(el.dataset.d))); render(); },
   trocar(el){ S.sheet = { id:Number(el.dataset.v) }; render(); },
