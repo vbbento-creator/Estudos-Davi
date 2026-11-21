@@ -24,13 +24,12 @@ Situação conferida no banco de produção em 21/11/2026.
 - Não dá para trocar um dia que a criança já marcou. O "Trocar o responsável de um dia" saiu de Cadastros.
 - Banco: migração `20261121_08_trocar_responsavel.sql` (só acrescenta; o app antigo continua funcionando). Testes: `06_testes_trocar_responsavel.sql`.
 
-### 2.2 Validar a tarefa pela metade
-- **Ideia:** além de "validado" e "rejeitado", uma terceira decisão, **"validado pela metade"**, para quando a criança fez reclamando ou enrolou para fazer. Credita 50% dos pontos.
-- **Decidido:**
-  - Pai ou mãe escolhem o motivo: **reclamou** ou **enrolou**, com comentário opcional. A criança vê o motivo.
-  - A criança pode abrir recurso contra a metade, como já pode contra a rejeição.
-  - No teto semanal (490) conta só a metade creditada.
-- **Exige:** migração no banco (`tarefa_dia.decisao`, `decidir_tarefa`, `resolver_recurso`) e publicar junto com o novo `index.html`.
+### 2.2 Validar a tarefa pela metade ✅ feito em 21/11 (falta aplicar a migração 10 e publicar, **juntos**)
+- Pai ou mãe têm **Rejeitar · ½ Metade · Validar** (em Aprovar e na Agenda). "½ Metade" pede o motivo, **😤 Reclamou** ou **🐢 Enrolou**, e um comentário opcional. Credita 50% dos pontos.
+- A criança vê "validado pela metade · +10 · reclamou: …" e pode recorrer.
+- Recurso contra a metade: **Validar inteira** (credita a diferença) ou **Manter a metade**. Recurso contra rejeição: também pode virar metade (pede o motivo).
+- No teto semanal conta só o que foi creditado (a decisão acerta o extrato pela diferença).
+- Banco: migração `20261121_10_metade.sql`. **O app antigo não entende "metade"**: aplicar junto com o novo `index.html`. Testes: `08_testes_metade.sql`.
 
 ### 2.3 Pai e mãe lançarem compras/gastos ✅ feito em 21/11 (falta aplicar a migração 09 e publicar)
 - Em **Mais › Lançar médias e pontos › 🛍️ Compra que já aconteceu**: item da loja (custo × quantidade vira o total sugerido, editável; no jantar dividido, o jantar inteiro) ou "Outro" com descrição; data livre (qualquer dia até hoje, sem valor pré-preenchido); uma ou mais crianças.
@@ -44,6 +43,9 @@ Situação conferida no banco de produção em 21/11/2026.
 
 ### 2.5 Missão automática
 - Hoje o app já calcula o nível, mas pai ou mãe precisam tocar em "Lançar" (Mais › Lançar médias e pontos) depois do prazo. Dá para o crédito cair sozinho quando o prazo acabar.
+
+### Publicar 2.1 a 2.4
+- Aplicar no Supabase, nesta ordem, as migrações 08, 09 e 10 e, **no mesmo momento**, publicar o novo `index.html`. A 08 e a 09 sozinhas não quebram o app antigo; a 10 quebra.
 
 ## 3. Para ficar de olho
 
