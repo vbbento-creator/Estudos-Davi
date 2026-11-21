@@ -32,15 +32,11 @@ Situação conferida no banco de produção em 21/11/2026.
   - No teto semanal (490) conta só a metade creditada.
 - **Exige:** migração no banco (`tarefa_dia.decisao`, `decidir_tarefa`, `resolver_recurso`) e publicar junto com o novo `index.html`.
 
-### 2.3 Pai e mãe lançarem compras/gastos
-- **Hoje:** a loja só funciona por pedido da criança, que pai ou mãe depois combinam. Fora isso, há o "Ajuste manual" em Mais › Lançar médias e pontos (➖ Tirar pontos), uma criança por vez, sem ligação com a loja.
-- **Ideia:** manter as **duas formas**. A criança continua pedindo na loja, e pai ou mãe também podem **lançar um fato que já aconteceu** (ex.: "ontem saímos para almoçar") para o app descontar os pontos.
-- **Decidido:**
-  - **Valor:** pai ou mãe escolhem um item da loja (o custo dele vira o total sugerido, que pode ser ajustado) ou digitam descrição e pontos livres.
-  - **Data:** escolhida no lançamento (ex.: ontem).
-  - **Crianças:** marcam uma ou mais. O **total é dividido igualmente** entre as marcadas.
-  - **Sem saldo ou acima do limite do item:** o app avisa, mas deixa lançar. O saldo pode ficar negativo e a compra conta no limite da semana ou do mês.
-  - Aparece para a criança como compra já combinada (entregue), e o estorno segue a regra de sempre: lançamento ao contrário.
+### 2.3 Pai e mãe lançarem compras/gastos ✅ feito em 21/11 (falta aplicar a migração 09 e publicar)
+- Em **Mais › Lançar médias e pontos › 🛍️ Compra que já aconteceu**: item da loja (custo × quantidade vira o total sugerido, editável; no jantar dividido, o jantar inteiro) ou "Outro" com descrição; data livre (qualquer dia até hoje, sem valor pré-preenchido); uma ou mais crianças.
+- O total é dividido igualmente, aceitando meio ponto (95 ÷ 2 = 47,5). Sem saldo ou acima do limite, o app avisa na confirmação mas deixa lançar.
+- Vira pedido já combinado (entregue) e conta no limite da semana ou do mês **da data da compra**. Na criança aparece no extrato como "Loja: …". Para desfazer: ➕ Dar pontos no Ajuste manual.
+- Banco: migração `20261121_09_compra_pais.sql` (só acrescenta). Testes: `07_testes_compra_pais.sql`.
 
 ### 2.4 Escolher tema claro ou escuro ✅ feito em 21/11 (falta publicar)
 - Pai e mãe escolhem em **Mais › 🎨 Tema**; as crianças, no fim da tela **Hoje** (elas não têm a aba Mais). Opções: Automático (segue o aparelho), Claro e Escuro, guardadas em cada aparelho.

@@ -916,10 +916,30 @@ function painelLancar(){
     <div class="row"><input id="luD" type="date" value="${hojeISO()}" style="flex:1"><input id="luT" placeholder="descrição (ex.: jantar extra)" style="flex:2"></div><br>
     <div class="row"><button class="btn sec" data-a="lUso" style="flex:1">➖ Tirar pontos</button><button class="btn" data-a="lCredito" style="flex:1">➕ Dar pontos</button></div>
     <p class="mut">10 pontos = R$ 1. Para corrigir um erro, faça um lançamento ao contrário.</p></div>
+    ${cardCompra()}
     <div class="card"><h2>Médias do bimestre</h2><p class="mut">Se a média ficar abaixo de ${pts(limite)}, você pode retirar os pontos de estudo e de treino daquela matéria.</p>
       <table>${S.mats.map(m => { const n = S.notas[m.id]; const pe = S.pEstudo[m.id] || 0; const baixo = n != null && n < limite;
         return `<tr><td>${m.emoji} ${h(m.nome)}</td><td style="width:100px"><input data-a="nota" data-v="${m.id}" type="number" step="0.1" min="0" max="10" value="${n ?? ''}"></td></tr>
           ${pe ? `<tr><td colspan="2"><div class="row sp"><small class="${baixo ? '' : 'mut'}" style="${baixo ? 'color:var(--bad);font-weight:800' : ''}">${baixo ? 'Média abaixo de ' + pts(limite) + '. ' : ''}Pontos de estudo e treino: ${pts(pe)}</small><button class="btn ${baixo ? 'bad' : 'ghost'} min" data-a="perderEstudo" data-v="${m.id}">Tirar ${pts(pe)}</button></div></td></tr>` : ''}`; }).join('') || '<tr><td class="mut">Nenhuma matéria cadastrada.</td></tr>'}</table></div>`;
+}
+// pai ou mãe lançam uma compra que já aconteceu (item da loja ou livre), dividida entre as crianças marcadas
+function cardCompra(){
+  const itens = S.premios.filter(p => p.ativo);
+  return `<div class="card"><h2>🛍️ Compra que já aconteceu</h2><p class="mut">Ex.: ontem saímos para almoçar. Os pontos são descontados na data escolhida e o total é dividido igualmente entre as crianças marcadas.</p>
+    <div class="row"><select id="cpItem" data-a="cpCalc" style="flex:2"><option value="">Outro (descrever abaixo)</option>${itens.map(p => `<option value="${p.id}">${p.emoji} ${h(p.nome)} · ${pts(p.custo)} pts</option>`).join('')}</select>
+      <input id="cpQtd" data-a="cpCalc" type="number" min="1" step="1" value="1" style="width:70px" aria-label="Quantidade"></div><br>
+    <div class="row"><input id="cpDesc" placeholder="o que foi (opcional se escolheu um item)" style="flex:2"><input id="cpTotal" data-a="cpCalc" type="number" min="0" step="any" placeholder="total em pontos" style="flex:1"></div><br>
+    <div class="row"><label class="mut" for="cpDia">Data</label><input id="cpDia" data-a="cpCalc" type="date" max="${hojeISO()}" style="flex:1"></div>
+    <div class="row" style="margin-top:8px">${ckAlunos('cp', [S.aluno])}</div>
+    <p class="mut" id="cpPrev" style="margin:8px 0"></p>
+    <button class="btn" data-a="cpLancar" style="width:100%">Lançar compra</button>
+    <p class="mut">Pode lançar mesmo sem saldo ou acima do limite do item (o app avisa). Para desfazer, use ➕ Dar pontos no Ajuste manual.</p></div>`;
+}
+function cpAtualiza(sugerir){
+  const p = S.premios.find(x => x.id === Number(val('cpItem'))); const q = Math.max(1, Math.floor(num('cpQtd') || 1));
+  if (sugerir && p) document.getElementById('cpTotal').value = Number(p.custo) * q * (p.divide > 1 ? p.divide : 1);
+  const n = lerAlunos('cp').length; const total = num('cpTotal') || 0; const el = document.getElementById('cpPrev');
+  if (el) el.textContent = n && total > 0 ? `${n > 1 ? `Cada uma paga ${pts(Math.round(total / n * 10) / 10)} pontos.` : `Total: ${pts(total)} pontos.`}` : '';
 }
 function painelImportar(){
   return `<div class="card"><h2>Importar questões para ${h(nomeAluno(S.aluno))}</h2><p class="mut">Escolha o arquivo .json que o Claude mandou. O campo "materia" precisa ser um código cadastrado: ${S.todasMats.map(m => '<code>' + h(m.id) + '</code>').join(' ') || '(nenhuma ainda)'}</p>
@@ -1267,6 +1287,28 @@ const acoes = {
   async lNotas(){ const d = calcDinheiro(); const ref = val('lnRef').trim() || 'notas'; if (!confirm(`Lançar ${fmtV(S.grupos.notas.moeda, d.total)} (${ref}) para ${nomeAluno(S.aluno)}?`)) return;
     const { error } = await sb.rpc('lancar', { p_aluno:S.aluno, p_grupo:'notas', p_valor:d.total, p_descricao:`Médias: ${ref}`, p_origem:'notas', p_origem_ref:ref });
     if (error?.message?.includes('lancamentos_unico')){ toast('Essa rodada já foi lançada'); return; } if (erro(error)) return; toast('Lançado ✓'); await recarregar(); },
+  async cpLancar(){
+    const ids = lerAlunos('cp'); const total = num('cpTotal'); const dia = val('cpDia'); const premio = val('cpItem') ? Number(val('cpItem')) : null;
+    const qtd = Math.max(1, Math.floor(num('cpQtd') || 1)); const desc = val('cpDesc').trim(); const p = S.premios.find(x => x.id === premio);
+    if (!ids.length){ toast('Marque ao menos uma criança'); return; }
+    if (!(total > 0)){ toast('Coloque o total em pontos'); return; }
+    if (!dia){ toast('Escolha a data da compra'); return; }
+    if (dia > hojeISO()){ toast('A data não pode ser no futuro'); return; }
+    if (!p && !desc){ toast('Escreva o que foi comprado'); return; }
+    const parte = Math.round(total / ids.length * 10) / 10; const hoje = hojeISO(); const seg = addDias(hoje, -((dow(hoje) + 6) % 7));
+    const avisos = [];
+    for (const id of ids){
+      const saldo = Number(S.saldosFam[id] ?? 0);
+      if (saldo - parte < 0) avisos.push(`${nomeAluno(id)} fica com ${pts(saldo - parte)} pontos (saldo negativo)`);
+      if (p?.limite && (p.limite_periodo === 'semana' ? dia >= seg : dia.slice(0, 7) === hoje.slice(0, 7))){
+        const { data } = await sb.rpc('limites_loja', { p_aluno:id }); const l = (data || []).find(x => x.premio === p.id);
+        if (l && l.usado + qtd > l.limite) avisos.push(`${nomeAluno(id)} passa do limite de ${p.nome} (${l.usado + qtd} de ${l.limite} ${p.limite_periodo === 'semana' ? 'na semana' : 'no mês'})`);
+      }
+    }
+    const nome = desc || p.nome;
+    if (!confirm(`Lançar "${nome}${qtd > 1 ? ' × ' + qtd : ''}" em ${fmtData(dia)}: ${pts(total)} pontos${ids.length > 1 ? `, ${pts(parte)} para cada (${ids.map(nomeAluno).join(', ')})` : ` para ${nomeAluno(ids[0])}`}?${avisos.length ? '\n\nAtenção:\n• ' + avisos.join('\n• ') : ''}`)) return;
+    const { error } = await sb.rpc('lancar_compra', { p_alunos:ids, p_premio:premio, p_qtd:qtd, p_descricao:desc || null, p_total:total, p_dia:dia });
+    if (erro(error)) return; toast('Compra lançada ✓'); await recarregar(); },
   async lUso(){ await lancarManual(-1); },
   async lCredito(){ await lancarManual(1); },
   // cadastros
@@ -1335,6 +1377,7 @@ $app.addEventListener('click', async e => {
 $app.addEventListener('change', async e => {
   const el = e.target;
   if (el.dataset.a === 'anMat'){ await abrirAnalise(el.value); return; }
+  if (el.dataset.a === 'cpCalc' || el.id?.startsWith('cp-')){ cpAtualiza(el.id === 'cpItem' || el.id === 'cpQtd'); return; }
   if (el.dataset.a === 'crono'){ await salvar(el.dataset.k, { feito: el.checked }); if (S.aba === 'agenda') render(); }
   if (el.dataset.a === 'duv'){ await salvar(el.dataset.k, { duvida: el.value }); toast('Salvo'); }
   if (el.dataset.a === 'nota'){
