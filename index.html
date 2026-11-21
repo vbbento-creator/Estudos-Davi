@@ -564,6 +564,9 @@ function oQueFalta(g){
   if (!g.bronze) g.bronzeDet.forEach(x => { if (!x.ok){ const p = progMat(x.mid); itens.push([x.mid, `Marcar estudo + exercícios: ${p.ok}/${p.total} tópicos`]); } });
   else if (!g.prata) g.prataDet.forEach(x => { if (x.v < g.c.treino_min) itens.push([x.mid, `Treino com ${g.c.treino_min}%+ (melhor: ${x.v>=0?x.v+'%':'nenhum'})`]); });
   else if (!g.ouro) g.ouroDet.forEach(x => { if (x.v < g.c.prova_min) itens.push([x.mid, `Prova valendo com ${g.c.prova_min}%+ (precisa em ${g.qtd} de ${g.mats.length})`]); });
+  // tarefas de casa do período também seguram o próximo nível (item sem matéria)
+  const prox = !g.bronze ? 'bronze' : !g.prata ? 'prata' : !g.ouro ? 'ouro' : null;
+  if (prox && g.tar?.total && g.tar.pct < Number(g.tmin[prox])) itens.push([null, `Tarefas validadas: ${String(g.tar.pct).replace('.', ',')}% (precisa ${g.tmin[prox]}%)`]);
   return itens;
 }
 
@@ -592,7 +595,9 @@ function hojeAluno(){
     const hh = Math.floor(falta / 36e5), mm = Math.floor(falta % 36e5 / 6e4);
     meta = `<div class="card"><div class="row sp"><h2 style="margin:0">Missão da semana</h2><span class="chip meta">faltam ${hh}h${String(mm).padStart(2, '0')}</span></div>${trilha(g)}
       <div class="mut" style="margin-bottom:4px">${g.ouro ? 'Você bateu o OURO! 🔥' : 'Pra subir de nível, falta:'}</div>
-      ${oQueFalta(g).map(([mid, t]) => `<div class="falta" data-a="mat" data-v="${mid}"><span>${MAT(mid).emoji} <b>${h(MAT(mid).nome)}</b><br><small>${h(t)}</small></span><span>›</span></div>`).join('')}</div>`;
+      ${oQueFalta(g).map(([mid, t]) => mid
+        ? `<div class="falta" data-a="mat" data-v="${mid}"><span>${MAT(mid).emoji} <b>${h(MAT(mid).nome)}</b><br><small>${h(t)}</small></span><span>›</span></div>`
+        : `<div class="falta"><span>🏠 <b>Tarefas de casa</b><br><small>${h(t)}</small></span></div>`).join('')}</div>`;
   }
   const ganhos = S.lanc.filter(l => ['topico', 'treino', 'prova', 'conclusao'].includes(l.origem) && l.data_ref === hoje && l.valor > 0);
   const ganhosCard = ganhos.length ? `<div class="card"><div class="row sp"><h2 style="margin:0">Pontos de estudo hoje</h2>${ptsTag(ganhos.reduce((x, l) => x + Number(l.valor), 0))}</div>${ganhos.map(l => `<div class="ext"><span>${h(l.descricao)}</span><b class="pos">+${pts(l.valor)}</b></div>`).join('')}</div>` : '';

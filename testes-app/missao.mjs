@@ -22,7 +22,7 @@ const sandbox = { console, setTimeout, setInterval:noop, clearTimeout, Date, Int
   confirm:() => true, alert:noop };
 sandbox.window = sandbox; sandbox.addEventListener = noop;
 vm.createContext(sandbox);
-vm.runInContext(mod + '\n;globalThis.__t3 = { hojePais, cadRegras };' +
+vm.runInContext(mod + '\n;globalThis.__t3 = { hojePais, cadRegras, oQueFalta, hojeAluno };' +
   '\n;globalThis.__t = { acoes, S, carregar, calcMeta, comoGanhar, painelLancar, hojeISO, addDias, ' +
   '_e: typeof estadoMissao === "function" ? estadoMissao : null };', sandbox);
 const { acoes, S, carregar, calcMeta, comoGanhar, painelLancar } = sandbox.__t;
@@ -107,3 +107,17 @@ r = await salva({ 'ge-ini':'2026-12-01' });
 ok(r?.config?.inicio === '2026-12-01' && JSON.stringify(r.config.tarefas_min) === '{"bronze":70,"prata":85,"ouro":95}', 'salvar: grava inicio e tarefas_min — ' + JSON.stringify(r?.config?.tarefas_min));
 r = await salva({ 'ge-ini':'', 'ge-prazo':'' });
 ok(r && r.config.prazo === null && r.config.inicio === null, 'sem prazo: grava sem exigir Começa em');
+
+// --- Revisão: quando só as tarefas seguram o nível, a criança vê o que falta
+const { oQueFalta, hojeAluno } = sandbox.__t3;
+prepara({ ...M0, bronze:false, nivel:null, valor:0, tarefas:{ ...M0.tarefas, pct:60, obtido:4.2 } });
+let f = oQueFalta(calcMeta());
+ok(f.length === 1 && f[0][0] === null && f[0][1] === 'Tarefas validadas: 60% (precisa 70%)', 'falta: tarefas para o bronze — ' + JSON.stringify(f));
+prepara(M0); f = oQueFalta(calcMeta());
+ok(f.some(x => x[0] === null && x[1] === 'Tarefas validadas: 78,6% (precisa 80%)'), 'falta: tarefas para a prata — ' + JSON.stringify(f));
+prepara({ ...M0, prata:true, nivel:'prata', valor:250, tarefas:{ ...M0.tarefas, pct:85 } }); f = oQueFalta(calcMeta());
+ok(f.some(x => x[0] === null && x[1].includes('precisa 90%')) && f.filter(x => x[0]).length === 0, 'falta: só tarefas para o ouro (provas ok) — ' + JSON.stringify(f));
+prepara({ ...M0, encerrada:false, pode_fechar:false, prazo:new Date(Date.now() + 864e5).toISOString(), bronze:false, nivel:null, valor:0, tarefas:{ ...M0.tarefas, pct:60 } });
+Object.assign(S, { tarefas:{}, crono:[], rev:[], pend:[], fam:{ provas:[], crono:{}, progCrono:{} }, agenda:{}, pausas:[], tarefasCad:[], saldoT:0 });
+let ha = ''; try { ha = txt(hojeAluno()); } catch (e) { ha = 'ERRO ' + e.message; }
+ok(ha.includes('Tarefas de casa') && ha.includes('Tarefas validadas: 60% (precisa 70%)'), 'Hoje da criança: item das tarefas no "falta" — ' + (ha.startsWith('ERRO') ? ha : 'ok'));

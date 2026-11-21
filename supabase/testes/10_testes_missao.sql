@@ -156,3 +156,9 @@ select 'Juju lê a missão do Johann: ERRO', t.erro(format('select missao(%L)', 
 select 'Juju chama _missao: ERRO', t.erro(format('select _missao(%L)', johann)) from ids;
 select t.como('99999999-9999-9999-9999-999999999999');
 select 'intruso sem perfil fecha: ERRO', t.erro('select fechar_missoes()');
+
+\echo '--- 15. Botão Lançar da missão do app antigo (aba não recarregada) não lança de novo'
+select t.como(pai::text) from ids;
+select 'pai lança missão pela função lancar (app antigo): ERRO', t.erro(format('select lancar(%L, %L, 150, %L, null, %L, %L)', johann, 'estudos', 'Missão: nível bronze', 'nivel', 'meta:' || pg_temp.pz(h - 3))) from ids;
+select 'ajuste manual continua', t.erro(format('select lancar(%L, %L, 5, %L)', johann, 'estudos', 'ajuste')) from ids;
+select 'lançamentos de nível do Johann (1)', count(*) from lancamentos l, ids i where l.aluno = i.johann and l.origem = 'nivel';

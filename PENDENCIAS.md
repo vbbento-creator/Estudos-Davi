@@ -26,7 +26,7 @@ Nenhuma ideia em aberto no momento.
 - Possível depois: rotina de hora em hora (pg_cron) para fechar a missão mesmo sem ninguém abrir o app; hoje não faz falta.
 
 ### Testes que ficaram por fazer
-- `02_testes.sql`, `03_testes_cofrinho.sql` e `04_testes_perda_estudo.sql` precisam de um backup dos dados de produção e não foram rodados de novo depois das migrações 08 a 12. Os testes que criam os próprios dados (05 a 10) passaram com as migrações 01 a 12.
+- `02_testes.sql`, `03_testes_cofrinho.sql` e `04_testes_perda_estudo.sql` precisam de um backup dos dados de produção e não foram rodados de novo depois das migrações 08 a 13. Os testes que criam os próprios dados (05 a 10) passaram com as migrações 01 a 13.
 
 ## 3. Para ficar de olho
 
@@ -42,13 +42,13 @@ Nenhuma ideia em aberto no momento.
 
 ## 5. Feito
 
-### 21/11/2026: ideia 2.5 missão automática (migração 12 + `index.html`)
+### 21/11/2026: ideia 2.5 missão automática (migrações 12 e 13 + `index.html`)
 Design e plano em `docs/superpowers/` (`2026-11-21-missao-automatica`).
 - O nível da missão passa a ser calculado no banco (`missao`) e o bônus **cai sozinho** depois do prazo, quando alguém abre o app (`fechar_missoes`). Sai o botão Lançar da missão; no lugar, o estado (lançada, esperando N tarefas, nenhum nível…).
 - **Tarefas de casa contam:** cada nível exige uma porcentagem das tarefas validadas de "Começa em" até o dia do prazo (padrão 70/80/90; metade vale 0,5). Tópicos, treinos e provas continuam automáticos; médias da escola ficam fora.
 - Com tarefas, o fechamento espera 2 dias depois do prazo e nenhuma tarefa ou recurso do período sem decisão; enquanto isso, aviso em "Precisa de você".
 - Corrigido o risco de lançar duas vezes ao salvar de novo o mesmo prazo (a referência agora é a data e hora do prazo em São Paulo).
-- Migração 12, testes 10 e `testes-app/missao.mjs`.
+- Migrações 12 e 13 (a 13 impede o botão Lançar do app antigo de lançar a missão de novo), testes 10 e `testes-app/missao.mjs`.
 
 ### 21/11/2026: ideia 2.6 tarefa avulsa (migração 11 + `index.html`)
 Design e plano em `docs/superpowers/` (`2026-11-21-tarefa-avulsa`).
