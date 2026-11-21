@@ -14,6 +14,7 @@ Situação conferida no banco de produção em 21/11/2026. Na próxima sessão, 
 - [ ] **Médias do bimestre.** Quando saírem, lançar em Mais › Lançar médias e pontos. Se alguma ficar abaixo de 7, decidir se usa o botão "Tirar" daquela matéria.
 - [ ] **Guardar as senhas da Brisa e da Juju** em lugar seguro. Elas ficaram no histórico de uma conversa anterior.
 - [ ] **Cadastrar as matérias da Juju.** Hoje ela não tem nenhuma e só ganha pontos com tarefas.
+- [ ] **Testar a tarefa avulsa no uso real** (Agenda › + Tarefa avulsa): criar, marcar, validar, Remover e ver no cadastro em "Encerradas" no dia seguinte.
 - [ ] **Testar as telas novas no uso real** (no ar desde 21/11, testadas só no banco, não no navegador): Trocar na Agenda, ½ Metade (Aprovar e Agenda), recurso contra metade, Compra que já aconteceu (com aviso de saldo negativo e de limite) e Tema (Mais e fim da tela Hoje da criança). Anotar na seção 3 o que aparecer de estranho.
 
 ## 2. Ideias a desenvolver
@@ -44,6 +45,13 @@ Situação conferida no banco de produção em 21/11/2026. Na próxima sessão, 
 - [ ] **Apagar as cópias antigas de 18/11** (`backup_20261118` e `backup_20261118_pre_migracao`, com 8 tabelas cada) quando não forem mais necessárias. Não tem volta. Elas também geram 16 avisos de "RLS sem política" no Supabase.
 
 ## 5. Feito
+
+### 21/11/2026: ideia 2.6 tarefa avulsa (migração 11 + `index.html`)
+Design e plano em `docs/superpowers/` (`2026-11-21-tarefa-avulsa`).
+- Na **Agenda**, pai ou mãe tocam em **+ Tarefa avulsa** no dia selecionado: nome, emoji, pontos, período e crianças (cada uma faz a sua). Vale só naquele dia: de 7 dias atrás até o fim da Agenda, fora de dia pausado.
+- Marcar, validar, ½ metade, rejeitar, recurso e teto semanal funcionam como em qualquer tarefa. **Remover** enquanto ninguém marcou; **Trocar** só "Só este dia". Etiqueta "avulsa" para pais e crianças.
+- Cadastro: avulsa com etiqueta e campo Dia; as que já passaram ficam em **Encerradas**; o resumo semanal não conta avulsas.
+- Banco: `tarefas.ate` (data de fim opcional) e `responsaveis()` ignorando os dias depois dela. Migração 11, testes 09 e `testes-app/avulsa.mjs`.
 
 ### 21/11/2026: ideias 2.1 a 2.4 (migrações 08, 09 e 10 + `index.html`)
 Design e plano em `docs/superpowers/`.
