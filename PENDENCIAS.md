@@ -5,7 +5,8 @@ Situação conferida no banco de produção em 21/11/2026. Na próxima sessão, 
 ## 1. Pendências que dependem de você
 
 - [ ] **Próxima missão:** ao cadastrar, preencher "Começa em" e os mínimos de tarefas (padrão 70/80/90%).
-- [ ] **Fotos das questões de treino.** O bônus de "Concluir treino" exige 50 questões por matéria.
+- [ ] **Plano de estudo da Juju sem treino.** O plano de 22/11 a 04/12 (migração 14) foi feito sem itens de treino, porque ela ainda não tinha questões. Agora ela tem treino e prova em todas as matérias (migrações 16 a 22): decidir se entram itens como "Português: treino" ou "Prova valendo" nos dias antes de cada prova.
+- [ ] **Fotos das questões de treino do Johann.** O bônus de "Concluir treino" dele exige 50 questões por matéria.
   - Língua Portuguesa: 52 (ok)
   - Física: 37 (faltam 13)
   - Inglês: 34 (faltam 16)
@@ -13,12 +14,6 @@ Situação conferida no banco de produção em 21/11/2026. Na próxima sessão, 
   - Arte, Espanhol, Geografia, História, Matemática, Música, Química e Redação: 0 (faltam 50 em cada)
 - [ ] **Médias do bimestre.** Quando saírem, lançar em Mais › Lançar médias e pontos. Se alguma ficar abaixo de 7, decidir se usa o botão "Tirar" daquela matéria.
 - [ ] **Guardar as senhas da Brisa e da Juju** em lugar seguro. Elas ficaram no histórico de uma conversa anterior.
-- [ ] **Questões de treino da Juju.** O bônus de Concluir treino dela exige **25** questões por matéria (migração 15). As questões são **criadas do zero**: o material das fotos é só inspiração, não se copiam exercícios nem textos do livro.
-  - Português (prova 27/11): **33 (ok)**, migração 16.
-  - Ciências (01/12), História e Geografia (03/12): faltam arquivos. Já estão em Downloads os PDFs do CamScanner de 17/11 às 22.30 (História, povos africanos), 22.33 (Geografia, áreas urbanas) e 22.36 (Ciências, som), mas você ainda vai mandar mais material. Fazer depois que chegar.
-  - Inglês (02/12) e Matemática (04/12): nenhum arquivo ainda.
-  - Questões de **prova** (tipo `prova`, usadas na "prova valendo") ainda não foram feitas para a Juju. O Johann tem de 12 a 16 por matéria. Decidir se ela também terá.
-  - Cuidado: `questoes.id` é único no banco todo; usar prefixo próprio (`juju-port-t01`, `juju-cien-t01`…) para não bater com as do Johann (`port-t39`).
 - [ ] **Telas novas no uso real.** Conferido no Chrome em 21/11/2026, logado como Pai:
   - Tarefa avulsa (criar com o filtro de uma criança, etiqueta, Trocar só "Só este dia", não aparece no dia seguinte, cadastro com Dia e sem modo, Remover) ok.
   - Painel Trocar, formulário de Compra que já aconteceu e Tema (Claro/Escuro) ok, sem gravar nada.
@@ -45,6 +40,24 @@ Nenhuma ideia em aberto no momento.
 - [ ] **Apagar as cópias antigas de 18/11** (`backup_20261118` e `backup_20261118_pre_migracao`, com 8 tabelas cada) quando não forem mais necessárias. Não tem volta. Elas também geram 16 avisos de "RLS sem política" no Supabase.
 
 ## 5. Feito
+
+### 21/11/2026: questões da Juju para todas as matérias da P2 (migrações 17 a 22)
+- Treino e prova de todas as matérias, criados do zero a partir das apostilas (PDFs do CamScanner em Downloads). O material é só inspiração; não se copiam exercícios nem textos do livro.
+
+| Matéria | Prova | Treino | Prova (tipo `prova`) | Migração |
+|---|---|---|---|---|
+| Português | 27/11 | 33 | 12 | 16 e 17 |
+| Ciências | 01/12 | 28 | 12 | 18 |
+| Inglês | 02/12 | 28 | 12 | 19 |
+| História | 03/12 | 28 | 12 | 20 |
+| Geografia | 03/12 | 29 | 12 | 21 |
+| Matemática | 04/12 | 28 | 12 | 22 |
+
+- História vai até a página 32 da apostila (migrações internas, p. 33 em diante, não cai).
+- Matemática: "Leitura de gráficos" usa tabelas e gráficos de barras feitos com ▮, porque o app só mostra texto.
+- Todas as questões para revisar em `docs/juju/questoes-revisao.md`.
+- Testadas no PGlite com as migrações 01 a 22 e conferidas em produção: a impressão digital (md5) de cada matéria é igual à do banco local; todos os tópicos batem; as 205 questões do Johann ficaram intactas.
+- Ids: `juju-<matéria>-tNN` (treino) e `juju-<matéria>-pNN` (prova), porque `questoes.id` é único no banco todo.
 
 ### 21/11/2026: questões de treino de Português da Juju (migração 16)
 - 33 questões (`juju-port-t01` a `t33`), criadas a partir do conteúdo da apostila (Unidade 8, "Muito prazer, Emília!"), sem copiar os exercícios. Distribuição: Interpretação de texto 10 (dois textos curtos inventados), Pontuação do diálogo 5, Verbos 5, Tempos verbais 6, Ortografia S/SS 7.

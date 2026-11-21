@@ -25,6 +25,7 @@ Atenção: o app aponta para o banco de **produção** (URL e chave pública no 
 14. `supabase/migrations/20261121_14_seed_juju.sql`: matérias (com data da prova), tópicos e plano de estudo da **Juju** para a P2 do 3º ano (27/11 a 04/12/2026). Só insere dados.
 15. `supabase/migrations/20261121_15_juju_min_questoes.sql`: o bônus de Concluir treino da Juju exige **25** questões por matéria (o Johann continua com 50). Só muda dados.
 16. `supabase/migrations/20261121_16_juju_questoes_portugues.sql`: 33 questões de treino de Português da Juju (`juju-port-t01` a `t33`) e seus gabaritos. Só insere dados. As questões da Juju usam ids com prefixo `juju-`, porque `questoes.id` é único no banco todo.
+17. `supabase/migrations/20261121_17_juju_questoes_portugues_prova.sql` a `..._22_juju_questoes_matematica.sql`: questões de treino (`juju-<matéria>-tNN`) e de prova (`juju-<matéria>-pNN`, 12 por matéria) da Juju para Português (só prova), Ciências, Inglês, História, Geografia e Matemática, com os gabaritos. Só inserem dados. Revisão legível em `docs/juju/questoes-revisao.md`.
 
 Rodar a 05 no SQL Editor **junto com a publicação do novo `index.html`**: o app antigo não entende o banco novo. Lançamentos que já existirem são convertidos para pontos (tarefas × 2, 1 min de tela = 2 pontos, R$ 1 = 10 pontos).
 
