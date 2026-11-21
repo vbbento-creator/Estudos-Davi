@@ -4,7 +4,8 @@ Situação conferida no banco de produção em 21/11/2026. Na próxima sessão, 
 
 ## 1. Pendências que dependem de você
 
-- [ ] **Lançar a missão do Johann** (prazo era 19/11, 22h). Ainda não há nenhum lançamento de missão para ele. Em 21/11 o app mostra **bronze, +150** (Mais › Lançar médias e pontos › Missão › Lançar).
+- [ ] **Conferir o bônus da missão do Johann** (prazo era 19/11, 22h, bronze +150). Com a 2.5 no ar, ele cai sozinho na primeira vez que alguém abrir o app novo (regras antigas, sem tarefas). Conferir no extrato: uma linha "Missão: nível bronze", +150, data 19/11.
+- [ ] **Próxima missão:** ao cadastrar, preencher "Começa em" e os mínimos de tarefas (padrão 70/80/90%).
 - [ ] **Fotos das questões de treino.** O bônus de "Concluir treino" exige 50 questões por matéria.
   - Língua Portuguesa: 52 (ok)
   - Física: 37 (faltam 13)
@@ -21,18 +22,11 @@ Situação conferida no banco de produção em 21/11/2026. Na próxima sessão, 
 
 ## 2. Ideias a desenvolver
 
-### 2.5 Missão automática
-- **Hoje:** o app calcula o nível (bronze, prata, ouro) a partir de `grupos.config` do grupo `estudos` (`prazo`, `materias`, `treino_min`, `prova_min`, `prova_qtd`, `pontos`), mas pai ou mãe precisam tocar em "Lançar" (Mais › Lançar médias e pontos) depois do prazo. O lançamento usa `origem = 'nivel'` e `origem_ref = 'meta:<prazo>'`.
-- **Ideia:** o crédito cair sozinho quando o prazo acabar.
-- **Em aberto (perguntar antes de programar):**
-  - Como dispara: rotina agendada no banco (pg_cron) ou quando alguém abre o app depois do prazo?
-  - O cálculo do nível hoje está no app (`calcMeta()` no `index.html`). Passar para o banco, para não depender do aparelho?
-  - Pai ou mãe ainda conferem antes (ex.: aviso "Missão lançada: prata, +250") ou cai direto?
-  - O que acontece se a missão de 19/11 do Johann ainda não tiver sido lançada quando isso entrar no ar?
-- **Exige:** banco (função e talvez agendamento) + app.
+Nenhuma ideia em aberto no momento.
+- Possível depois: rotina de hora em hora (pg_cron) para fechar a missão mesmo sem ninguém abrir o app; hoje não faz falta.
 
 ### Testes que ficaram por fazer
-- `02_testes.sql`, `03_testes_cofrinho.sql` e `04_testes_perda_estudo.sql` precisam de um backup dos dados de produção e não foram rodados de novo depois das migrações 08 a 10. Os testes que criam os próprios dados (05 a 08) passaram com as migrações 01 a 10.
+- `02_testes.sql`, `03_testes_cofrinho.sql` e `04_testes_perda_estudo.sql` precisam de um backup dos dados de produção e não foram rodados de novo depois das migrações 08 a 12. Os testes que criam os próprios dados (05 a 10) passaram com as migrações 01 a 12.
 
 ## 3. Para ficar de olho
 
@@ -47,6 +41,14 @@ Situação conferida no banco de produção em 21/11/2026. Na próxima sessão, 
 - [ ] **Apagar as cópias antigas de 18/11** (`backup_20261118` e `backup_20261118_pre_migracao`, com 8 tabelas cada) quando não forem mais necessárias. Não tem volta. Elas também geram 16 avisos de "RLS sem política" no Supabase.
 
 ## 5. Feito
+
+### 21/11/2026: ideia 2.5 missão automática (migração 12 + `index.html`)
+Design e plano em `docs/superpowers/` (`2026-11-21-missao-automatica`).
+- O nível da missão passa a ser calculado no banco (`missao`) e o bônus **cai sozinho** depois do prazo, quando alguém abre o app (`fechar_missoes`). Sai o botão Lançar da missão; no lugar, o estado (lançada, esperando N tarefas, nenhum nível…).
+- **Tarefas de casa contam:** cada nível exige uma porcentagem das tarefas validadas de "Começa em" até o dia do prazo (padrão 70/80/90; metade vale 0,5). Tópicos, treinos e provas continuam automáticos; médias da escola ficam fora.
+- Com tarefas, o fechamento espera 2 dias depois do prazo e nenhuma tarefa ou recurso do período sem decisão; enquanto isso, aviso em "Precisa de você".
+- Corrigido o risco de lançar duas vezes ao salvar de novo o mesmo prazo (a referência agora é a data e hora do prazo em São Paulo).
+- Migração 12, testes 10 e `testes-app/missao.mjs`.
 
 ### 21/11/2026: ideia 2.6 tarefa avulsa (migração 11 + `index.html`)
 Design e plano em `docs/superpowers/` (`2026-11-21-tarefa-avulsa`).
