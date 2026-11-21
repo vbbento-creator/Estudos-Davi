@@ -4,7 +4,6 @@ Situação conferida no banco de produção em 21/11/2026. Na próxima sessão, 
 
 ## 1. Pendências que dependem de você
 
-- [ ] **Conferir o bônus da missão do Johann** (prazo era 19/11, 22h, bronze +150). Com a 2.5 no ar, ele cai sozinho na primeira vez que alguém abrir o app novo (regras antigas, sem tarefas). Conferir no extrato: uma linha "Missão: nível bronze", +150, data 19/11.
 - [ ] **Próxima missão:** ao cadastrar, preencher "Começa em" e os mínimos de tarefas (padrão 70/80/90%).
 - [ ] **Fotos das questões de treino.** O bônus de "Concluir treino" exige 50 questões por matéria.
   - Língua Portuguesa: 52 (ok)
@@ -49,6 +48,7 @@ Design e plano em `docs/superpowers/` (`2026-11-21-missao-automatica`).
 - Com tarefas, o fechamento espera 2 dias depois do prazo e nenhuma tarefa ou recurso do período sem decisão; enquanto isso, aviso em "Precisa de você".
 - Corrigido o risco de lançar duas vezes ao salvar de novo o mesmo prazo (a referência agora é a data e hora do prazo em São Paulo).
 - Migrações 12 e 13 (a 13 impede o botão Lançar do app antigo de lançar a missão de novo), testes 10 e `testes-app/missao.mjs`.
+- Conferido no Chrome como Pai (21/11): o bônus da missão do Johann de 19/11 entrou sozinho ao abrir o app, uma vez só (bronze +150, data 19/11); Mais › Lançar mostra "Lançada ✓ Bronze +150" sem botão; Cadastros › Pontos tem "Começa em" e os mínimos 70/80/90.
 
 ### 21/11/2026: ideia 2.6 tarefa avulsa (migração 11 + `index.html`)
 Design e plano em `docs/superpowers/` (`2026-11-21-tarefa-avulsa`).
