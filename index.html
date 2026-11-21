@@ -309,15 +309,18 @@ function concluirCard(mid){
     <br><button class="btn" data-a="concluirTreino" data-v="${mid}" ${pend ? '' : 'disabled'}>${pend ? (e.dominadas || e.erradas.length ? 'Continuar o treino' : 'Concluir treino') : 'Tudo certo ✓'}</button></div>`;
 }
 async function atualizaPontos(antes){
-  await carregarSaldos(); await carregarLoja();
+  await carregarSaldos(); await carregarLoja(); await carregarMissao();
   const dif = S.saldoT - antes; if (dif > 0) toast(`🎉 +${pts(dif)} pontos!`);
 }
 const descPremio = (p, n) => n > 1 ? `${p.nome} × ${n}` : p.nome;
 
 // ---------------- DADOS ----------------
+// missão da criança selecionada, calculada no banco (nula se não há missão)
+async function carregarMissao(){ const { data } = await sb.rpc('missao', { p_aluno:S.aluno }); S.missao = data ?? null; }
 async function carregar(){
   const a = S.aluno; S.treinoEstado = {};
-  const [mt, tp, cr, p, t, l, n, g, lc, tf, pr, pz] = await Promise.all([
+  await sb.rpc('fechar_missoes');   // lança o bônus das missões vencidas e sem pendências (uma vez só)
+  const [mt, tp, cr, p, t, l, n, g, lc, tf, pr, pz, ms] = await Promise.all([
     sb.from('materias').select('*').eq('aluno', a).order('ordem').order('nome'),
     sb.from('topicos').select('*').eq('aluno', a).order('idx'),
     sb.from('cronograma').select('*').eq('aluno', a).order('dia'),
@@ -330,7 +333,9 @@ async function carregar(){
     sb.from('tarefas').select('*').order('ordem').order('id'),
     sb.from('premios').select('*').order('custo'),
     sb.from('pausas').select('*').order('inicio', { ascending:false }),
+    sb.rpc('missao', { p_aluno:a }),
   ]);
+  S.missao = ms.data ?? null;
   S.todosTopicos = tp.data || [];
   S.todasMats = (mt.data || []).map(m => ({ ...m, topicos:S.todosTopicos.filter(x => x.materia === m.id && x.ativo) }));
   S.mats = S.todasMats.filter(m => m.ativa);
@@ -438,22 +443,24 @@ function melhor(mid, tipo, ateData){
   return S.tent.filter(t => t.materia===mid && t.tipo===tipo && (!ateData || new Date(t.criado) <= ateData) && (tipo!=='treino' || t.total>=5))
     .reduce((mx, t) => Math.max(mx, Number(t.pct)), -1);
 }
-// Meta de estudos (bronze/prata/ouro) — regras em grupos.estudos.config
+// Missão (bronze/prata/ouro): calculada no banco (missao), regras em grupos.estudos.config
 function calcMeta(){
-  const c = S.grupos.estudos?.config || {};
-  const mats = (c.materias || []).filter(id => MAT(id));
-  if (!c.prazo || !mats.length) return null;
-  const prazo = new Date(c.prazo);
-  const bronzeDet = mats.map(mid => ({ mid, ok:MAT(mid).topicos.every(t => { const p = S.prog[chT(mid, t.idx)]; return p?.concluido_em && new Date(p.concluido_em) <= prazo; }) }));
-  const bronze = bronzeDet.every(x => x.ok);
-  const prataDet = mats.map(mid => ({ mid, v:melhor(mid, 'treino', prazo) }));
-  const prata = bronze && prataDet.every(x => x.v >= c.treino_min);
-  const qtd = Math.min(Number(c.prova_qtd) || mats.length, mats.length);
-  const ouroDet = mats.map(mid => ({ mid, v:melhor(mid, 'prova', prazo) }));
-  const ouro = prata && ouroDet.filter(x => x.v >= c.prova_min).length >= qtd;
-  const M = c.pontos || {};
-  const nivel = ouro ? 'ouro' : prata ? 'prata' : bronze ? 'bronze' : null;
-  return { c, prazo, mats, qtd, M, bronze, prata, ouro, bronzeDet, prataDet, ouroDet, nivel, valor:nivel ? Number(M[nivel]) || 0 : 0 };
+  const m = S.missao; if (!m) return null;
+  const c = { ...(S.grupos.estudos?.config || {}), treino_min:m.treino_min, prova_min:m.prova_min };
+  return { c, prazo:new Date(m.prazo), mats:m.det.map(x => x.mid), qtd:m.qtd, M:m.pontos || {},
+    bronze:m.bronze, prata:m.prata, ouro:m.ouro, nivel:m.nivel, valor:Number(m.valor) || 0,
+    bronzeDet:m.det.map(x => ({ mid:x.mid, ok:x.bronze })), prataDet:m.det.map(x => ({ mid:x.mid, v:Number(x.treino) })), ouroDet:m.det.map(x => ({ mid:x.mid, v:Number(x.prova) })),
+    tar:m.tarefas, tmin:m.tarefas_min || {}, encerrada:m.encerrada, lancada:m.lancada, pode_fechar:m.pode_fechar };
+}
+const NIVEL = { bronze:'Bronze', prata:'Prata', ouro:'Ouro' };
+// situação do bônus da missão, para a criança e para os pais
+function estadoMissao(g){
+  const n = g.tar?.pendentes || 0;
+  if (g.lancada) return `Lançada ✓ ${NIVEL[g.nivel] || ''} +${pts(g.valor)}`.replace('  ', ' ');
+  if (!g.encerrada) return 'Os pontos entram sozinhos depois do prazo.';
+  if (n) return `Esperando validação de ${n} ${n === 1 ? 'tarefa' : 'tarefas'}`;
+  if (!g.nivel) return 'Nenhum nível conquistado';
+  return g.tar ? 'Os pontos entram em até 2 dias depois do prazo.' : 'Os pontos entram assim que alguém abrir o app.';
 }
 function calcDinheiro(){
   const c = S.grupos.notas?.config || {};
@@ -847,7 +854,8 @@ function comoGanhar(){
     ${nv(g.bronze, '🥉', 'Bronze', g.M.bronze, 'Estudo + exercícios em tudo: ' + g.bronzeDet.map(x => em(x.mid) + (x.ok ? '✅' : '⏳')).join(' '))}
     ${nv(g.prata, '🥈', 'Prata', g.M.prata, `Treino ${g.c.treino_min}%+ em todas: ` + g.prataDet.map(x => em(x.mid) + ' ' + (x.v >= 0 ? x.v + '%' : '—')).join(' · '))}
     ${nv(g.ouro, '🥇', 'Ouro', g.M.ouro, `Prova valendo ${g.c.prova_min}%+ em ${g.qtd} de ${g.mats.length}: ` + g.ouroDet.map(x => em(x.mid) + ' ' + (x.v >= 0 ? x.v + '%' : '—')).join(' · '))}
-    <p class="mut">O pai ou a mãe lançam o nível conquistado depois do prazo.</p>` : '';
+    ${g.tar ? `<p class="mut">🏠 Tarefas validadas: ${String(g.tar.pct).replace('.', ',')}% (mínimo ${g.tmin.bronze} / ${g.tmin.prata} / ${g.tmin.ouro} para bronze, prata e ouro)</p>` : ''}
+    <p class="mut">${estadoMissao(g)}</p>` : '';
   const notas = S.mats.length ? `<h3>Médias do bimestre${d.c.maximo ? ' · até ' + pts(d.c.maximo) + ' pontos' : ''}</h3><p class="mut">${pts(d.c.por_materia)} pontos por matéria com média ${d.c.nota_min} ou mais, mais ${pts(d.c.bonus)} se nenhuma ficar abaixo de ${d.c.bonus_min}.</p>
     <table>${d.linhas.map(l => `<tr><td>${MAT(l.mid).emoji} ${h(MAT(l.mid).nome)}</td><td>${l.n ?? '—'}</td><td style="text-align:right">${l.v ? '<b>+' + pts(l.v) + '</b>' : ''}</td></tr>`).join('')}
     <tr><td>⭐ Bônus</td><td></td><td style="text-align:right">${d.bonus ? '<b>+' + pts(d.bonus) + '</b>' : d.todas ? '—' : '…'}</td></tr></table>
@@ -947,11 +955,8 @@ function telaAlunos(){
 }
 function painelLancar(){
   const G = S.grupos; const limite = Number(G.notas?.config?.bonus_min) || 7; const g = calcMeta(); const d = calcDinheiro();
-  const refMeta = g ? 'meta:' + g.c.prazo : '';
-  const metaLancada = g && S.lanc.some(l => l.origem === 'nivel' && l.origem_ref === refMeta);
   return `<div class="card"><h2>Lançar recompensas de ${h(nomeAluno(S.aluno))}</h2>
-    ${g ? `<div class="nivel"><div style="flex:1"><b>🏅 Missão: ${g.nivel ? g.nivel.toUpperCase() + ' · +' + pts(g.valor) : 'nenhum nível'}</b><div class="mut">${metaLancada ? 'Já lançada ✓' : g.prazo > new Date() ? 'Prazo ainda não acabou' : 'Prazo encerrado'}</div></div>
-      ${!metaLancada && g.valor ? `<button class="btn min" data-a="lMeta">Lançar</button>` : ''}</div>` : ''}
+    ${g ? `<div class="nivel"><div style="flex:1"><b>🏅 Missão: ${g.nivel ? g.nivel.toUpperCase() + ' · +' + pts(g.valor) : 'nenhum nível'}</b><div class="mut">${estadoMissao(g)}</div></div></div>` : ''}
     <div class="nivel"><div style="flex:1"><b>🏫 Médias: +${pts(d.total)}</b><div class="mut">${d.todas ? 'Todas as médias lançadas' : 'Faltam médias'}</div></div>
       <input id="lnRef" value="Bim ${new Date().getFullYear()}" style="width:110px"><button class="btn min" data-a="lNotas" ${d.total ? '' : 'disabled'}>Lançar</button></div>
     <h3>Ajuste manual</h3>
@@ -1275,7 +1280,7 @@ const acoes = {
   async mat(el){ S.aba = 'materias'; S.materia = el.dataset.v; render(); window.scrollTo(0,0); await carregarEstadoTreino(el.dataset.v); render(); },
   async concluirTreino(el){ await iniciarConclusao(el.dataset.v); },
   voltarMats(){ S.materia = null; render(); },
-  async tg(el){ const k = el.dataset.k, f = el.dataset.f; const antes = S.saldoT; await salvar(k, { [f]: !(S.prog[k]?.[f]) }); render(); if (!ehResp()){ await atualizaPontos(antes); render(); } },
+  async tg(el){ const k = el.dataset.k, f = el.dataset.f; const antes = S.saldoT; await salvar(k, { [f]: !(S.prog[k]?.[f]) }); render(); if (!ehResp()) await atualizaPontos(antes); else await carregarMissao(); render(); },
   resp(el){ const q = S.quiz; if (q.resp != null) return; q.resp = Number(el.dataset.v); const it = q.lista[q.i]; q.det.push({ id:it.id, r:q.resp, c:it.correta }); if (q.resp === it.correta) q.acertos++; render(); },
   async proxima(){
     const q = S.quiz; if (q.salvando) return;
@@ -1343,11 +1348,7 @@ const acoes = {
     if (!t || !confirm(`Remover a tarefa avulsa "${t.nome}"?`)) return;
     const { error } = await sb.from('tarefas').update({ ativa:false }).eq('id', t.id); if (erro(error)) return; toast('Removida'); await recarregar(); },
   async tDia(){ S.diaTarefa = val('tdia') || hojeISO(); await carregarTarefas(); render(); },
-  // lançamentos
-  async lMeta(){ const g = calcMeta(); if (!confirm(`Lançar ${fmtV(S.grupos.estudos.moeda, g.valor)} (${g.nivel}) para ${nomeAluno(S.aluno)}?`)) return;
-    const dRef = g.prazo.toLocaleDateString('sv-SE', { timeZone:'America/Sao_Paulo' });
-    const { error } = await sb.rpc('lancar', { p_aluno:S.aluno, p_grupo:'estudos', p_valor:g.valor, p_descricao:`Missão: nível ${g.nivel}`, p_data_ref:dRef, p_origem:'nivel', p_origem_ref:'meta:' + g.c.prazo });
-    if (erro(error)) return; toast('Lançado ✓'); await recarregar(); },
+  // lançamentos (a missão é lançada sozinha pelo banco: fechar_missoes)
   async lNotas(){ const d = calcDinheiro(); const ref = val('lnRef').trim() || 'notas'; if (!confirm(`Lançar ${fmtV(S.grupos.notas.moeda, d.total)} (${ref}) para ${nomeAluno(S.aluno)}?`)) return;
     const { error } = await sb.rpc('lancar', { p_aluno:S.aluno, p_grupo:'notas', p_valor:d.total, p_descricao:`Médias: ${ref}`, p_origem:'notas', p_origem_ref:ref });
     if (error?.message?.includes('lancamentos_unico')){ toast('Essa rodada já foi lançada'); return; } if (erro(error)) return; toast('Lançado ✓'); await recarregar(); },
