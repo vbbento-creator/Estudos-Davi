@@ -13,7 +13,9 @@ Situação conferida no banco de produção em 21/11/2026. Na próxima sessão, 
   - Arte, Espanhol, Geografia, História, Matemática, Música, Química e Redação: 0 (faltam 50 em cada)
 - [ ] **Médias do bimestre.** Quando saírem, lançar em Mais › Lançar médias e pontos. Se alguma ficar abaixo de 7, decidir se usa o botão "Tirar" daquela matéria.
 - [ ] **Guardar as senhas da Brisa e da Juju** em lugar seguro. Elas ficaram no histórico de uma conversa anterior.
-- [ ] **Cadastrar as matérias da Juju.** Hoje ela não tem nenhuma e só ganha pontos com tarefas.
+- [ ] **Questões de treino da Juju.** As matérias e o plano já estão no banco (migração 14), mas ela ainda não tem nenhuma questão: por enquanto ganha pontos só com tópicos (30 cada, 27 tópicos) e tarefas. Você vai mandar fotos do material; as questões saem delas. O bônus de Concluir treino dela exige **25** questões por matéria (migração 15).
+  - Ordem das provas: Português 27/11, Ciências 01/12, Inglês 02/12, História e Geografia 03/12, Matemática 04/12.
+  - Cuidado: `questoes.id` é único no banco todo; usar prefixo próprio (ex.: `juju-port-t01`) para não bater com as do Johann (`port-t39`).
 - [ ] **Telas novas no uso real.** Conferido no Chrome em 21/11/2026, logado como Pai:
   - Tarefa avulsa (criar com o filtro de uma criança, etiqueta, Trocar só "Só este dia", não aparece no dia seguinte, cadastro com Dia e sem modo, Remover) ok.
   - Painel Trocar, formulário de Compra que já aconteceu e Tema (Claro/Escuro) ok, sem gravar nada.
@@ -40,6 +42,11 @@ Nenhuma ideia em aberto no momento.
 - [ ] **Apagar as cópias antigas de 18/11** (`backup_20261118` e `backup_20261118_pre_migracao`, com 8 tabelas cada) quando não forem mais necessárias. Não tem volta. Elas também geram 16 avisos de "RLS sem política" no Supabase.
 
 ## 5. Feito
+
+### 21/11/2026: matérias e plano de estudo da Juju (migração 14)
+- A partir do cronograma da P2 do 3º ano (Colégio Objetivo DF): Português (27/11), Ciências (01/12), Inglês (02/12), História e Geografia (03/12, como duas matérias) e Matemática (04/12), com os 27 tópicos do PDF.
+- Bônus de Concluir treino da Juju com mínimo de 25 questões por matéria (migração 15; o Johann continua com 50).
+- Plano de estudo de 22/11 a 04/12, com 1 a 3 itens por dia e sem treino (ela ainda não tem questões). Os itens que citam uma matéria são marcados sozinhos quando ela conclui um tópico daquela matéria no dia.
 
 ### 21/11/2026: ideia 2.5 missão automática (migrações 12 e 13 + `index.html`)
 Design e plano em `docs/superpowers/` (`2026-11-21-missao-automatica`).
