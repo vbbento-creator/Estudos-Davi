@@ -4,7 +4,7 @@ Situação conferida no banco de produção em 21/11/2026. Na próxima sessão, 
 
 ## 1. Pendências que dependem de você
 
-- [ ] **Lançar a missão do Johann** (prazo era 19/11, 22h). Ainda não há nenhum lançamento de missão para ele. Se ele atingiu bronze (150), prata (250) ou ouro (400), lançar em Mais › Lançar médias e pontos.
+- [ ] **Lançar a missão do Johann** (prazo era 19/11, 22h). Ainda não há nenhum lançamento de missão para ele. Em 21/11 o app mostra **bronze, +150** (Mais › Lançar médias e pontos › Missão › Lançar).
 - [ ] **Fotos das questões de treino.** O bônus de "Concluir treino" exige 50 questões por matéria.
   - Língua Portuguesa: 52 (ok)
   - Física: 37 (faltam 13)
@@ -14,8 +14,10 @@ Situação conferida no banco de produção em 21/11/2026. Na próxima sessão, 
 - [ ] **Médias do bimestre.** Quando saírem, lançar em Mais › Lançar médias e pontos. Se alguma ficar abaixo de 7, decidir se usa o botão "Tirar" daquela matéria.
 - [ ] **Guardar as senhas da Brisa e da Juju** em lugar seguro. Elas ficaram no histórico de uma conversa anterior.
 - [ ] **Cadastrar as matérias da Juju.** Hoje ela não tem nenhuma e só ganha pontos com tarefas.
-- [ ] **Testar a tarefa avulsa no uso real** (Agenda › + Tarefa avulsa): criar, marcar, validar, Remover e ver no cadastro em "Encerradas" no dia seguinte.
-- [ ] **Testar as telas novas no uso real** (no ar desde 21/11, testadas só no banco, não no navegador): Trocar na Agenda, ½ Metade (Aprovar e Agenda), recurso contra metade, Compra que já aconteceu (com aviso de saldo negativo e de limite) e Tema (Mais e fim da tela Hoje da criança). Anotar na seção 3 o que aparecer de estranho.
+- [ ] **Telas novas no uso real.** Conferido no Chrome em 21/11/2026, logado como Pai:
+  - Tarefa avulsa (criar com o filtro de uma criança, etiqueta, Trocar só "Só este dia", não aparece no dia seguinte, cadastro com Dia e sem modo, Remover) ok.
+  - Painel Trocar, formulário de Compra que já aconteceu e Tema (Claro/Escuro) ok, sem gravar nada.
+  - Falta ver no uso real (gravam pontos de verdade): confirmar uma troca, ½ Metade, recurso contra metade, lançar uma compra, e a visão da criança (Hoje com etiqueta "avulsa", tema no fim do Hoje). Anotar na seção 3 o que aparecer de estranho.
 
 ## 2. Ideias a desenvolver
 
