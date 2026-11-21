@@ -4,16 +4,20 @@ import fs from 'fs'; import vm from 'vm';
 const html = fs.readFileSync(process.argv[2], 'utf8');
 const mod = [...html.matchAll(/<script type="module"[^>]*>([\s\S]*?)<\/script>/g)].map(x => x[1]).join('\n')
   .replace(/^import .*$/m, '');
-const noop = () => {}; const el = { addEventListener:noop, dataset:{}, classList:{ add:noop, remove:noop, toggle:noop }, style:{} };
+const noop = () => {};
+const gravado = [];   // o que o app mandou para tarefas (insert/update)
+const cadeia = () => new Proxy(function(){}, { get:(_, k) => k === 'then' ? (ok => ok({ data:[], error:null })) : (...args) => { if (k === 'insert' || k === 'update') gravado.push({ k, reg:args[0] }); return cadeia(); } });
+const campos = {};    // valores dos campos do formulário (id → value/checked)
+const el = { append:noop, appendChild:noop, remove:noop, addEventListener:noop, dataset:{}, classList:{ add:noop, remove:noop, toggle:noop }, style:{} };
 const sandbox = { console, setTimeout, setInterval:noop, clearTimeout, Date, Intl, Math, JSON, Promise, Object, Array, Number, String,
   matchMedia:() => ({ matches:false, addEventListener:noop }), localStorage:{ getItem:() => null, setItem:noop },
-  document:{ getElementById:id => id === 'app' ? el : null, querySelector:() => null, querySelectorAll:() => [], addEventListener:noop, documentElement:el, body:el },
-  createClient:() => ({ auth:{ onAuthStateChange:noop, getSession:async () => ({ data:{ session:null } }) }, from:() => ({}), rpc:async () => ({}) }),
+  document:{ getElementById:id => id === 'app' ? el : (id in campos ? campos[id] : { ...el }), createElement:() => ({ ...el, remove:noop }), querySelector:() => null, querySelectorAll:() => [], addEventListener:noop, documentElement:el, body:el },
+  createClient:() => ({ auth:{ onAuthStateChange:noop, getSession:async () => ({ data:{ session:null } }) }, from:() => cadeia(), rpc:async () => ({ data:[] }) }),
   confirm:() => true, alert:noop };
 sandbox.window = sandbox; sandbox.addEventListener = noop;
 vm.createContext(sandbox);
-vm.runInContext(mod + '\n;globalThis.__t = { S, telaAgenda, cadTarefas, linhaTarefa, possivelSemana, hojeISO, addDias };', sandbox);
-const { S, telaAgenda, cadTarefas, linhaTarefa, possivelSemana, hojeISO, addDias } = sandbox.__t;
+vm.runInContext(mod + '\n;globalThis.__t = { acoes, S, telaAgenda, cadTarefas, linhaTarefa, possivelSemana, hojeISO, addDias };', sandbox);
+const { acoes, S, telaAgenda, cadTarefas, linhaTarefa, possivelSemana, hojeISO, addDias } = sandbox.__t;
 const J = 'j', U = 'u', hoje = hojeISO();
 Object.assign(S, { perfil:{ papel:'responsavel' }, user:{ id:'p' }, alunos:[{ user_id:J, nome:'Johann' }, { user_id:U, nome:'Juju' }], agFiltro:'todos', agView:'semana',
   grupos:{ casa:{ teto_semana:490 } }, pausas:[{ inicio:addDias(hoje, 2), fim:addDias(hoje, 2), motivo:'viagem' }], fam:{ provas:[], crono:{}, progCrono:{} },
@@ -51,5 +55,19 @@ S.perfil = { papel:'aluno' }; S.aluno = J;
 const l = linhaTarefa({ tarefa:1, nome:'Lavar carro', emoji:'🚗', pontos:10, status:'a_fazer', pode_marcar:true }, hoje);
 ok(txt(l).includes('avulsa'), 'criança: etiqueta avulsa no Hoje');
 S.perfil = { papel:'responsavel' };
-fs.writeFileSync(process.argv[3], cadTarefas());
-console.log('possivelSemana Johann (esperado 70 = só a comum):', possivelSemana(J));
+const c = cadTarefas(); fs.writeFileSync(process.argv[3], c);
+const fmt = iso => iso.slice(8) + '/' + iso.slice(5, 7);
+ok(txt(c).includes('avulsa · ' + fmt(hoje)), 'cadastro: etiqueta "avulsa · dd/mm"');
+const enc = c.split('<details')[1] || '';
+ok(c.includes('Encerradas (1)') && enc.includes('Feira') && !enc.includes('Lavar carro'), 'cadastro: Feira (passou) em Encerradas (1)');
+const f1 = c.split('id="t1-nome"')[1].split('id="t2-nome"')[0] || '';
+ok(!c.includes('id="t1-modo"') && !c.includes('id="t1-ds-0"') && c.includes('id="t1-base"'), 'cadastro: avulsa sem modo e dias da semana, com Dia');
+ok(c.includes('id="t2-modo"') && c.includes('id="t2-ds-0"'), 'cadastro: comum continua com modo e dias');
+ok(possivelSemana(J) === 70, `possível por semana ignora avulsas (70): ${possivelSemana(J)}`);
+// salvar a avulsa pelo cadastro: grava base = ate = dia escolhido, sem mexer em modo e dias
+const nd = addDias(hoje, 1);
+Object.assign(campos, { 't1-nome':{ value:'Lavar carro' }, 't1-emoji':{ value:'🚗' }, 't1-pontos':{ value:'12' }, 't1-periodo':{ value:'' }, 't1-base':{ value:nd },
+  't1-al-j':{ checked:true }, 't1-al-u':{ checked:true } });
+await acoes.cTarefaSalvar({ dataset:{ v:'1' } });
+const g = gravado.find(x => x.k === 'update')?.reg || {};
+ok(g.base === nd && g.ate === nd && !('modo' in g) && !('dias_semana' in g) && g.pontos === 12, 'salvar avulsa: base = ate = ' + nd + ' ' + JSON.stringify(g));

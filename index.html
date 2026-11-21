@@ -1079,34 +1079,37 @@ const lerDias = pref => { const d = SEMANA.map((_, i) => i).filter(i => document
 const lerAlunos = pref => S.alunos.map(a => a.user_id).filter(id => document.getElementById(`${pref}-${id}`)?.checked);
 
 function formTarefa(t){
-  const id = t?.id ?? 'novo'; const p = `t${id}`;
+  const id = t?.id ?? 'novo'; const p = `t${id}`; const av = !!t?.ate;
   return `<div class="topico ${t && !t.ativa ? 'inativo' : ''}" style="${t ? 'box-shadow:none;border:1px solid var(--line);margin-top:8px' : ''}">
+    ${av ? `<span class="tag">avulsa · ${t.ate.slice(8)}/${t.ate.slice(5, 7)}</span>` : ''}
     <div class="row"><input id="${p}-emoji" value="${h(t?.emoji ?? '✅')}" style="width:60px"><input id="${p}-nome" value="${h(t?.nome ?? '')}" placeholder="Nome da tarefa" style="flex:1"></div>
     <div class="row" style="margin-top:8px"><label class="mut">Vale</label><input id="${p}-pontos" type="number" min="0" step="any" value="${t?.pontos ?? 5}" style="width:90px"><span class="mut">pontos</span>
       <select id="${p}-periodo" style="flex:1"><option value="">O dia todo</option>${Object.entries(PERIODO).map(([k, n]) => `<option value="${k}" ${t?.periodo === k ? 'selected' : ''}>${n}</option>`).join('')}</select></div>
-    <div class="row" style="margin-top:8px"><select id="${p}-modo" style="flex:1"><option value="todos" ${t?.modo !== 'revezamento' ? 'selected' : ''}>Todo dia, para cada um marcado</option><option value="revezamento" ${t?.modo === 'revezamento' ? 'selected' : ''}>Revezamento entre os marcados</option></select></div>
+    ${av ? '' : `<div class="row" style="margin-top:8px"><select id="${p}-modo" style="flex:1"><option value="todos" ${t?.modo !== 'revezamento' ? 'selected' : ''}>Todo dia, para cada um marcado</option><option value="revezamento" ${t?.modo === 'revezamento' ? 'selected' : ''}>Revezamento entre os marcados</option></select></div>`}
     <div class="row" style="margin-top:8px">${ckAlunos(p + '-al', t?.alunos ?? S.alunos.map(a => a.user_id))}</div>
-    <div class="row" style="margin-top:8px"><span class="mut">Dias:</span>${SEMANA.map((d, i) => `<label class="ckin"><input type="checkbox" id="${p}-ds-${i}" ${!t?.dias_semana || t.dias_semana.includes(i) ? 'checked' : ''}> ${d}</label>`).join('')}</div>
+    ${av ? `<div class="row" style="margin-top:8px"><label class="mut">Dia</label><input id="${p}-base" type="date" value="${t.base}" style="flex:1"></div>` : `<div class="row" style="margin-top:8px"><span class="mut">Dias:</span>${SEMANA.map((d, i) => `<label class="ckin"><input type="checkbox" id="${p}-ds-${i}" ${!t?.dias_semana || t.dias_semana.includes(i) ? 'checked' : ''}> ${d}</label>`).join('')}</div>
     <div class="row" style="margin-top:8px"><label class="mut">Começa em</label><input id="${p}-base" type="date" value="${t?.base ?? hojeISO()}" style="flex:1"></div>
-    <p class="mut">No revezamento, o 1º marcado (na ordem acima) faz no primeiro dia válido a partir do início, e a vez alterna a cada dia em que a tarefa acontece. Mudar o valor só afeta marcações futuras.</p>
+    <p class="mut">No revezamento, o 1º marcado (na ordem acima) faz no primeiro dia válido a partir do início, e a vez alterna a cada dia em que a tarefa acontece. Mudar o valor só afeta marcações futuras.</p>`}
     <div class="row">${t ? `<button class="btn min" data-a="cTarefaSalvar" data-v="${id}">Salvar</button><button class="btn sec min" data-a="cTarefaAtiva" data-v="${id}">${t.ativa ? 'Desativar' : 'Reativar'}</button>` : `<button class="btn min" data-a="cTarefaSalvar" data-v="novo">Criar tarefa</button>`}</div>
-    ${t?.ativa ? '<p class="mut">Para trocar quem faz num dia (ou dali em diante), use o botão Trocar na Agenda.</p>' : ''}</div>`;
+    ${t?.ativa && !av ? '<p class="mut">Para trocar quem faz num dia (ou dali em diante), use o botão Trocar na Agenda.</p>' : ''}</div>`;
 }
 function possivelSemana(a){
-  return S.tarefasCad.filter(t => t.ativa && t.alunos.includes(a)).reduce((s, t) => {
+  return S.tarefasCad.filter(t => t.ativa && !t.ate && t.alunos.includes(a)).reduce((s, t) => {
     const dias = t.dias_semana ? t.dias_semana.length : 7;
     return s + Number(t.pontos) * (t.modo === 'revezamento' ? dias / t.alunos.length : dias);
   }, 0);
 }
 const IDEIAS = [['🪥', 'Escovar os dentes (manhã)', 'manha'], ['🪥', 'Escovar os dentes (noite)', 'noite'], ['🤝', 'Não brigar com o irmão', ''], ['🎒', 'Arrumar a mochila', 'noite'], ['📚', 'Fazer a lição de casa', 'tarde'], ['🛁', 'Tomar banho sem reclamar', 'noite']];
 function cadTarefas(){
+  const hoje = hojeISO(); const encerradas = S.tarefasCad.filter(t => t.ate && t.ate < hoje); const vigentes = S.tarefasCad.filter(t => !(t.ate && t.ate < hoje));
   const teto = Number(S.grupos.casa?.teto_semana) || 0;
   const resumo = S.alunos.map(a => { const x = possivelSemana(a.user_id); const passa = teto && x > teto;
     return `<div class="row sp" style="padding:6px 0"><span>${av(a.user_id, true)} ${h(a.nome)}</span><span class="${passa ? 'tag warn' : 'mut'}">${pts(x)} pontos possíveis por semana${teto ? ' · teto ' + pts(teto) : ''}</span></div>`; }).join('');
   const passou = teto && S.alunos.some(a => possivelSemana(a.user_id) > teto);
   return `<div class="card"><h2>Pontos das tarefas por semana</h2>${resumo}
       <p class="mut" style="margin:6px 0 0">${passou ? 'As tarefas somam mais que o teto. O que passar do teto na semana não é creditado, então vale baixar o valor de algumas.' : 'Tarefa nova não aumenta o custo: o teto semanal segura. Hoje: ' + reais(teto) + ' por semana.'}</p></div>
-    <div class="card"><h2>🧹 Tarefas</h2>${S.tarefasCad.map(formTarefa).join('') || '<p class="vazio">Nenhuma.</p>'}</div>
+    <div class="card"><h2>🧹 Tarefas</h2>${vigentes.map(formTarefa).join('') || '<p class="vazio">Nenhuma.</p>'}
+      ${encerradas.length ? `<details style="margin-top:10px"><summary>Encerradas (${encerradas.length})</summary>${encerradas.map(formTarefa).join('')}</details>` : ''}</div>
     <div class="card"><h2>➕ Nova tarefa</h2><div class="row" style="margin-bottom:8px">${IDEIAS.map(([e, n, p]) => `<button class="btn sec min" data-a="preset" data-e="${e}" data-n="${h(n)}" data-p="${p}">${e} ${h(n)}</button>`).join('')}</div>${formTarefa(null)}</div>`;
 }
 function formPremio(p){
@@ -1370,7 +1373,9 @@ const acoes = {
   // cadastros
   cadAba(el){ S.cad = el.dataset.v; render(); },
   async cTarefaSalvar(el){ const id = el.dataset.v, p = `t${id}`;
-    const reg = { nome:val(`${p}-nome`).trim(), emoji:val(`${p}-emoji`).trim() || '✅', pontos:num(`${p}-pontos`) ?? 0, modo:val(`${p}-modo`), alunos:lerAlunos(`${p}-al`), base:val(`${p}-base`) || hojeISO(), dias_semana:lerDias(p), periodo:val(`${p}-periodo`) || null };
+    const av = S.tarefasCad.find(x => x.id === Number(id))?.ate;
+    const reg = { nome:val(`${p}-nome`).trim(), emoji:val(`${p}-emoji`).trim() || '✅', pontos:num(`${p}-pontos`) ?? 0, alunos:lerAlunos(`${p}-al`), base:val(`${p}-base`) || hojeISO(), periodo:val(`${p}-periodo`) || null };
+    if (av) reg.ate = reg.base; else Object.assign(reg, { modo:val(`${p}-modo`), dias_semana:lerDias(p) });
     if (!reg.nome || !reg.alunos.length){ toast('Dê um nome e marque ao menos uma criança'); return; }
     if (reg.dias_semana && !reg.dias_semana.length){ toast('Marque ao menos um dia da semana'); return; }
     const { error } = id === 'novo' ? await sb.from('tarefas').insert(reg) : await sb.from('tarefas').update(reg).eq('id', id);
