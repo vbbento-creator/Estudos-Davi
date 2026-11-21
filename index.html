@@ -209,7 +209,7 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 // ---------------- ESTADO ----------------
 const S = { user:null, perfil:null, aba:'hoje', alunos:[], aluno:null, mats:[], todasMats:[], todosTopicos:[], crono:[],
   grupos:{}, saldos:{}, lanc:[], prog:{}, tent:[], lib:{}, notas:{}, tarefasCad:[], premios:[], tarefas:{}, rev:[], pend:[], recAb:[],
-  pausas:[], quiz:null, prova:null, materia:null, cad:'tarefas', diaTarefa:null,
+  pausas:[], quiz:null, prova:null, materia:null, cad:'tarefas', diaTarefa:null, avulsaAberta:null,
   saldoT:0, saldosFam:{}, fam:{ crono:{}, provas:[], progCrono:{} }, agenda:{}, agIni:null, agSel:null, agView:'semana', agFiltro:'todos',
   resgates:[], resgPend:[], limites:{}, qtdLoja:{}, sheet:null, mais:null, pEstudo:{}, treinoEstado:{} };
 const $app = document.getElementById('app');
@@ -543,7 +543,7 @@ function linhaTarefa(t, dia){
   if (t.recurso_id) rec = `<div class="mut" style="flex-basis:100%">📣 Recurso: “${h(t.recurso_comentario)}” → ${t.recurso_decisao ? `<b>${txtRecurso(t.recurso_decisao)}</b>${t.recurso_resposta ? ' · ' + h(t.recurso_resposta) : ''}` : 'aguardando pai ou mãe'}</div>`;
   else if (t.pode_recorrer) rec = `<details style="flex-basis:100%"><summary>Não concordo (recurso, até 5 dias)</summary><textarea id="rc-${t.tarefa}-${dia}" placeholder="Explique o que aconteceu"></textarea><br><button class="btn sec min" data-a="tRecurso" data-t="${t.tarefa}" data-d="${dia}">Enviar recurso</button></details>`;
   return `<div class="task ${st}"><button class="chk" ${pode ? `data-a="tMarcar" data-s="${t.status === 'a_fazer' ? 'feito' : ''}" data-t="${t.tarefa}" data-d="${dia}"` : 'disabled'} aria-label="${t.status === 'a_fazer' ? 'Marcar' : 'Desmarcar'} ${h(t.nome)}">${mark}</button>
-    <div class="tx"><b>${t.emoji} ${h(t.nome)}</b><small>${sub}</small></div>${ptsTag(t.pontos)}${rec}</div>`;
+    <div class="tx"><b>${t.emoji} ${h(t.nome)}${tagAvulsa(t.tarefa)}</b><small>${sub}</small></div>${ptsTag(t.pontos)}${rec}</div>`;
 }
 function linhaCrono(d, i, texto){
   const k = `crono:${d}:${i}`; const manual = !!S.prog[k]?.feito; const auto = !manual && autoFeito(texto, d); const f = manual || auto;
@@ -621,6 +621,22 @@ function hojePais(){
 }
 
 function agendaItens(w, d){ return (S.agenda[w] || []).filter(r => r.dia === d); }
+// tarefa avulsa = tarefa com data de fim (só um dia: base = ate)
+const ehAvulsa = id => !!S.tarefasCad.find(t => t.id === id)?.ate;
+const tagAvulsa = id => ehAvulsa(id) ? ' <span class="tag">avulsa</span>' : '';
+// pai ou mãe criam uma tarefa só para o dia selecionado (dentro da janela da Agenda, fora de dia pausado)
+function blocoAvulsa(d, pausa){
+  const hoje = hojeISO();
+  if (pausa || d < addDias(hoje, -7) || d > addDias(hoje, 27)) return '';
+  if (S.avulsaAberta !== d) return `<div class="row" style="margin-top:10px"><button class="btn sec min" data-a="avAbrir" data-v="${d}">+ Tarefa avulsa</button></div>`;
+  const pre = S.agFiltro === 'todos' ? S.alunos.map(a => a.user_id) : [S.agFiltro];
+  return `<div class="topico" style="box-shadow:none;border:1px solid var(--line);margin-top:10px"><b>Tarefa avulsa · só ${diaCurto(d)}</b>
+    <div class="row" style="margin-top:8px"><input id="av-emoji" value="✅" style="width:60px"><input id="av-nome" placeholder="Nome da tarefa" style="flex:1"></div>
+    <div class="row" style="margin-top:8px"><label class="mut">Vale</label><input id="av-pontos" type="number" min="0" step="any" value="5" style="width:90px"><span class="mut">pontos</span>
+      <select id="av-periodo" style="flex:1"><option value="">O dia todo</option>${Object.entries(PERIODO).map(([k, n]) => `<option value="${k}">${n}</option>`).join('')}</select></div>
+    <div class="row" style="margin-top:8px">${ckAlunos('av-al', pre)}</div>
+    <div class="row" style="margin-top:8px"><button class="btn min" data-a="avCriar" data-v="${d}">Criar</button><button class="btn ghost min" data-a="avAbrir" data-v="${d}">Cancelar</button></div></div>`;
+}
 function pontosDia(d, ws){
   const x = [];
   if ((S.fam.provas || []).some(p => ws.includes(p.aluno) && p.prova === d)) x.push('prova');
@@ -642,21 +658,23 @@ function linhaAgenda(r, w){
     if (r.status === 'feito' && !r.decisao) acoes = `<button class="btn bad min" data-a="tDecidir" data-s="rejeitado" ${k}>Rejeitar</button><button class="btn warn min" data-a="tMetade" data-k="ag|${r.tarefa}|${r.dia}|${w}">½ Metade</button><button class="btn ok min" data-a="tDecidir" data-s="validado" ${k}>Validar</button>`;
     else if (!r.decisao && r.dia <= hoje && r.status !== 'feito') acoes = `<button class="btn sec min" data-a="tMarcar" data-s="feito" ${k}>Marcar como feita</button>`;
     if (!r.decisao && r.status !== 'feito') acoes += `<button class="btn ghost min" data-a="tTrocar" ${k}>Trocar</button>`;
+    if (ehAvulsa(r.tarefa) && !S.alunos.some(a => agendaItens(a.user_id, r.dia).some(x => x.tarefa === r.tarefa && (x.status === 'feito' || x.decisao))))
+      acoes += `<button class="btn ghost min" data-a="avRemover" data-v="${r.tarefa}">Remover</button>`;
   } else if (!r.decisao && (r.dia === hoje || r.dia === ontem) && ['a_fazer', 'feito'].includes(r.status)){
     btn = `data-a="tMarcar" data-s="${r.status === 'a_fazer' ? 'feito' : ''}" ${k}`;
   }
   return `<div class="task ${st}"><button class="chk" ${btn || 'disabled'} aria-label="${h(r.nome)}">${mark}</button>
-    <div class="tx"><b>${r.emoji} ${h(r.nome)}</b><small>${sub}</small></div>${ptsTag(r.pontos)}${acoes ? `<div class="acoes">${acoes}</div>` : ''}${painelMetade(`ag|${r.tarefa}|${r.dia}|${w}`, `data-a="tDecidir" data-s="metade" ${k}`, true)}${painelTroca(r, w)}</div>`;
+    <div class="tx"><b>${r.emoji} ${h(r.nome)}${tagAvulsa(r.tarefa)}</b><small>${sub}</small></div>${ptsTag(r.pontos)}${acoes ? `<div class="acoes">${acoes}</div>` : ''}${painelMetade(`ag|${r.tarefa}|${r.dia}|${w}`, `data-a="tDecidir" data-s="metade" ${k}`, true)}${painelTroca(r, w)}</div>`;
 }
 // pai ou mãe trocam quem faz a tarefa (só para quem ainda não faz naquele dia)
 function painelTroca(r, w){
   if (!ehResp() || S.trocaAberta !== `${r.tarefa}|${r.dia}|${w}`) return '';
   const livres = S.alunos.filter(a => a.user_id !== w && !agendaItens(a.user_id, r.dia).some(x => x.tarefa === r.tarefa));
   if (!livres.length) return `<div class="mut" style="flex-basis:100%">Todas as crianças já fazem essa tarefa nesse dia. <button class="btn ghost min" data-a="tTrocar" data-t="" data-d="" data-al="">Fechar</button></div>`;
-  const k = `data-t="${r.tarefa}" data-d="${r.dia}" data-al="${w}"`;
+  const k = `data-t="${r.tarefa}" data-d="${r.dia}" data-al="${w}"`; const av = ehAvulsa(r.tarefa);
   return `<div style="flex-basis:100%;margin-top:8px"><div class="row"><span class="mut">No lugar de ${h(nomeAluno(w))}:</span><select id="trc-para" style="flex:1">${livres.map(a => `<option value="${a.user_id}">${h(a.nome)}</option>`).join('')}</select></div>
-    <div class="row" style="margin-top:8px"><button class="btn sec min" data-a="tTrocaOk" data-e="0" ${k}>Só este dia</button><button class="btn min" data-a="tTrocaOk" data-e="1" ${k}>Deste dia em diante</button><button class="btn ghost min" data-a="tTrocar" data-t="" data-d="" data-al="">Cancelar</button></div>
-    <p class="mut" style="margin:6px 0 0">${S.tarefasCad.find(t => t.id === r.tarefa)?.modo === 'revezamento' ? 'Deste dia em diante: o revezamento recomeça por quem você escolher.' : 'Deste dia em diante: a criança escolhida faz no lugar, todos os dias.'}</p></div>`;
+    <div class="row" style="margin-top:8px"><button class="btn sec min" data-a="tTrocaOk" data-e="0" ${k}>Só este dia</button>${av ? '' : `<button class="btn min" data-a="tTrocaOk" data-e="1" ${k}>Deste dia em diante</button>`}<button class="btn ghost min" data-a="tTrocar" data-t="" data-d="" data-al="">Cancelar</button></div>
+    ${av ? '' : `<p class="mut" style="margin:6px 0 0">${S.tarefasCad.find(t => t.id === r.tarefa)?.modo === 'revezamento' ? 'Deste dia em diante: o revezamento recomeça por quem você escolher.' : 'Deste dia em diante: a criança escolhida faz no lugar, todos os dias.'}</p>`}</div>`;
 }
 function linhaCronoAg(w, d, i, texto){
   if (!ehResp()) return linhaCrono(d, i, texto);
@@ -693,6 +711,7 @@ function telaAgenda(){
       ${provasDia.map(p => `<div class="row" style="margin-top:8px"><span class="chip prova">Prova</span><b>${p.emoji} ${h(p.nome)}</b>${ehResp() ? av(p.aluno, true) : ''}</div>`).join('')}
       ${fimMeta ? '<div class="row" style="margin-top:8px"><span class="chip meta">Fim da missão</span><b>Prazo do bronze, prata e ouro</b></div>' : ''}
       ${blocos}
+      ${ehResp() ? blocoAvulsa(sel, pausa) : ''}
       ${!ehResp() && sel > hoje ? '<p class="mut" style="margin:8px 0 0">Você marca só hoje e ontem.</p>' : ''}</div>`;
 }
 
@@ -1304,6 +1323,17 @@ const acoes = {
   async tTrocaOk(el){ const para = val('trc-para'); const emDiante = el.dataset.e === '1';
     const { error } = await sb.rpc('trocar_responsavel', { p_tarefa:Number(el.dataset.t), p_dia:el.dataset.d, p_de:el.dataset.al, p_para:para, p_em_diante:emDiante }); if (erro(error)) return;
     S.trocaAberta = null; toast(emDiante ? `Trocado de ${fmtData(el.dataset.d)} em diante` : 'Trocado só neste dia'); await carregarTarefas(); render(); },
+  // tarefa avulsa (Agenda, só pai ou mãe)
+  avAbrir(el){ S.avulsaAberta = S.avulsaAberta === el.dataset.v ? null : el.dataset.v; render(); },
+  async avCriar(el){ const dia = el.dataset.v;
+    const reg = { nome:val('av-nome').trim(), emoji:val('av-emoji').trim() || '✅', pontos:num('av-pontos') ?? 0, periodo:val('av-periodo') || null,
+                  modo:'todos', alunos:lerAlunos('av-al'), base:dia, ate:dia, dias_semana:null };
+    if (!reg.nome || !reg.alunos.length){ toast('Dê um nome e marque ao menos uma criança'); return; }
+    const { error } = await sb.from('tarefas').insert(reg); if (erro(error)) return;
+    S.avulsaAberta = null; toast('Tarefa avulsa criada ✓'); await recarregar(); },
+  async avRemover(el){ const t = S.tarefasCad.find(x => x.id === Number(el.dataset.v));
+    if (!t || !confirm(`Remover a tarefa avulsa "${t.nome}"?`)) return;
+    const { error } = await sb.from('tarefas').update({ ativa:false }).eq('id', t.id); if (erro(error)) return; toast('Removida'); await recarregar(); },
   async tDia(){ S.diaTarefa = val('tdia') || hojeISO(); await carregarTarefas(); render(); },
   // lançamentos
   async lMeta(){ const g = calcMeta(); if (!confirm(`Lançar ${fmtV(S.grupos.estudos.moeda, g.valor)} (${g.nivel}) para ${nomeAluno(S.aluno)}?`)) return;
