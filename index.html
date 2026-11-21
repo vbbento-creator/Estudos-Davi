@@ -385,12 +385,14 @@ async function carregarFamilia(){
     return;
   }
   const ids = S.alunos.map(a => a.user_id);
-  const [cr, mt, pg, sd] = await Promise.all([
+  const [cr, mt, pg, sd, ms] = await Promise.all([
     sb.from('cronograma').select('*').order('dia'),
     sb.from('materias').select('aluno,nome,emoji,prova').eq('ativa', true).not('prova', 'is', null),
     sb.from('progresso').select('aluno,chave,feito').like('chave', 'crono:%').eq('feito', true),
     Promise.all(ids.map(id => sb.rpc('saldo_total', { p_aluno:id }))),
+    Promise.all(ids.map(id => sb.rpc('missao', { p_aluno:id }))),
   ]);
+  S.missoesFam = Object.fromEntries(ids.map((id, i) => [id, ms[i].data ?? null]));
   const crono = {}; (cr.data || []).forEach(c => (crono[c.aluno] ||= []).push({ d:c.dia, t:c.titulo, itens:c.itens || [] }));
   const progCrono = {}; (pg.data || []).forEach(r => ((progCrono[r.aluno] ||= {})[r.chave] = true));
   S.fam = { crono, provas:mt.data || [], progCrono };
@@ -622,8 +624,12 @@ function hojePais(){
       <div class="row sp"><small class="mut">${pp ? `${pp.emoji} ${h(pp.nome)} ${emDias(dias)}` : 'Sem prova marcada'}</small>${pend ? `<small class="mut">${pend} para validar</small>` : ''}</div></div>`;
   }).join('');
   const rev = S.rev.length ? `<div class="card"><h2>Revezamento</h2>${S.rev.map(r => `<div class="row sp" style="padding:6px 0"><span>${r.t.emoji} ${h(r.t.nome)}</span><span class="mut">hoje: <b>${h(nomeAluno(r.hoje))}</b> · amanhã: <b>${h(nomeAluno(r.amanha))}</b></span></div>`).join('')}</div>` : '';
-  return `<div class="card"><h2>Precisa de você</h2>${nPend + nRec + nPed
-      ? `<div class="row sp" style="margin-top:10px"><div class="grow"><b>${nPend} ${nPend === 1 ? 'tarefa' : 'tarefas'} para validar</b><br><small class="mut">${nPed} ${nPed === 1 ? 'pedido' : 'pedidos'} na Loja · ${nRec} ${nRec === 1 ? 'recurso' : 'recursos'}</small></div><button class="btn min" data-a="aba" data-v="aprovar">Ver</button></div>`
+  // missão com prazo vencido que só fecha quando as tarefas do período forem decididas
+  const espera = S.alunos.map(a => [a, S.missoesFam?.[a.user_id]]).filter(([, m]) => m && m.encerrada && !m.lancada && m.tarefas?.pendentes > 0);
+  const missoes = espera.map(([a, m]) => { const n = m.tarefas.pendentes;
+    return `<div class="row sp" style="margin-top:10px"><div class="grow"><b>🏅 Missão de ${h(a.nome)} esperando ${n} ${n === 1 ? 'tarefa' : 'tarefas'}</b><br><small class="mut">Os pontos da missão entram quando tudo for decidido.</small></div><button class="btn min" data-a="aba" data-v="aprovar">Ver</button></div>`; }).join('');
+  return `<div class="card"><h2>Precisa de você</h2>${nPend + nRec + nPed || missoes
+      ? `${nPend + nRec + nPed ? `<div class="row sp" style="margin-top:10px"><div class="grow"><b>${nPend} ${nPend === 1 ? 'tarefa' : 'tarefas'} para validar</b><br><small class="mut">${nPed} ${nPed === 1 ? 'pedido' : 'pedidos'} na Loja · ${nRec} ${nRec === 1 ? 'recurso' : 'recursos'}</small></div><button class="btn min" data-a="aba" data-v="aprovar">Ver</button></div>` : ''}${missoes}`
       : '<div class="dia-ok">Tudo em dia. Nada esperando por você.</div>'}</div>${cards}${rev}`;
 }
 
@@ -1166,7 +1172,9 @@ function cadRegras(){
       <div class="row">${f('ge-pt', 'Tópico concluído', c.pts_topico, 'type="number" step="any"')}${f('ge-ptr', 'Treino aprovado', c.pts_treino, 'type="number" step="any"')}${f('ge-ppr', 'Prova aprovada', c.pts_prova, 'type="number" step="any"')}</div>
       <div class="row">${f('ge-pco', 'Treino concluído (100%)', c.pts_conclusao, 'type="number" step="any"')}${f('ge-qmin', 'Mínimo de questões na matéria', c.concluir_min_questoes, 'type="number"')}</div>
       <div class="row">${f('ge-tmin', 'Treino aprovado a partir de (%)', c.treino_min, 'type="number"')}${f('ge-pmin', 'Prova aprovada a partir de (%)', c.prova_min, 'type="number"')}</div>
-      <div class="lbl">Missão (níveis)</div><div class="row">${f('ge-prazo', 'Prazo', prazoLocal, 'type="datetime-local"')}</div>
+      <div class="lbl">Missão (níveis)</div><div class="row">${f('ge-ini', 'Começa em', c.inicio, 'type="date"')}${f('ge-prazo', 'Prazo', prazoLocal, 'type="datetime-local"')}</div>
+      <div class="row">${f('ge-tb', '🏠 Tarefas validadas p/ bronze (%)', c.tarefas_min?.bronze ?? 70, 'type="number" min="0" max="100"')}${f('ge-tp', 'p/ prata (%)', c.tarefas_min?.prata ?? 80, 'type="number" min="0" max="100"')}${f('ge-to', 'p/ ouro (%)', c.tarefas_min?.ouro ?? 90, 'type="number" min="0" max="100"')}</div>
+      <p class="mut">Contam as tarefas de casa de "Começa em" até o dia do prazo: validada vale 1, ½ metade vale 0,5. Os pontos da missão entram sozinhos depois do prazo, quando não sobrar tarefa para validar.</p>
       <div class="row" style="margin-top:6px"><span class="mut">Matérias da missão:</span>${S.mats.map(m => `<label class="ckin"><input type="checkbox" id="ge-m-${m.id}" ${(c.materias || []).includes(m.id) ? 'checked' : ''}> ${m.emoji} ${h(m.nome)}</label>`).join('')}</div>
       <div class="row">${f('ge-pqtd', 'Ouro: prova em quantas matérias', c.prova_qtd, 'type="number"')}</div>
       <div class="row">${f('ge-b', '🥉 Bronze vale', c.pontos?.bronze, 'type="number" step="any"')}${f('ge-p', '🥈 Prata vale', c.pontos?.prata, 'type="number" step="any"')}${f('ge-o', '🥇 Ouro vale', c.pontos?.ouro, 'type="number" step="any"')}</div>
@@ -1419,8 +1427,11 @@ const acoes = {
     if (erro(error)) return; toast('Matéria criada: código ' + id); await recarregar(); },
   async cRegra(el){ const gr = el.dataset.v; const x = S.grupos[gr]; const reg = {};
     if (gr === 'casa'){ reg.teto_semana = num('gc-teto'); if (reg.teto_semana != null && !(reg.teto_semana > 0)) reg.teto_semana = null; }
-    if (gr === 'estudos'){ const pz = val('ge-prazo'); reg.config = { ...x.config };
-      Object.assign(reg.config, { prazo:pz ? new Date(pz + ':00-03:00').toISOString() : null, materias:S.mats.map(m => m.id).filter(id => document.getElementById(`ge-m-${id}`)?.checked),
+    if (gr === 'estudos'){ const pz = val('ge-prazo'), ini = val('ge-ini'); reg.config = { ...x.config };
+      if (pz && !ini){ toast('Preencha "Começa em"'); return; }
+      if (pz && ini > pz.slice(0, 10)){ toast('"Começa em" precisa ser antes do prazo'); return; }
+      Object.assign(reg.config, { prazo:pz ? new Date(pz + ':00-03:00').toISOString() : null, inicio:pz && ini ? ini : null,
+        tarefas_min:{ bronze:num('ge-tb') ?? 70, prata:num('ge-tp') ?? 80, ouro:num('ge-to') ?? 90 }, materias:S.mats.map(m => m.id).filter(id => document.getElementById(`ge-m-${id}`)?.checked),
         treino_min:num('ge-tmin') ?? 70, prova_min:num('ge-pmin') ?? 80, prova_qtd:num('ge-pqtd') ?? 1,
         pts_topico:num('ge-pt') ?? 30, pts_treino:num('ge-ptr') ?? 40, pts_prova:num('ge-ppr') ?? 100, pts_conclusao:num('ge-pco') ?? 150, concluir_min_questoes:num('ge-qmin') ?? 50,
         pontos:{ bronze:num('ge-b') ?? 0, prata:num('ge-p') ?? 0, ouro:num('ge-o') ?? 0 } }); delete reg.config.minutos; }

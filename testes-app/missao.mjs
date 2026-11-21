@@ -22,7 +22,8 @@ const sandbox = { console, setTimeout, setInterval:noop, clearTimeout, Date, Int
   confirm:() => true, alert:noop };
 sandbox.window = sandbox; sandbox.addEventListener = noop;
 vm.createContext(sandbox);
-vm.runInContext(mod + '\n;globalThis.__t = { acoes, S, carregar, calcMeta, comoGanhar, painelLancar, hojeISO, addDias, ' +
+vm.runInContext(mod + '\n;globalThis.__t3 = { hojePais, cadRegras };' +
+  '\n;globalThis.__t = { acoes, S, carregar, calcMeta, comoGanhar, painelLancar, hojeISO, addDias, ' +
   '_e: typeof estadoMissao === "function" ? estadoMissao : null };', sandbox);
 const { acoes, S, carregar, calcMeta, comoGanhar, painelLancar } = sandbox.__t;
 const estadoMissao = sandbox.__t._e || (() => '(estadoMissao não existe)');
@@ -77,3 +78,32 @@ prepara(M0, 'responsavel'); const pl = painelLancar();
 ok(!pl.includes('data-a="lMeta"') && txt(pl).includes('Os pontos entram em até 2 dias depois do prazo.'), 'Mais › Lançar: sem botão da missão, com o estado');
 ok(!('lMeta' in acoes), 'ação lMeta removida');
 
+
+// --- Tarefa 3: aviso para os pais e campos de início e tarefas
+const { hojePais, cadRegras } = sandbox.__t3 || {};
+const pais = m => { prepara(M0, 'responsavel'); Object.assign(S, { missoesFam:{ [J]:m }, pend:[], recAb:[], resgPend:[], agenda:{}, fam:{ provas:[], crono:{}, progCrono:{} }, saldosFam:{}, rev:[] }); return txt(hojePais()); };
+let hp = pais({ ...M0, pode_fechar:false, tarefas:{ ...M0.tarefas, pendentes:3 } });
+ok(hp.includes('Missão de Johann esperando 3 tarefas') && !hp.includes('Tudo em dia'), 'Precisa de você: missão esperando 3 tarefas');
+hp = pais({ ...M0, pode_fechar:false, tarefas:{ ...M0.tarefas, pendentes:1 } });
+ok(hp.includes('Missão de Johann esperando 1 tarefa'), 'Precisa de você: singular');
+hp = pais(M0); ok(!hp.includes('Missão de Johann') && hp.includes('Tudo em dia'), 'sem pendências: sem aviso');
+hp = pais({ ...M0, encerrada:false, pode_fechar:false, tarefas:{ ...M0.tarefas, pendentes:2 } });
+ok(!hp.includes('Missão de Johann'), 'prazo não acabou: sem aviso (as tarefas já aparecem para validar)');
+
+prepara(M0, 'responsavel'); delete S.grupos.estudos.config.tarefas_min; S.pausas = [];
+const cr = cadRegras();
+ok(/id="ge-ini"[^>]*type="date"/.test(cr) && cr.includes('value="2026-11-10"'), 'Cadastros: campo Começa em (data)');
+ok(/id="ge-tb" value="70"/.test(cr) && /id="ge-tp" value="80"/.test(cr) && /id="ge-to" value="90"/.test(cr), 'Cadastros: tarefas mínimas 70/80/90 por padrão');
+const base = { 'ge-pt':'30', 'ge-ptr':'40', 'ge-ppr':'100', 'ge-pco':'150', 'ge-qmin':'50', 'ge-tmin':'70', 'ge-pmin':'80', 'ge-pqtd':'3',
+  'ge-b':'150', 'ge-p':'250', 'ge-o':'400', 'ge-tb':'70', 'ge-tp':'85', 'ge-to':'95', 'ge-prazo':'2026-12-10T22:00', 'ge-m-xa':true, 'ge-m-xb':false };
+const salva = async extra => { for (const k in campos) delete campos[k];
+  for (const [k, v] of Object.entries({ ...base, ...extra })) campos[k] = typeof v === 'boolean' ? { checked:v } : { value:v };
+  gravado.length = 0; ultimoToast = ''; prepara(M0, 'responsavel'); await acoes.cRegra({ dataset:{ v:'estudos' } }); return gravado.find(x => x.k === 'update')?.reg; };
+let r = await salva({ 'ge-ini':'' });
+ok(!r && ultimoToast === 'Preencha "Começa em"', 'salvar sem Começa em: avisa e não grava — ' + ultimoToast);
+r = await salva({ 'ge-ini':'2026-12-11' });
+ok(!r && ultimoToast === '"Começa em" precisa ser antes do prazo', 'Começa em depois do prazo: avisa e não grava — ' + ultimoToast);
+r = await salva({ 'ge-ini':'2026-12-01' });
+ok(r?.config?.inicio === '2026-12-01' && JSON.stringify(r.config.tarefas_min) === '{"bronze":70,"prata":85,"ouro":95}', 'salvar: grava inicio e tarefas_min — ' + JSON.stringify(r?.config?.tarefas_min));
+r = await salva({ 'ge-ini':'', 'ge-prazo':'' });
+ok(r && r.config.prazo === null && r.config.inicio === null, 'sem prazo: grava sem exigir Começa em');
