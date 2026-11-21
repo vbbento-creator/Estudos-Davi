@@ -624,11 +624,22 @@ function linhaAgenda(r, w){
   if (ehResp()){
     if (r.status === 'feito' && !r.decisao) acoes = `<button class="btn bad min" data-a="tDecidir" data-s="rejeitado" ${k}>Rejeitar</button><button class="btn ok min" data-a="tDecidir" data-s="validado" ${k}>Validar</button>`;
     else if (!r.decisao && r.dia <= hoje && r.status !== 'feito') acoes = `<button class="btn sec min" data-a="tMarcar" data-s="feito" ${k}>Marcar como feita</button>`;
+    if (!r.decisao && r.status !== 'feito') acoes += `<button class="btn ghost min" data-a="tTrocar" ${k}>Trocar</button>`;
   } else if (!r.decisao && (r.dia === hoje || r.dia === ontem) && ['a_fazer', 'feito'].includes(r.status)){
     btn = `data-a="tMarcar" data-s="${r.status === 'a_fazer' ? 'feito' : ''}" ${k}`;
   }
   return `<div class="task ${st}"><button class="chk" ${btn || 'disabled'} aria-label="${h(r.nome)}">${mark}</button>
-    <div class="tx"><b>${r.emoji} ${h(r.nome)}</b><small>${sub}</small></div>${ptsTag(r.pontos)}${acoes ? `<div class="acoes">${acoes}</div>` : ''}</div>`;
+    <div class="tx"><b>${r.emoji} ${h(r.nome)}</b><small>${sub}</small></div>${ptsTag(r.pontos)}${acoes ? `<div class="acoes">${acoes}</div>` : ''}${painelTroca(r, w)}</div>`;
+}
+// pai ou mãe trocam quem faz a tarefa (só para quem ainda não faz naquele dia)
+function painelTroca(r, w){
+  if (!ehResp() || S.trocaAberta !== `${r.tarefa}|${r.dia}|${w}`) return '';
+  const livres = S.alunos.filter(a => a.user_id !== w && !agendaItens(a.user_id, r.dia).some(x => x.tarefa === r.tarefa));
+  if (!livres.length) return `<div class="mut" style="flex-basis:100%">Todas as crianças já fazem essa tarefa nesse dia. <button class="btn ghost min" data-a="tTrocar" data-t="" data-d="" data-al="">Fechar</button></div>`;
+  const k = `data-t="${r.tarefa}" data-d="${r.dia}" data-al="${w}"`;
+  return `<div style="flex-basis:100%;margin-top:8px"><div class="row"><span class="mut">No lugar de ${h(nomeAluno(w))}:</span><select id="trc-para" style="flex:1">${livres.map(a => `<option value="${a.user_id}">${h(a.nome)}</option>`).join('')}</select></div>
+    <div class="row" style="margin-top:8px"><button class="btn sec min" data-a="tTrocaOk" data-e="0" ${k}>Só este dia</button><button class="btn min" data-a="tTrocaOk" data-e="1" ${k}>Deste dia em diante</button><button class="btn ghost min" data-a="tTrocar" data-t="" data-d="" data-al="">Cancelar</button></div>
+    <p class="mut" style="margin:6px 0 0">${S.tarefasCad.find(t => t.id === r.tarefa)?.modo === 'revezamento' ? 'Deste dia em diante: o revezamento recomeça por quem você escolher.' : 'Deste dia em diante: a criança escolhida faz no lugar, todos os dias.'}</p></div>`;
 }
 function linhaCronoAg(w, d, i, texto){
   if (!ehResp()) return linhaCrono(d, i, texto);
@@ -1019,9 +1030,7 @@ function formTarefa(t){
     <div class="row" style="margin-top:8px"><label class="mut">Começa em</label><input id="${p}-base" type="date" value="${t?.base ?? hojeISO()}" style="flex:1"></div>
     <p class="mut">No revezamento, o 1º marcado (na ordem acima) faz no primeiro dia válido a partir do início, e a vez alterna a cada dia em que a tarefa acontece. Mudar o valor só afeta marcações futuras.</p>
     <div class="row">${t ? `<button class="btn min" data-a="cTarefaSalvar" data-v="${id}">Salvar</button><button class="btn sec min" data-a="cTarefaAtiva" data-v="${id}">${t.ativa ? 'Desativar' : 'Reativar'}</button>` : `<button class="btn min" data-a="cTarefaSalvar" data-v="novo">Criar tarefa</button>`}</div>
-    ${t?.modo === 'revezamento' && t.ativa ? `<details><summary>Trocar o responsável de um dia</summary><div class="row" style="margin-top:8px"><input type="date" id="${p}-tdia" value="${hojeISO()}" style="flex:1">
-      <select id="${p}-tal" style="flex:1">${t.alunos.map(a => `<option value="${a}">${h(nomeAluno(a))}</option>`).join('')}</select><button class="btn sec min" data-a="cTroca" data-v="${id}">Trocar</button></div>
-      <p class="mut">Só muda aquele dia; o revezamento dos outros dias continua igual.</p></details>` : ''}</div>`;
+    ${t?.ativa ? '<p class="mut">Para trocar quem faz num dia (ou dali em diante), use o botão Trocar na Agenda.</p>' : ''}</div>`;
 }
 function possivelSemana(a){
   return S.tarefasCad.filter(t => t.ativa && t.alunos.includes(a)).reduce((s, t) => {
@@ -1245,6 +1254,10 @@ const acoes = {
   async tRecurso(el){ const c = val(`rc-${el.dataset.t}-${el.dataset.d}`).trim(); if (!c){ toast('Escreva o motivo'); return; }
     const { error } = await sb.rpc('abrir_recurso', { p_tarefa:Number(el.dataset.t), p_dia:el.dataset.d, p_comentario:c }); if (erro(error)) return; toast('Recurso enviado'); await carregarTarefas(); render(); },
   async tResolver(el){ const { error } = await sb.rpc('resolver_recurso', { p_id:Number(el.dataset.v), p_decisao:el.dataset.s, p_resposta:val(`rr-${el.dataset.v}`) || null }); if (erro(error)) return; toast('Recurso resolvido'); await recarregar(); },
+  tTrocar(el){ const key = el.dataset.t ? `${el.dataset.t}|${el.dataset.d}|${el.dataset.al}` : null; S.trocaAberta = S.trocaAberta === key ? null : key; render(); },
+  async tTrocaOk(el){ const para = val('trc-para'); const emDiante = el.dataset.e === '1';
+    const { error } = await sb.rpc('trocar_responsavel', { p_tarefa:Number(el.dataset.t), p_dia:el.dataset.d, p_de:el.dataset.al, p_para:para, p_em_diante:emDiante }); if (erro(error)) return;
+    S.trocaAberta = null; toast(emDiante ? `Trocado de ${fmtData(el.dataset.d)} em diante` : 'Trocado só neste dia'); await carregarTarefas(); render(); },
   async tDia(){ S.diaTarefa = val('tdia') || hojeISO(); await carregarTarefas(); render(); },
   // lançamentos
   async lMeta(){ const g = calcMeta(); if (!confirm(`Lançar ${fmtV(S.grupos.estudos.moeda, g.valor)} (${g.nivel}) para ${nomeAluno(S.aluno)}?`)) return;
@@ -1265,8 +1278,6 @@ const acoes = {
     const { error } = id === 'novo' ? await sb.from('tarefas').insert(reg) : await sb.from('tarefas').update(reg).eq('id', id);
     if (erro(error)) return; toast('Salvo ✓'); await recarregar(); },
   async cTarefaAtiva(el){ const t = S.tarefasCad.find(x => x.id === Number(el.dataset.v)); const { error } = await sb.from('tarefas').update({ ativa:!t.ativa }).eq('id', t.id); if (erro(error)) return; await recarregar(); },
-  async cTroca(el){ const id = Number(el.dataset.v); const { error } = await sb.from('trocas').upsert({ tarefa:id, dia:val(`t${id}-tdia`), aluno:val(`t${id}-tal`), por:S.user.id }, { onConflict:'tarefa,dia' });
-    if (erro(error)) return; toast('Troca registrada'); await recarregar(); },
   async cPremioSalvar(el){ const id = el.dataset.v, k = `p${id}`; const al = lerAlunos(`${k}-al`);
     const tipo = val(`${k}-tipo`); const limite = num(`${k}-limite`); const unidade = num(`${k}-unidade`);
     const reg = { nome:val(`${k}-nome`).trim(), emoji:val(`${k}-emoji`).trim() || '🎁', tipo, custo:num(`${k}-custo`), unidade:tipo === 'experiencia' ? null : unidade,

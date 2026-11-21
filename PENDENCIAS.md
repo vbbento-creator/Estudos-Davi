@@ -17,10 +17,12 @@ Situação conferida no banco de produção em 21/11/2026.
 
 ## 2. Ideias novas (a desenvolver)
 
-### 2.1 Alterar o responsável pela tarefa
-- **Hoje:** em tarefa de revezamento dá para trocar o responsável de **um dia** (Cadastros › Tarefas › "Trocar o responsável de um dia"). Em tarefa "todos", não há troca.
-- **Ideia:** deixar pai ou mãe trocar quem faz a tarefa também nas tarefas "todos", e direto da tela do dia, sem entrar em Cadastros.
-- **Decidido:** ao trocar, pai ou mãe escolhem entre **só aquele dia** ou **daquele dia em diante**.
+### 2.1 Alterar o responsável pela tarefa ✅ feito em 21/11 (falta aplicar a migração 08 e publicar)
+- Na **Agenda**, pai ou mãe tocam em **Trocar** numa tarefa ainda não marcada, escolhem a criança e **Só este dia** ou **Deste dia em diante**.
+- Revezamento, deste dia em diante: o revezamento **recomeça pela criança escolhida**. Uma troca de um dia só, feita antes, continua valendo.
+- "Todos": a criança escolhida faz **no lugar** da outra. Só dá para passar para quem ainda não faz essa tarefa no dia.
+- Não dá para trocar um dia que a criança já marcou. O "Trocar o responsável de um dia" saiu de Cadastros.
+- Banco: migração `20261121_08_trocar_responsavel.sql` (só acrescenta; o app antigo continua funcionando). Testes: `06_testes_trocar_responsavel.sql`.
 
 ### 2.2 Validar a tarefa pela metade
 - **Ideia:** além de "validado" e "rejeitado", uma terceira decisão, **"validado pela metade"**, para quando a criança fez reclamando ou enrolou para fazer. Credita 50% dos pontos.

@@ -16,6 +16,7 @@ Atenção: o app aponta para o banco de **produção** (URL e chave pública no 
 5. `supabase/migrations/20261119_05_cofrinho.sql`: **Cofrinho**, pontos como moeda única (ver abaixo).
 6. `supabase/migrations/20261119_06_perda_pontos_estudo.sql`: pai ou mãe retiram os pontos de estudo e treino de uma matéria quando a média da escola fica abaixo do mínimo.
 7. `supabase/migrations/20261119_07_concluir_treino.sql`: **Concluir treino** (ver abaixo).
+8. `supabase/migrations/20261121_08_trocar_responsavel.sql`: **trocar quem faz a tarefa** (ver abaixo).
 
 Rodar a 05 no SQL Editor **junto com a publicação do novo `index.html`**: o app antigo não entende o banco novo. Lançamentos que já existirem são convertidos para pontos (tarefas × 2, 1 min de tela = 2 pontos, R$ 1 = 10 pontos).
 
@@ -31,9 +32,10 @@ Rodar a 05 no SQL Editor **junto com a publicação do novo `index.html`**: o ap
 - Lançamentos não se editam nem se apagam; correção é estorno. Cada um grava o valor do momento.
 - Tarefa marcada como feita só vale depois de validada; os pontos caem na data da tarefa. Decisão só muda por recurso (até 5 dias, um por tarefa/dia; decisão dos pais é final).
 - Criança marca hoje ou ontem; depois disso, sem marcação = não feito (calculado, sem rotina agendada).
-- Tarefas têm dias da semana e período do dia (manhã, tarde, noite). Revezamento: contagem de dias em que a tarefa acontece desde `tarefas.base`, pulando dias pausados; fuso America/Sao_Paulo. Trocas manuais em `trocas`.
+- Tarefas têm dias da semana e período do dia (manhã, tarde, noite). Revezamento: contagem de dias em que a tarefa acontece desde `tarefas.base` (ou desde o último recomeço), pulando dias pausados; fuso America/Sao_Paulo.
+- **Trocar quem faz** (Agenda › Trocar, só pai ou mãe, função `trocar_responsavel`): só aquele dia ou daquele dia em diante. Revezamento: um dia vai para `trocas`; em diante grava um recomeço em `revez_inicios` (a vez recomeça pela criança escolhida). "Todos": a escolhida faz no lugar da outra (`substituicoes`), só se ainda não faz a tarefa no dia. Não se troca dia já marcado.
 - Tarefas, prêmios e matérias se desativam, não se excluem.
 - **Tema:** Automático (segue o aparelho), Claro ou Escuro, guardado no aparelho (`localStorage.tema`). Pais escolhem em Mais; crianças, no fim da tela Hoje.
 
 ### Testes do banco
-`supabase/testes/`: um Postgres local com uma imitação mínima do Supabase (`00_stub.sql`). Carregar `banco.sql`, um backup dos dados, `01_questoes_amostra.sql` e as migrações 01 a 04; rodar `02_testes.sql`; aplicar a 05 e rodar `03_testes_cofrinho.sql` (teto semanal, limites da loja, jantar dividido, pontos automáticos, agenda e segurança); aplicar a 06 e rodar `04_testes_perda_estudo.sql`. Os testes da 07 (`05_testes_concluir_treino.sql`) criam os próprios dados: rodar num banco novo com as migrações 01 a 07. Num banco novo, carregar `00_stub.sql`, `banco.sql` e `00_perfis.sql` (perfis com os mesmos ids da produção) antes das migrações. Sem Postgres instalado, dá para rodar no PGlite (Postgres em Node), ignorando as linhas `\set`/`\pset` do psql. Cada linha impressa traz o esperado no rótulo.
+`supabase/testes/`: um Postgres local com uma imitação mínima do Supabase (`00_stub.sql`). Carregar `banco.sql`, um backup dos dados, `01_questoes_amostra.sql` e as migrações 01 a 04; rodar `02_testes.sql`; aplicar a 05 e rodar `03_testes_cofrinho.sql` (teto semanal, limites da loja, jantar dividido, pontos automáticos, agenda e segurança); aplicar a 06 e rodar `04_testes_perda_estudo.sql`. Os testes da 07 (`05_testes_concluir_treino.sql`) criam os próprios dados: rodar num banco novo com as migrações 01 a 07. Num banco novo, carregar `00_stub.sql`, `banco.sql` e `00_perfis.sql` (perfis com os mesmos ids da produção) antes das migrações. Sem Postgres instalado, dá para rodar no PGlite (Postgres em Node), ignorando as linhas `\set`/`\pset` do psql. `06_testes_trocar_responsavel.sql` testa a 08 (banco novo com 01 a 08). Cada linha impressa traz o esperado no rótulo.
