@@ -40,7 +40,11 @@ Situação conferida no banco de produção em 21/11/2026.
   - **Sem saldo ou acima do limite do item:** o app avisa, mas deixa lançar. O saldo pode ficar negativo e a compra conta no limite da semana ou do mês.
   - Aparece para a criança como compra já combinada (entregue), e o estorno segue a regra de sempre: lançamento ao contrário.
 
-### 2.4 Missão automática
+### 2.4 Escolher tema claro ou escuro
+- **Hoje:** o app já tem as cores do tema escuro, mas só segue o aparelho e não há onde escolher.
+- **Ideia:** opção em Mais com **Automático (segue o aparelho)**, **Claro** e **Escuro**, guardada em cada aparelho. Cada pessoa escolhe a sua.
+
+### 2.5 Missão automática
 - Hoje o app já calcula o nível, mas pai ou mãe precisam tocar em "Lançar" (Mais › Lançar médias e pontos) depois do prazo. Dá para o crédito cair sozinho quando o prazo acabar.
 
 ## 3. Para ficar de olho
