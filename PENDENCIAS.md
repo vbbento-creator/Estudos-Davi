@@ -8,7 +8,7 @@ Situação conferida no banco de produção em 22/11/2026. Na próxima sessão, 
 
 - [ ] **Períodos das tarefas (2.7, no ar desde 22/11):** toda tarefa sem período virou "Dia todo" e só abre às 18h. Mudar no cadastro as que acontecem antes (ex.: Tirar e limpar a mesa = Tarde + Noite; Arrumar o quarto = Manhã, se for de manhã). Validar a "Escovar os dentes · Noite" do Johann de 21/11 (veio da tarefa antiga da noite).
 - [ ] **Próxima missão:** ao cadastrar, preencher "Começa em" e os mínimos de tarefas (padrão 70/80/90%).
-- [ ] **Provas valendo da Juju:** o plano pede uma por dia (25/11 Português, 28/11 Ciências, 30/11 Inglês, 01/12 História, 02/12 Geografia, 03/12 Matemática). Cada uma precisa que pai ou mãe liberem no app naquele dia.
+- [ ] **Provas valendo da Juju:** o plano pede uma por dia (25/11 Português, 28/11 Ciências, 30/11 Inglês, 01/12 História, 02/12 Geografia, 03/12 Matemática). Cada uma precisa que pai ou mãe liberem no app naquele dia: no app de pai ou mãe, em Alunos › escolher a Juju › "🏛️ Liberar prova valendo" (vale 30 minutos), ou no aparelho dela, na matéria, com o login de pai ou mãe. O cartão em Alunos é de 22/11 e entra no ar com o push.
 - [ ] **Revisar as questões novas** de Física, Inglês e Biologia em `docs/johann/questoes-revisao-3.md` (já no ar desde 22/11).
 - [ ] **Ver as mensagens de motivação no uso real** (no ar desde 22/11): primeiro acesso do dia, fim de treino e de prova, tarefas do dia. Anotar na seção 3 o que aparecer de estranho.
 - [x] **Questões do Johann:** todas as matérias com questões têm 50 de treino (Português 52), conferido em produção em 22/11. O bônus de "Concluir treino" dele exige 50 por matéria.

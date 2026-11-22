@@ -1321,11 +1321,25 @@ function telaAlunos(){
   }).join('');
   return `<div class="card saldo-card"><small style="font-weight:800">Saldo de ${h(nomeAluno(S.aluno))}</small><div class="big">${coin}${pts(S.saldoT)}</div><small>${reais(S.saldoT)} · tarefas nesta semana: ${pts(sem)}${teto ? ' de ' + pts(teto) : ''}</small></div>
     <div class="card"><h2>Como ${h(nomeAluno(S.aluno))} está</h2>${S.mats.length ? `<table><tr><th>Matéria</th><th>Tópicos</th><th>Domínio</th><th>Treino</th><th>Prova</th></tr>${linhas}</table>` : '<p class="vazio">Nenhuma matéria cadastrada.</p>'}</div>
+    ${cardLiberarProvas()}
     <div class="card"><h2>Desempenho nas questões</h2><p class="mut">Tentativas, acertos e erros questão por questão, repetições e tópicos fracos.</p><table><tr><th>Matéria</th><th>Treinos</th><th>Provas</th><th>Melhor</th></tr>${S.mats.map(m => { const T = S.tent.filter(t => t.materia === m.id && t.tipo !== 'revisao'); const tr = T.filter(t => t.tipo === 'treino'), pv = T.filter(t => t.tipo === 'prova');
       return T.length ? `<tr data-a="analise" data-v="${m.id}" style="cursor:pointer"><td>${m.emoji} ${h(m.nome)}</td><td>${tr.length}</td><td>${pv.length}</td><td>${Math.max(...T.map(t => Number(t.pct)))}%</td><td style="color:var(--ac);font-weight:800">ver ›</td></tr>` : ''; }).join('') || '<tr><td class="mut">Nenhum teste feito ainda.</td></tr>'}</table></div>
     <div class="card"><h2>Questões cadastradas</h2><table><tr><th>Matéria</th><th>Treino</th><th>Prova</th></tr>${S.mats.map(m => `<tr data-a="verQ" data-v="${m.id}" style="cursor:pointer"><td>${m.emoji} ${h(m.nome)}</td><td>${S.qtd?.[m.id]?.treino || 0}</td><td>${S.qtd?.[m.id]?.prova || 0}</td><td style="color:var(--ac);font-weight:800">ver ›</td></tr>`).join('')}</table></div>
     <div class="card"><h2>Dúvidas anotadas</h2>${duvidas || '<p class="vazio">Nenhuma ainda.</p>'}</div>
     <div class="card"><h2>Extrato</h2>${S.lanc.slice(0, 15).map(l => `<div class="ext"><span>${GRUPO[l.grupo][0]} ${h(l.descricao)}<br><small class="mut">${fmtData(l.data_ref)}</small></span><b class="${l.valor < 0 ? 'neg' : 'pos'}">${l.valor > 0 ? '+' : ''}${pts(l.valor)}</b></div>`).join('') || '<p class="vazio">Nenhum lançamento ainda.</p>'}</div>`;
+}
+// pai ou mãe liberam a prova valendo da criança selecionada (mesma regra da tela da matéria)
+function cardLiberarProvas(){
+  const mats = S.mats.filter(m => m.id !== 'redacao');
+  if (!mats.length) return '';
+  const linhas = mats.map(m => {
+    const l = S.lib[m.id]; const aberta = l && new Date(l.ate) > new Date(); const pv = melhor(m.id, 'prova');
+    const acao = pv >= 0 && !aberta ? `<span class="tag ok">Feita · ${pv}%</span>`
+      : aberta ? `<span class="tag ok">Liberada até ${new Date(l.ate).toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' })}</span>`
+      : `<button class="btn sec min" data-a="liberar" data-v="${m.id}">🔐 Liberar</button>`;
+    return `<div class="row sp" style="margin-top:8px"><span>${m.emoji} ${h(m.nome)}${m.prova ? ` <small class="mut">· prova ${fmtData(m.prova)}</small>` : ''}</span>${acao}</div>`;
+  }).join('');
+  return `<div class="card"><h2>🏛️ Liberar prova valendo</h2><p class="mut">Vale por 30 minutos, e a prova começa no aparelho da criança. É uma vez só por matéria.</p>${linhas}</div>`;
 }
 function painelLancar(){
   const G = S.grupos; const limite = Number(G.notas?.config?.bonus_min) || 7; const g = calcMeta(); const d = calcDinheiro();
