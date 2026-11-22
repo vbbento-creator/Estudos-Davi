@@ -45,6 +45,10 @@ Nenhuma ideia em aberto no momento.
 
 ## 5. Feito
 
+### 22/11/2026: erro de conexão em português (só `index.html`)
+- Quando o pedido nem chega ao servidor, o aviso dizia "Failed to fetch" (aconteceu ao trocar uma tarefa; o pedido não chegou ao Supabase e nada foi gravado). Agora diz "Sem conexão com o servidor. Tente de novo." (vale para Chrome, Firefox e Safari). Erros do banco continuam como antes.
+- Teste `testes-app/erro-rede.mjs` (6 OK); `adiantar`, `missao` e `avulsa` continuam OK.
+
 ### 21/11/2026: plano de estudo marca o que a criança adiantou (só `index.html`)
 Design e plano em `docs/superpowers/` (`2026-11-21-adiantar-plano`).
 - O que a criança fez **até 7 dias antes** marca sozinho o item do plano, **um item por atividade**: treino adiantado → próximo item de treino da matéria (com a nota mínima do item); tópico concluído adiantado → próximo item de estudo da matéria. No próprio dia, nada mudou. Prova valendo continua só no dia.

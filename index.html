@@ -228,7 +228,10 @@ const GRUPO = { notas:['🏫','Médias do bimestre'], estudos:['📖','Estudos']
 const MOEDA = { reais:'R$', minutos:'minutos de tela', pontos:'pontos' };
 function fmtV(moeda, v){ return pts(v) + ' pts'; }
 function toast(msg){ const t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.append(t); setTimeout(()=>t.remove(),3000); }
-const erro = e => { if (e){ toast((e.message || String(e)).replace(/^.*?: /, '')); return true; } return false; };
+// falha de rede (o pedido nem chegou ao servidor): Chrome "Failed to fetch", Firefox "NetworkError…", Safari "Load failed"
+const FALHA_REDE = /Failed to fetch|NetworkError|Load failed|Network request failed/i;
+const msgErro = e => { const m = e.message || String(e); return FALHA_REDE.test(m) ? 'Sem conexão com o servidor. Tente de novo.' : m.replace(/^.*?: /, ''); };
+const erro = e => { if (e){ toast(msgErro(e)); return true; } return false; };
 const PERIODO = { manha:'Manhã', tarde:'Tarde', noite:'Noite' };
 const pts = v => (Number(v) || 0).toLocaleString('pt-BR', { maximumFractionDigits:1 });
 const reais = v => { const x = (Number(v) || 0) / 10; return 'R$ ' + x.toLocaleString('pt-BR', { minimumFractionDigits:Number.isInteger(x) ? 0 : 2, maximumFractionDigits:2 }); };
