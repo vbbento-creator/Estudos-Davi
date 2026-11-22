@@ -107,3 +107,44 @@ Object.assign(S, { agSel:hoje, agIni:null, agView:'semana', agFiltro:J, agenda:{
 S.tarefas[hoje] = [ linha(1, 'Escovar os dentes', '🪥', 5, 'manha'), ESC_N ];
 a = T.telaAgenda();
 ok(/data-a="tMarcar"[^>]*data-p="manha"/.test(a) && !/data-a="tMarcar"[^>]*data-p="noite"/.test(a), 'Agenda da criança: manhã marcável, noite (às 18h) não');
+
+// --- Task 5: cadastro e tarefa avulsa
+prepara('responsavel');
+const ESC_CAD = { id:1, nome:'Escovar os dentes', emoji:'🪥', pontos:5, modo:'todos', alunos:[J], base:addDias(hoje, -30), ate:null, ativa:true, dias_semana:null, periodos:['manha','noite'] };
+Object.assign(S, { tarefasCad:[ESC_CAD], agSel:hoje, agFiltro:'todos', agView:'semana', agenda:{} });
+const ft = T.formTarefa(ESC_CAD);
+ok(/id="t1-per-manha" checked/.test(ft) && /id="t1-per-noite" checked/.test(ft) && /id="t1-per-tarde"(?! checked)/.test(ft) && /id="t1-per-dia"(?! checked)/.test(ft), 'formulário: manhã e noite marcadas, tarde e dia não');
+ok(!ft.includes('t1-periodo'), 'formulário: sem o seletor antigo de período');
+const ck = (pref, marc) => { for (const k of ['manha','tarde','noite','dia']) campos[`${pref}-per-${k}`] = { checked:marc.includes(k) }; };
+Object.assign(campos, { 't1-nome':{ value:'Escovar os dentes' }, 't1-emoji':{ value:'🪥' }, 't1-pontos':{ value:'5' }, 't1-base':{ value:addDias(hoje, -30) }, 't1-modo':{ value:'todos' }, 't1-al-j':{ checked:true } });
+for (let i = 0; i < 7; i++) campos[`t1-ds-${i}`] = { checked:true };
+ck('t1', ['manha','dia']); gravado.length = 0;
+await acoes.cTarefaSalvar({ dataset:{ v:'1' } });
+ok(gravado[0]?.reg?.periodos?.join() === 'dia' && !('periodo' in (gravado[0]?.reg || {})), 'salvar com Dia todo + Manhã grava só ["dia"], sem "periodo": ' + JSON.stringify(gravado[0]?.reg?.periodos));
+Object.assign(S, { tarefasCad:[ESC_CAD] });
+ck('t1', []); gravado.length = 0; ultimoToast = '';
+await acoes.cTarefaSalvar({ dataset:{ v:'1' } });
+ok(gravado.length === 0 && ultimoToast === 'Escolha pelo menos um período', 'salvar sem período: aviso e nada gravado (' + ultimoToast + ')');
+Object.assign(S, { tarefasCad:[ESC_CAD] });
+ck('t1', ['manha','noite']); gravado.length = 0;
+await acoes.cTarefaSalvar({ dataset:{ v:'1' } });
+ok(gravado[0]?.reg?.periodos?.join() === 'manha,noite', 'salvar manhã + noite: ' + JSON.stringify(gravado[0]?.reg?.periodos));
+Object.assign(S, { tarefasCad:[ESC_CAD] });
+ok(T.possivelSemana(J) === 70, 'possível por semana: 5 × 2 períodos × 7 dias = 70 (' + T.possivelSemana(J) + ')');
+// avulsa
+S.avulsaAberta = hoje;
+const bav = T.blocoAvulsa(hoje);
+ok(/id="av-per-dia" checked/.test(bav) && !bav.includes('av-periodo'), 'avulsa: caixas de período, padrão Dia todo');
+Object.assign(campos, { 'av-nome':{ value:'Lavar carro' }, 'av-emoji':{ value:'🚗' }, 'av-pontos':{ value:'10' }, 'av-al-j':{ checked:true } });
+ck('av', ['tarde']); gravado.length = 0;
+await acoes.avCriar({ dataset:{ v:hoje } });
+ok(gravado[0]?.reg?.periodos?.join() === 'tarde' && !('periodo' in (gravado[0]?.reg || {})), 'avulsa grava periodos: ' + JSON.stringify(gravado[0]?.reg?.periodos));
+// ideias prontas: uma só de escovar, com manhã e noite
+Object.assign(S, { tarefasCad:[ESC_CAD] });
+const cad = T.cadTarefas();
+ok(conta(cad, /data-a="preset"[^>]*Escovar os dentes/g) === 1 && /data-p="manha,noite"[^>]*>🪥 Escovar os dentes</.test(cad), 'ideias: um "Escovar os dentes" com manhã e noite');
+ck('tnovo', []); Object.assign(campos, { 'tnovo-nome':{ value:'', scrollIntoView:noop }, 'tnovo-emoji':{ value:'' } });
+acoes.preset({ dataset:{ e:'🪥', n:'Escovar os dentes', p:'manha,noite' } });
+ok(campos['tnovo-per-manha'].checked && campos['tnovo-per-noite'].checked && !campos['tnovo-per-dia'].checked, 'preset marca manhã e noite');
+acoes.preset({ dataset:{ e:'🤝', n:'Não brigar', p:'' } });
+ok(campos['tnovo-per-dia'].checked && !campos['tnovo-per-manha'].checked, 'preset sem período marca Dia todo');

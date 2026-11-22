@@ -747,7 +747,8 @@ function blocoAvulsa(d){
   return `<div class="topico" style="box-shadow:none;border:1px solid var(--line);margin-top:10px"><b>Tarefa avulsa · só ${diaCurto(d)}</b>
     <div class="row" style="margin-top:8px"><input id="av-emoji" value="✅" style="width:60px"><input id="av-nome" placeholder="Nome da tarefa" style="flex:1"></div>
     <div class="row" style="margin-top:8px"><label class="mut">Vale</label><input id="av-pontos" type="number" min="0" step="any" value="5" style="width:90px"><span class="mut">pontos</span>
-      <select id="av-periodo" style="flex:1"><option value="">O dia todo</option>${Object.entries(PERIODO).map(([k, n]) => `<option value="${k}">${n}</option>`).join('')}</select></div>
+</div>
+    <div class="row" style="margin-top:8px"><span class="mut">Quando:</span>${ckPeriodos('av', ['dia'])}</div>
     <div class="row" style="margin-top:8px">${ckAlunos('av-al', pre)}</div>
     <div class="row" style="margin-top:8px"><button class="btn min" data-a="avCriar" data-v="${d}">Criar</button><button class="btn ghost min" data-a="avAbrir" data-v="${d}">Cancelar</button></div></div>`;
 }
@@ -1216,6 +1217,10 @@ function telaCad(){
 const ckAlunos = (pref, sel) => S.alunos.map(a => `<label class="ckin"><input type="checkbox" id="${pref}-${a.user_id}" ${sel?.includes(a.user_id)?'checked':''}> ${h(a.nome)}</label>`).join('');
 const SEMANA = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 const lerDias = pref => { const d = SEMANA.map((_, i) => i).filter(i => document.getElementById(`${pref}-ds-${i}`)?.checked); return d.length === 7 ? null : d; };
+// períodos da tarefa: caixas Manhã / Tarde / Noite / Dia todo (Dia todo é sozinho)
+const ckPeriodos = (pref, sel) => ['manha', 'tarde', 'noite', 'dia'].map(k => `<label class="ckin"><input type="checkbox" data-a="perCk" id="${pref}-per-${k}" ${(sel?.length ? sel : ['dia']).includes(k) ? 'checked' : ''}> ${nomeP(k)}</label>`).join('');
+const lerPeriodos = pref => { const ps = ['manha', 'tarde', 'noite', 'dia'].filter(k => document.getElementById(`${pref}-per-${k}`)?.checked); return ps.includes('dia') ? ['dia'] : ps; };
+const marcaPeriodos = (pref, ps) => ['manha', 'tarde', 'noite', 'dia'].forEach(k => { const e = document.getElementById(`${pref}-per-${k}`); if (e) e.checked = (ps.length ? ps : ['dia']).includes(k); });
 const lerAlunos = pref => S.alunos.map(a => a.user_id).filter(id => document.getElementById(`${pref}-${id}`)?.checked);
 
 function formTarefa(t){
@@ -1224,7 +1229,8 @@ function formTarefa(t){
     ${av ? `<span class="tag">avulsa · ${t.ate.slice(8)}/${t.ate.slice(5, 7)}</span>` : ''}
     <div class="row"><input id="${p}-emoji" value="${h(t?.emoji ?? '✅')}" style="width:60px"><input id="${p}-nome" value="${h(t?.nome ?? '')}" placeholder="Nome da tarefa" style="flex:1"></div>
     <div class="row" style="margin-top:8px"><label class="mut">Vale</label><input id="${p}-pontos" type="number" min="0" step="any" value="${t?.pontos ?? 5}" style="width:90px"><span class="mut">pontos</span>
-      <select id="${p}-periodo" style="flex:1"><option value="">O dia todo</option>${Object.entries(PERIODO).map(([k, n]) => `<option value="${k}" ${t?.periodo === k ? 'selected' : ''}>${n}</option>`).join('')}</select></div>
+</div>
+    <div class="row" style="margin-top:8px"><span class="mut">Quando:</span>${ckPeriodos(p, t?.periodos)}</div>
     ${av ? '' : `<div class="row" style="margin-top:8px"><select id="${p}-modo" style="flex:1"><option value="todos" ${t?.modo !== 'revezamento' ? 'selected' : ''}>Todo dia, para cada um marcado</option><option value="revezamento" ${t?.modo === 'revezamento' ? 'selected' : ''}>Revezamento entre os marcados</option></select></div>`}
     <div class="row" style="margin-top:8px">${ckAlunos(p + '-al', t?.alunos ?? S.alunos.map(a => a.user_id))}</div>
     ${av ? `<div class="row" style="margin-top:8px"><label class="mut">Dia</label><input id="${p}-base" type="date" value="${t.base}" style="flex:1" ${trava ? 'disabled' : ''}></div>${trava ? '<p class="mut" style="margin:4px 0 0">Já marcada ou antiga: o dia não muda.</p>' : ''}` : `<div class="row" style="margin-top:8px"><span class="mut">Dias:</span>${SEMANA.map((d, i) => `<label class="ckin"><input type="checkbox" id="${p}-ds-${i}" ${!t?.dias_semana || t.dias_semana.includes(i) ? 'checked' : ''}> ${d}</label>`).join('')}</div>
@@ -1236,10 +1242,10 @@ function formTarefa(t){
 function possivelSemana(a){
   return S.tarefasCad.filter(t => t.ativa && !avulsa(t) && t.alunos.includes(a)).reduce((s, t) => {
     const dias = t.dias_semana ? t.dias_semana.length : 7;
-    return s + Number(t.pontos) * (t.modo === 'revezamento' ? dias / t.alunos.length : dias);
+    return s + Number(t.pontos) * (t.periodos?.length || 1) * (t.modo === 'revezamento' ? dias / t.alunos.length : dias);
   }, 0);
 }
-const IDEIAS = [['🪥', 'Escovar os dentes (manhã)', 'manha'], ['🪥', 'Escovar os dentes (noite)', 'noite'], ['🤝', 'Não brigar com o irmão', ''], ['🎒', 'Arrumar a mochila', 'noite'], ['📚', 'Fazer a lição de casa', 'tarde'], ['🛁', 'Tomar banho sem reclamar', 'noite']];
+const IDEIAS = [['🪥', 'Escovar os dentes', 'manha,noite'], ['🤝', 'Não brigar com o irmão', ''], ['🎒', 'Arrumar a mochila', 'noite'], ['📚', 'Fazer a lição de casa', 'tarde'], ['🛁', 'Tomar banho sem reclamar', 'noite']];
 function cadTarefas(){
   const hoje = hojeISO(); const fim = addDias(hoje, -1);   // a de ontem ainda pode ser marcada
   const encerradas = S.tarefasCad.filter(t => t.ate && t.ate < fim); const vigentes = S.tarefasCad.filter(t => !(t.ate && t.ate < fim));
@@ -1402,7 +1408,7 @@ const acoes = {
     S.qtdLoja[p.id] = 1; toast(p.divide > 1 ? 'Sua metade foi paga! Falta o outro pagar.' : '🎉 Pedido enviado ao pai e à mãe'); await recarregar(); },
   async rCancelar(el){ if (!confirm('Cancelar este pedido e devolver os pontos?')) return; const { error } = await sb.rpc('cancelar_resgate', { p_id:Number(el.dataset.v) }); if (erro(error)) return; toast('Pedido cancelado, pontos devolvidos'); await recarregar(); },
   async rEntregar(el){ const { error } = await sb.rpc('entregar_resgate', { p_id:Number(el.dataset.v) }); if (erro(error)) return; toast('Combinado!'); await recarregar(); },
-  preset(el){ const p = 'tnovo'; document.getElementById(`${p}-nome`).value = el.dataset.n; document.getElementById(`${p}-emoji`).value = el.dataset.e; document.getElementById(`${p}-periodo`).value = el.dataset.p; document.getElementById(`${p}-nome`).scrollIntoView({ block:'center' }); },
+  preset(el){ const p = 'tnovo'; document.getElementById(`${p}-nome`).value = el.dataset.n; document.getElementById(`${p}-emoji`).value = el.dataset.e; marcaPeriodos(p, el.dataset.p ? el.dataset.p.split(',') : []); document.getElementById(`${p}-nome`).scrollIntoView({ block:'center' }); },
   async entrar(){ const { error } = await sb.auth.signInWithPassword({ email:val('lemail').trim(), password:val('lsenha') }); if (error) toast('E-mail ou senha errados'); },
   async sair(){ await sb.auth.signOut(); },
   async aba(el){ S.aba = el.dataset.v; S.materia = null; S.verQ = null; S.anMat = null; S.mais = null; S.sheet = null; render(); window.scrollTo(0,0);
@@ -1472,9 +1478,10 @@ const acoes = {
   // tarefa avulsa (Agenda, só pai ou mãe)
   avAbrir(el){ S.avulsaAberta = S.avulsaAberta === el.dataset.v ? null : el.dataset.v; render(); },
   async avCriar(el){ const dia = el.dataset.v;
-    const reg = { nome:val('av-nome').trim(), emoji:val('av-emoji').trim() || '✅', pontos:num('av-pontos') ?? 0, periodo:val('av-periodo') || null,
+    const reg = { nome:val('av-nome').trim(), emoji:val('av-emoji').trim() || '✅', pontos:num('av-pontos') ?? 0, periodos:lerPeriodos('av'),
                   modo:'todos', alunos:lerAlunos('av-al'), base:dia, ate:dia, dias_semana:null };
     if (!reg.nome || !reg.alunos.length){ toast('Dê um nome e marque ao menos uma criança'); return; }
+    if (!reg.periodos.length){ toast('Escolha pelo menos um período'); return; }
     const { error } = await sb.from('tarefas').insert(reg); if (erro(error)) return;
     S.avulsaAberta = null; toast('Tarefa avulsa criada ✓'); await recarregar(); },
   async avRemover(el){ const t = S.tarefasCad.find(x => x.id === Number(el.dataset.v));
@@ -1513,7 +1520,7 @@ const acoes = {
   cadAba(el){ S.cad = el.dataset.v; render(); },
   async cTarefaSalvar(el){ const id = el.dataset.v, p = `t${id}`;
     const t0 = S.tarefasCad.find(x => x.id === Number(id)); const av = avulsa(t0);
-    const reg = { nome:val(`${p}-nome`).trim(), emoji:val(`${p}-emoji`).trim() || '✅', pontos:num(`${p}-pontos`) ?? 0, alunos:lerAlunos(`${p}-al`), base:val(`${p}-base`) || hojeISO(), periodo:val(`${p}-periodo`) || null };
+    const reg = { nome:val(`${p}-nome`).trim(), emoji:val(`${p}-emoji`).trim() || '✅', pontos:num(`${p}-pontos`) ?? 0, alunos:lerAlunos(`${p}-al`), base:val(`${p}-base`) || hojeISO(), periodos:lerPeriodos(p) };
     if (av){
       if (reg.base !== t0.base && (jaMarcada(t0.id) || t0.ate < addDias(hojeISO(), -7))) reg.base = t0.base;   // já marcada ou antiga: o dia não muda
       else if (reg.base !== t0.base && !diaAvulsaOk(reg.base)){ toast('Escolha um dia da Agenda (até 7 dias atrás) que não esteja pausado'); return; }
@@ -1521,6 +1528,7 @@ const acoes = {
     } else Object.assign(reg, { modo:val(`${p}-modo`), dias_semana:lerDias(p) });
     if (!reg.nome || !reg.alunos.length){ toast('Dê um nome e marque ao menos uma criança'); return; }
     if (reg.dias_semana && !reg.dias_semana.length){ toast('Marque ao menos um dia da semana'); return; }
+    if (!reg.periodos.length){ toast('Escolha pelo menos um período'); return; }
     const { error } = id === 'novo' ? await sb.from('tarefas').insert(reg) : await sb.from('tarefas').update(reg).eq('id', id);
     if (erro(error)) return; toast('Salvo ✓'); await recarregar(); },
   async cTarefaAtiva(el){ const t = S.tarefasCad.find(x => x.id === Number(el.dataset.v)); const { error } = await sb.from('tarefas').update({ ativa:!t.ativa }).eq('id', t.id); if (erro(error)) return; await recarregar(); },
@@ -1584,6 +1592,7 @@ $app.addEventListener('click', async e => {
 $app.addEventListener('change', async e => {
   const el = e.target;
   if (el.dataset.a === 'anMat'){ await abrirAnalise(el.value); return; }
+  if (el.dataset.a === 'perCk'){ const [pref, k] = el.id.split('-per-'); if (el.checked) ['manha', 'tarde', 'noite', 'dia'].filter(x => k === 'dia' ? x !== 'dia' : x === 'dia').forEach(x => { const o = document.getElementById(`${pref}-per-${x}`); if (o) o.checked = false; }); return; }
   if (el.dataset.a === 'cpCalc' || el.id?.startsWith('cp-')){ cpAtualiza(el.id === 'cpItem' || el.id === 'cpQtd'); return; }
   if (el.dataset.a === 'crono'){ await salvar(el.dataset.k, { feito: el.checked }); if (S.aba === 'agenda') render(); }
   if (el.dataset.a === 'duv'){ await salvar(el.dataset.k, { duvida: el.value }); toast('Salvo'); }
