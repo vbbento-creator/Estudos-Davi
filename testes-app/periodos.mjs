@@ -70,3 +70,40 @@ ok(rc && rc[1].p_periodo === 'manha' && rc[1].p_comentario === 'escovei sim', 't
 // tarefa de um período só: uma linha comum, sem "cada"
 const l1 = T.linhaTarefa(MESA, hoje);
 ok(!txt(l1).includes('cada') && conta(l1, /data-p="tarde"/g) === 1, 'tarefa de um período: um botão, sem "cada"');
+
+// --- Task 4: Agenda, Aprovar e recursos (pai)
+const ag = (tarefa, nome, emoji, pontos, periodo, extra) => ({ dia:hoje, tarefa, nome, emoji, pontos, periodo, status:'a_fazer', decisao:null, valor:null, motivo:null, motivo_comentario:null, ...extra });
+prepara('responsavel');
+Object.assign(S, { agSel:hoje, agIni:null, agView:'semana', agFiltro:J,
+  tarefasCad:[ { id:1, nome:'Escovar os dentes', emoji:'🪥', pontos:5, modo:'todos', alunos:[J, U], base:addDias(hoje, -30), ate:null, ativa:true, dias_semana:null, periodos:['manha','noite'] },
+               { id:2, nome:'Cuidar da Kika', emoji:'🐶', pontos:20, modo:'todos', alunos:[J], base:addDias(hoje, -30), ate:null, ativa:true, dias_semana:null, periodos:['dia'] } ],
+  agenda:{ [J]:[ ag(1, 'Escovar os dentes', '🪥', 5, 'manha', { status:'feito', decisao:'validado', valor:5 }), ag(1, 'Escovar os dentes', '🪥', 5, 'noite', { status:'feito', valor:5 }),
+                 ag(2, 'Cuidar da Kika', '🐶', 20, 'dia') ],
+           [U]:[ ag(1, 'Escovar os dentes', '🪥', 5, 'manha') ] } });
+let a = ''; try { a = T.telaAgenda(); } catch (e) { a = 'ERRO ' + e.message; }
+ok(conta(a, /<b>🪥 Escovar os dentes/g) === 1, 'Agenda: Escovar em uma linha só (' + conta(a, /<b>🪥 Escovar os dentes/g) + ')' + (a.startsWith('ERRO') ? ' ' + a : ''));
+ok(/data-a="tDecidir" data-s="validado"[^>]*data-p="noite"/.test(a), 'Agenda: Validar da noite com data-p="noite"');
+ok(!/data-a="tDecidir"[^>]*data-p="manha"/.test(a), 'Agenda: manhã já validada sem botões de decisão');
+ok(txt(a).includes('Manhã') && txt(a).includes('Noite'), 'Agenda: nomes dos períodos na linha');
+ok(!/data-a="tTrocar" data-t="1"/.test(a), 'Agenda: ESC com período marcado não tem Trocar');
+ok(conta(a, /data-a="tTrocar" data-t="2"/g) === 1, 'Agenda: KIKA sem marcação tem um Trocar');
+S.metadeAberta = `ag|1|${hoje}|${J}|noite`; a = T.telaAgenda();
+ok(/data-m="enrolou"[^>]*data-p="noite"|data-p="noite"[^>]*data-m="enrolou"/.test(a), 'Agenda: painel da metade aberto para a noite manda data-p');
+S.metadeAberta = null;
+Object.assign(S, { pend:[ { tarefa:1, dia:hoje, aluno:J, periodo:'noite', valor:5 }, { tarefa:2, dia:hoje, aluno:J, periodo:'dia', valor:20 } ],
+  recAb:[ { id:9, tarefa:1, dia:hoje, aluno:J, periodo:'noite', comentario:'escovei', atual:{ decisao:'metade', motivo:'enrolou', motivo_comentario:null } } ] });
+let ap = ''; try { ap = T.telaAprovar(); } catch (e) { ap = 'ERRO ' + e.message; }
+ok(txt(ap).includes('Escovar os dentes · Noite'), 'Aprovar: "Escovar os dentes · Noite"');
+ok(!txt(ap).includes('Kika · Dia todo'), 'Aprovar: período "dia" sem sufixo');
+ok(/data-a="tDecidir" data-s="validado"[^>]*data-p="noite"/.test(ap), 'Aprovar: Validar manda data-p');
+ok(txt(ap).split('Recursos abertos')[1]?.includes('Noite') && ap.includes('Validar inteira'), 'Recurso: mostra o período e a decisão daquele período');
+chamadas.length = 0;
+await acoes.tDecidir({ dataset:{ t:'1', d:hoje, al:J, s:'validado', p:'noite' } });
+const dc = chamadas.find(c => c[0] === 'decidir_tarefa');
+ok(dc && dc[1].p_periodo === 'noite', 'tDecidir manda p_periodo: ' + JSON.stringify(dc?.[1]));
+// criança na Agenda: período de hoje que ainda não abriu fica sem ação (usa abre_em da lista de hoje)
+prepara();
+Object.assign(S, { agSel:hoje, agIni:null, agView:'semana', agFiltro:J, agenda:{ [J]:[ ag(1, 'Escovar os dentes', '🪥', 5, 'manha'), ag(1, 'Escovar os dentes', '🪥', 5, 'noite') ] } });
+S.tarefas[hoje] = [ linha(1, 'Escovar os dentes', '🪥', 5, 'manha'), ESC_N ];
+a = T.telaAgenda();
+ok(/data-a="tMarcar"[^>]*data-p="manha"/.test(a) && !/data-a="tMarcar"[^>]*data-p="noite"/.test(a), 'Agenda da criança: manhã marcável, noite (às 18h) não');

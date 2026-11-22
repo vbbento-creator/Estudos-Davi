@@ -478,9 +478,9 @@ async function carregarTarefas(){
     ]);
     S.pend = pd.data || []; S.recAb = rc.data || [];
     if (S.recAb.length){   // decisão atual de cada recurso (para mostrar "Validar inteira / Manter a metade")
-      const { data: tds } = await sb.from('tarefa_dia').select('tarefa,dia,aluno,decisao,motivo,motivo_comentario')
+      const { data: tds } = await sb.from('tarefa_dia').select('tarefa,dia,aluno,periodo,decisao,motivo,motivo_comentario')
         .in('tarefa', [...new Set(S.recAb.map(r => r.tarefa))]).in('dia', [...new Set(S.recAb.map(r => r.dia))]);
-      S.recAb = S.recAb.map(r => ({ ...r, atual:(tds || []).find(x => x.tarefa === r.tarefa && x.dia === r.dia && x.aluno === r.aluno) }));
+      S.recAb = S.recAb.map(r => ({ ...r, atual:(tds || []).find(x => x.tarefa === r.tarefa && x.dia === r.dia && x.aluno === r.aluno && x.periodo === r.periodo) }));
     }
   }
   await carregarAgenda();
@@ -760,25 +760,53 @@ function pontosDia(d, ws){
   if (m && ws.includes(S.aluno) && m.prazo.toLocaleDateString('sv-SE', { timeZone:'America/Sao_Paulo' }) === d) x.push('meta');
   return `<span class="dots">${x.map(c => `<i class="dot ${c}"></i>`).join('')}</span>`;
 }
-function linhaAgenda(r, w){
-  const hoje = hojeISO(); const ontem = addDias(hoje, -1);
+// estado de um período na Agenda (inclui "futuro")
+function estadoAg(r){
   const st = r.decisao === 'validado' ? 'ok' : r.decisao === 'metade' ? 'meio' : r.decisao === 'rejeitado' ? 'rej' : r.status === 'feito' ? 'feito' : r.status === 'nao_feito' ? 'nao' : r.status === 'futuro' ? 'fut' : '';
   const mark = { ok:'✓', meio:'½', feito:'⏳', rej:'✕', nao:'✕' }[st] || '';
   const sub = r.decisao === 'validado' ? 'validado' : r.decisao === 'metade' ? txtMetade(r.valor, r.motivo, r.motivo_comentario) : r.decisao === 'rejeitado' ? 'não validado' : r.status === 'feito' ? 'aguardando validação'
-    : r.status === 'nao_feito' ? 'não feito' : (r.periodo ? PERIODO[r.periodo] : (r.status === 'futuro' ? 'ainda não chegou' : 'a fazer'));
-  const k = `data-t="${r.tarefa}" data-d="${r.dia}" data-al="${w}"`;
-  let acoes = ''; let btn = '';
+    : r.status === 'nao_feito' ? 'não feito' : r.status === 'futuro' ? 'ainda não chegou' : 'a fazer';
+  return { st, mark, sub };
+}
+// período de hoje que ainda não abriu (a lista de hoje da criança traz abre_em do banco)
+const travadoHoje = r => r.dia === hojeISO() && (S.tarefas?.[r.dia] || []).some(t => t.tarefa === r.tarefa && t.periodo === r.periodo && t.abre_em);
+// ações de pai e mãe num período (validar, ½, rejeitar ou marcar)
+function acoesAg(r, w){
+  if (!ehResp()) return '';
+  const k = `data-t="${r.tarefa}" data-d="${r.dia}" data-al="${w}" data-p="${r.periodo}"`;
+  if (r.status === 'feito' && !r.decisao) return `<button class="btn bad min" data-a="tDecidir" data-s="rejeitado" ${k}>Rejeitar</button><button class="btn warn min" data-a="tMetade" data-k="ag|${r.tarefa}|${r.dia}|${w}|${r.periodo}">½ Metade</button><button class="btn ok min" data-a="tDecidir" data-s="validado" ${k}>Validar</button>`;
+  if (!r.decisao && r.dia <= hojeISO() && r.status !== 'feito') return `<button class="btn sec min" data-a="tMarcar" data-s="feito" ${k}>Marcar como feita</button>`;
+  return '';
+}
+// a criança marca na Agenda só hoje e ontem, e só período que já abriu
+function botaoAg(r){
+  const hoje = hojeISO();
+  if (ehResp() || r.decisao || !(r.dia === hoje || r.dia === addDias(hoje, -1)) || !['a_fazer', 'feito'].includes(r.status) || travadoHoje(r)) return '';
+  return `data-a="tMarcar" data-s="${r.status === 'a_fazer' ? 'feito' : ''}" data-t="${r.tarefa}" data-d="${r.dia}" data-p="${r.periodo}"`;
+}
+const metadeAg = (r, w) => painelMetade(`ag|${r.tarefa}|${r.dia}|${w}|${r.periodo}`, `data-a="tDecidir" data-s="metade" data-t="${r.tarefa}" data-d="${r.dia}" data-al="${w}" data-p="${r.periodo}"`, true);
+// uma linha por tarefa na Agenda (g = grupo de porTarefa, ou uma linha); Trocar e Remover valem para o dia inteiro
+function linhaAgenda(g, w){
+  if (!g.itens) g = { tarefa:g.tarefa, nome:g.nome, emoji:g.emoji, pontos:g.pontos, itens:[g] };
+  const dia = g.itens[0].dia;
+  const k = `data-t="${g.tarefa}" data-d="${dia}" data-al="${w}"`;
+  let geral = '';
   if (ehResp()){
-    if (r.status === 'feito' && !r.decisao) acoes = `<button class="btn bad min" data-a="tDecidir" data-s="rejeitado" ${k}>Rejeitar</button><button class="btn warn min" data-a="tMetade" data-k="ag|${r.tarefa}|${r.dia}|${w}">½ Metade</button><button class="btn ok min" data-a="tDecidir" data-s="validado" ${k}>Validar</button>`;
-    else if (!r.decisao && r.dia <= hoje && r.status !== 'feito') acoes = `<button class="btn sec min" data-a="tMarcar" data-s="feito" ${k}>Marcar como feita</button>`;
-    if (!r.decisao && r.status !== 'feito') acoes += `<button class="btn ghost min" data-a="tTrocar" ${k}>Trocar</button>`;
-    if (ehAvulsa(r.tarefa) && !jaMarcada(r.tarefa))
-      acoes += `<button class="btn ghost min" data-a="avRemover" data-v="${r.tarefa}">Remover</button>`;
-  } else if (!r.decisao && (r.dia === hoje || r.dia === ontem) && ['a_fazer', 'feito'].includes(r.status)){
-    btn = `data-a="tMarcar" data-s="${r.status === 'a_fazer' ? 'feito' : ''}" ${k}`;
+    if (!g.itens.some(r => r.decisao || r.status === 'feito')) geral += `<button class="btn ghost min" data-a="tTrocar" ${k}>Trocar</button>`;
+    if (ehAvulsa(g.tarefa) && !jaMarcada(g.tarefa)) geral += `<button class="btn ghost min" data-a="avRemover" data-v="${g.tarefa}">Remover</button>`;
   }
-  return `<div class="task ${st}"><button class="chk" ${btn || 'disabled'} aria-label="${h(r.nome)}">${mark}</button>
-    <div class="tx"><b>${r.emoji} ${h(r.nome)}${tagAvulsa(r.tarefa)}</b><small>${sub}</small></div>${ptsTag(r.pontos)}${acoes ? `<div class="acoes">${acoes}</div>` : ''}${painelMetade(`ag|${r.tarefa}|${r.dia}|${w}`, `data-a="tDecidir" data-s="metade" ${k}`, true)}${painelTroca(r, w)}</div>`;
+  const troca = painelTroca({ tarefa:g.tarefa, dia }, w);
+  if (g.itens.length === 1){
+    const r = g.itens[0]; const { st, mark, sub } = estadoAg(r); const btn = botaoAg(r);
+    const per = r.periodo && r.periodo !== 'dia' ? `${nomeP(r.periodo)} · ` : '';
+    const acoes = acoesAg(r, w) + geral;
+    return `<div class="task ${st}"><button class="chk" ${btn || 'disabled'} aria-label="${h(g.nome)}">${mark}</button>
+    <div class="tx"><b>${g.emoji} ${h(g.nome)}${tagAvulsa(g.tarefa)}</b><small>${per}${sub}</small></div>${ptsTag(g.pontos)}${acoes ? `<div class="acoes">${acoes}</div>` : ''}${metadeAg(r, w)}${troca}</div>`;
+  }
+  const blocos = g.itens.map(r => { const { st, mark, sub } = estadoAg(r); const btn = botaoAg(r); const ac = acoesAg(r, w);
+    return `<div class="row" style="flex-basis:100%;gap:8px"><button class="per ${st}" ${btn || 'disabled'} aria-label="${h(g.nome)}, ${PERIODO[r.periodo]}">${nomeP(r.periodo)}${mark ? ' ' + mark : ''}</button><small class="mut grow">${sub}</small>${ac ? `<div class="acoes" style="flex-basis:auto">${ac}</div>` : ''}${metadeAg(r, w)}</div>`; }).join('');
+  return `<div class="task ${g.itens.every(r => r.decisao === 'validado') ? 'ok' : ''}"><div class="tx"><b>${g.emoji} ${h(g.nome)}${tagAvulsa(g.tarefa)}</b></div>${ptsTag(g.pontos)}<small class="mut">cada</small>
+    ${blocos}${geral ? `<div class="acoes">${geral}</div>` : ''}${troca}</div>`;
 }
 // pai ou mãe trocam quem faz a tarefa (só para quem ainda não faz naquele dia)
 function painelTroca(r, w){
@@ -815,7 +843,7 @@ function telaAgenda(){
   const meta = calcMeta();
   const fimMeta = meta && ws.includes(S.aluno) && meta.prazo.toLocaleDateString('sv-SE', { timeZone:'America/Sao_Paulo' }) === sel;
   const blocos = ws.map(w => { const T = agendaItens(w, sel); const C = (S.fam.crono[w] || []).find(c => c.d === sel);
-    return `${ws.length > 1 ? `<div class="pessoa">${av(w, true)} ${h(nomeAluno(w))}</div>` : ''}${T.map(r => linhaAgenda(r, w)).join('')}
+    return `${ws.length > 1 ? `<div class="pessoa">${av(w, true)} ${h(nomeAluno(w))}</div>` : ''}${porTarefa(T).map(g => linhaAgenda(g, w)).join('')}
       ${C ? `<h3>${h(C.t)}</h3>${C.itens.map((it, i) => linhaCronoAg(w, sel, i, it)).join('')}` : ''}
       ${!T.length && !C ? '<div class="vazio">Nada marcado.</div>' : ''}`; }).join('');
   return `<div class="row sp">${toggle}${filtros}</div>
@@ -1014,9 +1042,9 @@ async function abrirQuestoes(mid){
 }
 
 function telaAprovar(){
-  const nomeT = id => { const t = S.tarefasCad.find(x => x.id === id); return t ? t.emoji + ' ' + h(t.nome) : '#' + id; };
-  const pend = `<div class="card"><h2>Tarefas para validar (${S.pend.length})</h2>${S.pend.map(p => `<div class="task"><div class="tx"><b>${nomeT(p.tarefa)}</b><small>${av(p.aluno, true)} ${h(nomeAluno(p.aluno))} · ${diaRel(p.dia)}</small></div>${ptsTag(p.valor)}
-      <div class="acoes"><button class="btn bad min" data-a="tDecidir" data-s="rejeitado" data-t="${p.tarefa}" data-d="${p.dia}" data-al="${p.aluno}">Rejeitar</button><button class="btn warn min" data-a="tMetade" data-k="ap|${p.tarefa}|${p.dia}|${p.aluno}">½ Metade</button><button class="btn ok min" data-a="tDecidir" data-s="validado" data-t="${p.tarefa}" data-d="${p.dia}" data-al="${p.aluno}">Validar</button></div>${painelMetade(`ap|${p.tarefa}|${p.dia}|${p.aluno}`, `data-a="tDecidir" data-s="metade" data-t="${p.tarefa}" data-d="${p.dia}" data-al="${p.aluno}"`, true)}</div>`).join('') || '<p class="vazio">Nada esperando validação.</p>'}</div>`;
+  const nomeT = (id, p) => { const t = S.tarefasCad.find(x => x.id === id); return (t ? t.emoji + ' ' + h(t.nome) : '#' + id) + (p && p !== 'dia' ? ' · ' + PERIODO[p] : ''); };
+  const pend = `<div class="card"><h2>Tarefas para validar (${S.pend.length})</h2>${S.pend.map(p => `<div class="task"><div class="tx"><b>${nomeT(p.tarefa, p.periodo)}</b><small>${av(p.aluno, true)} ${h(nomeAluno(p.aluno))} · ${diaRel(p.dia)}</small></div>${ptsTag(p.valor)}
+      <div class="acoes"><button class="btn bad min" data-a="tDecidir" data-s="rejeitado" data-t="${p.tarefa}" data-d="${p.dia}" data-al="${p.aluno}" data-p="${p.periodo}">Rejeitar</button><button class="btn warn min" data-a="tMetade" data-k="ap|${p.tarefa}|${p.dia}|${p.aluno}|${p.periodo}">½ Metade</button><button class="btn ok min" data-a="tDecidir" data-s="validado" data-t="${p.tarefa}" data-d="${p.dia}" data-al="${p.aluno}" data-p="${p.periodo}">Validar</button></div>${painelMetade(`ap|${p.tarefa}|${p.dia}|${p.aluno}|${p.periodo}`, `data-a="tDecidir" data-s="metade" data-t="${p.tarefa}" data-d="${p.dia}" data-al="${p.aluno}" data-p="${p.periodo}"`, true)}</div>`).join('') || '<p class="vazio">Nada esperando validação.</p>'}</div>`;
   const P = S.resgPend; const vistos = new Set();
   const linhasLoja = P.map(r => { const p = S.premios.find(x => x.id === r.premio);
     if (p?.divide > 1){ const key = r.premio + '|' + r.semana; if (vistos.has(key)) return ''; vistos.add(key);
@@ -1030,7 +1058,7 @@ function telaAprovar(){
     const botoes = at === 'metade'
       ? `<button class="btn ok min" ${k} data-s="validado">Validar inteira</button><button class="btn warn min" ${k} data-s="metade">Manter a metade</button>`
       : `<button class="btn ok min" ${k} data-s="validado">Aceitar (validar)</button><button class="btn warn min" data-a="tMetade" data-k="rc|${r.id}">½ Metade</button><button class="btn sec min" ${k} data-s="rejeitado">${at === 'validado' ? 'Rejeitar' : 'Manter rejeitada'}</button>`;
-    return `<div class="topico" style="box-shadow:none;border:1px solid var(--line);margin-top:8px"><b>${nomeT(r.tarefa)}</b> <span class="mut">· ${h(nomeAluno(r.aluno))} · ${diaRel(r.dia)}${at ? ' · decisão: ' + (at === 'metade' ? txtMetade(null, r.atual.motivo, r.atual.motivo_comentario) : at === 'validado' ? 'validado' : 'não validado') : ''}</span>
+    return `<div class="topico" style="box-shadow:none;border:1px solid var(--line);margin-top:8px"><b>${nomeT(r.tarefa, r.periodo)}</b> <span class="mut">· ${h(nomeAluno(r.aluno))} · ${diaRel(r.dia)}${at ? ' · decisão: ' + (at === 'metade' ? txtMetade(null, r.atual.motivo, r.atual.motivo_comentario) : at === 'validado' ? 'validado' : 'não validado') : ''}</span>
       <p>“${h(r.comentario)}”</p><input id="rr-${r.id}" placeholder="Resposta (opcional)"><br><br>
       <div class="row">${botoes}</div>${painelMetade(`rc|${r.id}`, `${k} data-s="metade"`, false)}<p class="mut">A decisão é final.</p></div>`; }).join('')}</div>` : '';
   return `${pend}${loja}${rec}`;
@@ -1428,7 +1456,7 @@ const acoes = {
   // tarefas
   async tMarcar(el){ const { error } = await sb.rpc('marcar_tarefa', { p_tarefa:Number(el.dataset.t), p_dia:el.dataset.d, p_status:el.dataset.s || null, p_aluno:el.dataset.al || S.aluno, p_periodo:el.dataset.p || null }); if (erro(error)) return; await carregarTarefas(); await carregarSaldos(); render(); },
   tMetade(el){ S.metadeAberta = S.metadeAberta === el.dataset.k ? null : (el.dataset.k || null); render(); },
-  async tDecidir(el){ const arg = { p_tarefa:Number(el.dataset.t), p_dia:el.dataset.d, p_aluno:el.dataset.al, p_decisao:el.dataset.s };
+  async tDecidir(el){ const arg = { p_tarefa:Number(el.dataset.t), p_dia:el.dataset.d, p_aluno:el.dataset.al, p_decisao:el.dataset.s, p_periodo:el.dataset.p || null };
     if (el.dataset.s === 'metade'){ arg.p_motivo = el.dataset.m; arg.p_comentario = val('metade-com').trim() || null; }
     const { error } = await sb.rpc('decidir_tarefa', arg); if (erro(error)) return;
     S.metadeAberta = null; toast(el.dataset.s === 'validado' ? 'Validada ✓' : el.dataset.s === 'metade' ? 'Validada pela metade' : 'Rejeitada'); await recarregar(); },
