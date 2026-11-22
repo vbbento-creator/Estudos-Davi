@@ -54,7 +54,7 @@ Situação conferida no banco de produção em 22/11/2026. Na próxima sessão, 
 - As que faltavam para 50: Física 13 (`fis-t38` a `t50`: 6 do Módulo 10 e 7 do Módulo 11), Inglês 16 (`ing-t35` a `t50`: 3 de question tag, 7 de relative pronouns e 6 de leitura, com dois textos inventados) e Biologia 20 (`bio-t31` a `t50`: 8 de 16.1 e 12 de 16.2). Criadas do zero a partir das apostilas (PDFs do CamScanner de 17/11 em Downloads); nada copiado do livro.
 - Resposta certa nas 50 de treino, contando as antigas: Física 15/11/12/12 (a posição "a" já tinha 15), Inglês 12/13/13/12, Biologia 12/12/13/13.
 - Testadas no PGlite com todas as migrações (`15_testes_questoes_johann_3.sql`) e conferidas em produção depois de aplicar: 50 de treino e 12 de prova em cada matéria, md5 das novas igual ao do banco local, nenhum enunciado repetido, 688 questões do Johann no total. Revisão em `docs/johann/questoes-revisao-3.md`.
-- Observação: várias questões antigas de Inglês (`ing-t01` a `t09`, de 17/11) repetem frases dos exercícios da apostila. Não foram mexidas.
+- Observação: várias questões antigas de Inglês (`ing-t01` a `t09`, de 17/11) repetem frases dos exercícios da apostila. Decidido em 22/11: ficam como estão.
 
 ### 22/11/2026: questões do Johann de Espanhol, Química, Arte e Música (migrações 28 a 31)
 - 50 de treino e 12 de prova em cada matéria, criadas do zero a partir das apostilas (PDFs do CamScanner de 22/11, 13h50 a 15h38, em Downloads). O material é só inspiração; não se copiam exercícios nem textos do livro.
