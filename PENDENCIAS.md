@@ -5,7 +5,7 @@ Situação conferida no banco de produção em 21/11/2026. Na próxima sessão, 
 ## 1. Pendências que dependem de você
 
 - [ ] **Próxima missão:** ao cadastrar, preencher "Começa em" e os mínimos de tarefas (padrão 70/80/90%).
-- [ ] **Plano de estudo da Juju sem treino.** O plano de 22/11 a 04/12 (migração 14) foi feito sem itens de treino, porque ela ainda não tinha questões. Agora ela tem treino e prova em todas as matérias (migrações 16 a 22): decidir se entram itens como "Português: treino" ou "Prova valendo" nos dias antes de cada prova.
+- [ ] **Provas valendo da Juju:** o plano pede uma por dia (25/11 Português, 28/11 Ciências, 30/11 Inglês, 01/12 História, 02/12 Geografia, 03/12 Matemática). Cada uma precisa que pai ou mãe liberem no app naquele dia.
 - [ ] **Fotos das questões de treino do Johann.** O bônus de "Concluir treino" dele exige 50 questões por matéria.
   - Língua Portuguesa: 52 (ok)
   - Física: 37 (faltam 13)
@@ -40,6 +40,12 @@ Nenhuma ideia em aberto no momento.
 - [ ] **Apagar as cópias antigas de 18/11** (`backup_20261118` e `backup_20261118_pre_migracao`, com 8 tabelas cada) quando não forem mais necessárias. Não tem volta. Elas também geram 16 avisos de "RLS sem política" no Supabase.
 
 ## 5. Feito
+
+### 21/11/2026: treino e prova valendo no plano da Juju (migração 23)
+- 12 itens novos no fim dos dias de 23/11 a 03/12: 6 treinos (Português 23, 24 e 26/11; Ciências 27/11; Inglês 29/11; Matemática 03/12) e 6 provas valendo, uma por matéria e no máximo uma por dia. Os itens que já existiam ficaram como estavam e nas mesmas posições.
+- De 1 a 4 itens por dia (4 só em 29 e 30/11). História e Geografia ficaram sem item de treino: a "Revisão final: História e Geografia" (02/12) é marcada com o treino das duas.
+- O app marca sozinho: "<Matéria>: treino" com um treino daquela matéria no dia (qualquer nota); "prova valendo" com qualquer prova feita no dia (o app não olha a matéria; por isso, uma por dia).
+- Testada no PGlite com as migrações 01 a 23 e a 23 rodada duas vezes (teste `11_testes_plano_juju.sql`) e conferida em produção: 13 dias, 37 itens, impressão digital (md5) igual à do banco local.
 
 ### 21/11/2026: questões da Juju para todas as matérias da P2 (migrações 17 a 22)
 - Treino e prova de todas as matérias, criados do zero a partir das apostilas (PDFs do CamScanner em Downloads). O material é só inspiração; não se copiam exercícios nem textos do livro.
