@@ -91,6 +91,15 @@ textarea{min-height:70px;resize:vertical}
 .pts{display:inline-flex;align-items:center;gap:5px;font-weight:800;color:var(--warn-ink);background:var(--warnbg);border-radius:999px;padding:3px 10px 3px 4px;font-size:14px;flex:none}
 .pts .coin{width:18px;height:18px;font-size:10px}
 .task .acoes{flex-basis:100%;display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+/* tarefa com vários períodos: um botão por período */
+.pers{flex-basis:100%;display:flex;gap:8px;flex-wrap:wrap}
+.per{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:6px 12px;border-radius:999px;border:2px solid var(--line);background:var(--card);color:var(--txt);font:inherit;font-weight:800;font-size:14px;cursor:pointer}
+.per:not(:disabled):hover{border-color:var(--ac)}
+.per:disabled{cursor:default}
+.per.ok{background:var(--ac);border-color:var(--ac);color:var(--ac-ink)}
+.per.feito,.per.meio{background:var(--warnbg);border-color:var(--warn);color:var(--warn-ink)}
+.per.rej,.per.nao{background:var(--badbg);border-color:var(--bad);color:var(--bad)}
+.per.trava{opacity:.6}
 /* missão */
 .trilha{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
 .trilha div{text-align:center;padding:10px 4px;border-radius:14px;background:var(--bg);font-size:13px;font-weight:800}
@@ -232,7 +241,19 @@ function toast(msg){ const t=document.createElement('div'); t.className='toast';
 const FALHA_REDE = /Failed to fetch|NetworkError|Load failed|Network request failed/i;
 const msgErro = e => { const m = e.message || String(e); return FALHA_REDE.test(m) ? 'Sem conexão com o servidor. Tente de novo.' : m.replace(/^.*?: /, ''); };
 const erro = e => { if (e){ toast(msgErro(e)); return true; } return false; };
-const PERIODO = { manha:'Manhã', tarde:'Tarde', noite:'Noite' };
+const PERIODO = { manha:'Manhã', tarde:'Tarde', noite:'Noite', dia:'Dia todo' };
+const ICONE_P = { manha:'☀️', tarde:'🌤️', noite:'🌙', dia:'🌙' };
+const nomeP = p => `${ICONE_P[p] || ''} ${PERIODO[p] || ''}`.trim();
+const abreTxt = a => a ? `às ${Number(String(a).slice(0, 2))}h` : '';
+// junta as linhas do banco (uma por tarefa e período) numa por tarefa, mantendo a ordem
+function porTarefa(L){
+  const m = new Map();
+  for (const r of L){
+    if (!m.has(r.tarefa)) m.set(r.tarefa, { tarefa:r.tarefa, nome:r.nome, emoji:r.emoji, pontos:r.pontos, itens:[] });
+    m.get(r.tarefa).itens.push(r);
+  }
+  return [...m.values()];
+}
 const pts = v => (Number(v) || 0).toLocaleString('pt-BR', { maximumFractionDigits:1 });
 const reais = v => { const x = (Number(v) || 0) / 10; return 'R$ ' + x.toLocaleString('pt-BR', { minimumFractionDigits:Number.isInteger(x) ? 0 : 2, maximumFractionDigits:2 }); };
 const coin = '<span class="coin" aria-hidden="true">★</span>';
@@ -569,11 +590,6 @@ function proximaProva(){
   return { d, dias, mats:futuras.filter(m => m.prova===d) };
 }
 
-function grupoPeriodo(L){
-  const out = [];
-  for (const p of ['manha', 'tarde', 'noite', null]){ const it = L.filter(t => (t.periodo || null) === p); if (it.length) out.push([p ? PERIODO[p] : 'Durante o dia', it]); }
-  return out;
-}
 const MOTIVO = { reclamou:'reclamou', enrolou:'enrolou' };
 const txtMetade = (v, m, c) => `validado pela metade${v != null ? ' · +' + pts(Math.round(Number(v) / 2 * 10) / 10) : ''}${m ? ' · ' + MOTIVO[m] : ''}${c ? ': “' + h(c) + '”' : ''}`;
 const txtRecurso = d => d === 'validado' ? 'aceito' : d === 'metade' ? 'ficou a metade' : 'negado';
@@ -584,17 +600,49 @@ function painelMetade(key, attrs, comComentario){
     ${comComentario ? '<input id="metade-com" placeholder="Comentário (opcional)" style="width:100%;margin-top:6px">' : ''}
     <div class="row" style="margin-top:8px"><button class="btn warn min" data-m="reclamou" ${attrs}>😤 Reclamou</button><button class="btn warn min" data-m="enrolou" ${attrs}>🐢 Enrolou</button><button class="btn ghost min" data-a="tMetade" data-k="">Cancelar</button></div></div>`;
 }
-function linhaTarefa(t, dia){
+// estado de um período: classe, marca e texto
+function estadoPer(t){
   const st = t.decisao === 'validado' ? 'ok' : t.decisao === 'metade' ? 'meio' : t.decisao === 'rejeitado' ? 'rej' : t.status === 'feito' ? 'feito' : t.status === 'nao_feito' ? 'nao' : '';
   const mark = { ok:'✓', meio:'½', feito:'⏳', rej:'✕', nao:'✕' }[st] || '';
   const sub = t.decisao === 'validado' ? `validado · +${pts(t.valor)}` : t.decisao === 'metade' ? txtMetade(t.valor, t.motivo, t.motivo_comentario) : t.decisao === 'rejeitado' ? 'não validado'
-    : t.status === 'feito' ? 'aguardando pai ou mãe' : t.status === 'nao_feito' ? 'não feito' : (t.periodo ? PERIODO[t.periodo] : 'a fazer');
-  const pode = t.pode_marcar && !ehResp() && !t.decisao && (t.status === 'a_fazer' || t.status === 'feito');
-  let rec = '';
-  if (t.recurso_id) rec = `<div class="mut" style="flex-basis:100%">📣 Recurso: “${h(t.recurso_comentario)}” → ${t.recurso_decisao ? `<b>${txtRecurso(t.recurso_decisao)}</b>${t.recurso_resposta ? ' · ' + h(t.recurso_resposta) : ''}` : 'aguardando pai ou mãe'}</div>`;
-  else if (t.pode_recorrer) rec = `<details style="flex-basis:100%"><summary>Não concordo (recurso, até 5 dias)</summary><textarea id="rc-${t.tarefa}-${dia}" placeholder="Explique o que aconteceu"></textarea><br><button class="btn sec min" data-a="tRecurso" data-t="${t.tarefa}" data-d="${dia}">Enviar recurso</button></details>`;
-  return `<div class="task ${st}"><button class="chk" ${pode ? `data-a="tMarcar" data-s="${t.status === 'a_fazer' ? 'feito' : ''}" data-t="${t.tarefa}" data-d="${dia}"` : 'disabled'} aria-label="${t.status === 'a_fazer' ? 'Marcar' : 'Desmarcar'} ${h(t.nome)}">${mark}</button>
-    <div class="tx"><b>${t.emoji} ${h(t.nome)}${tagAvulsa(t.tarefa)}</b><small>${sub}</small></div>${ptsTag(t.pontos)}${rec}</div>`;
+    : t.status === 'feito' ? 'aguardando pai ou mãe' : t.status === 'nao_feito' ? 'não feito' : t.abre_em ? `🔒 abre ${abreTxt(t.abre_em)}` : 'a fazer';
+  return { st, mark, sub };
+}
+// recurso de um período (o "Não concordo" fica junto do período decidido)
+function recursoPer(t, dia, rotulo){
+  const q = rotulo ? ` (${PERIODO[t.periodo]})` : '';
+  if (t.recurso_id) return `<div class="mut" style="flex-basis:100%">📣 Recurso${q}: “${h(t.recurso_comentario)}” → ${t.recurso_decisao ? `<b>${txtRecurso(t.recurso_decisao)}</b>${t.recurso_resposta ? ' · ' + h(t.recurso_resposta) : ''}` : 'aguardando pai ou mãe'}</div>`;
+  if (t.pode_recorrer) return `<details style="flex-basis:100%"><summary>Não concordo${q} (recurso, até 5 dias)</summary><textarea id="rc-${t.tarefa}-${dia}-${t.periodo}" placeholder="Explique o que aconteceu"></textarea><br><button class="btn sec min" data-a="tRecurso" data-t="${t.tarefa}" data-d="${dia}" data-p="${t.periodo}">Enviar recurso</button></details>`;
+  return '';
+}
+// a criança marca ou desmarca um período
+const podePer = t => t.pode_marcar && !ehResp() && !t.decisao && (t.status === 'a_fazer' || t.status === 'feito');
+const acaoPer = (t, dia) => `data-a="tMarcar" data-s="${t.status === 'a_fazer' ? 'feito' : ''}" data-t="${t.tarefa}" data-d="${dia}" data-p="${t.periodo}"`;
+// uma linha por tarefa (g = grupo de porTarefa, ou uma linha do banco); um botão por período
+function linhaTarefa(g, dia){
+  if (!g.itens) g = { tarefa:g.tarefa, nome:g.nome, emoji:g.emoji, pontos:g.pontos, itens:[g] };
+  if (g.itens.length === 1){
+    const t = g.itens[0]; const { st, mark, sub } = estadoPer(t); const pode = podePer(t);
+    const per = t.periodo && t.periodo !== 'dia' || t.abre_em ? `${nomeP(t.periodo)} · ` : '';
+    return `<div class="task ${st}"><button class="chk" ${pode ? acaoPer(t, dia) : `disabled data-p="${t.periodo}"`} aria-label="${t.status === 'a_fazer' ? 'Marcar' : 'Desmarcar'} ${h(g.nome)}">${mark}</button>
+    <div class="tx"><b>${g.emoji} ${h(g.nome)}${tagAvulsa(g.tarefa)}</b><small>${per}${sub}</small></div>${ptsTag(g.pontos)}${recursoPer(t, dia, false)}</div>`;
+  }
+  const todos = g.itens.every(t => t.decisao === 'validado');
+  const botoes = g.itens.map(t => { const { st, mark } = estadoPer(t); const pode = podePer(t);
+    const fim = mark || (t.abre_em ? `🔒 ${abreTxt(t.abre_em)}` : '');
+    return `<button class="per ${st}${t.abre_em && !st ? ' trava' : ''}" ${pode ? acaoPer(t, dia) : `disabled data-p="${t.periodo}"`} aria-label="${h(g.nome)}, ${PERIODO[t.periodo]}">${nomeP(t.periodo)}${fim ? ' ' + fim : ''}</button>`; }).join('');
+  const sub = g.itens.map(t => `${PERIODO[t.periodo]}: ${estadoPer(t).sub}`).join(' · ');
+  return `<div class="task ${todos ? 'ok' : ''}"><div class="tx"><b>${g.emoji} ${h(g.nome)}${tagAvulsa(g.tarefa)}</b><small>${sub}</small></div>${ptsTag(g.pontos)}<small class="mut">cada</small>
+    <div class="pers">${botoes}</div>${g.itens.map(t => recursoPer(t, dia, true)).join('')}</div>`;
+}
+// recarrega a lista quando um período de hoje abre (12h ou 18h, horário de Brasília)
+function agendarAbertura(L){
+  const prox = L.map(t => t.abre_em).filter(Boolean).sort()[0];
+  if (!prox || S.timerAbre) return;
+  const seg = x => { const [a, b, c] = String(x).split(':').map(Number); return a * 3600 + b * 60 + (c || 0); };
+  const agora = new Date().toLocaleTimeString('sv-SE', { timeZone:'America/Sao_Paulo' });
+  const ms = Math.max(1, seg(prox) - seg(agora) + 5) * 1000;
+  S.timerAbre = setTimeout(async () => { S.timerAbre = null; await carregarTarefas(); render(); }, ms);
 }
 function linhaCrono(d, i, texto){
   const k = `crono:${d}:${i}`; const manual = !!S.prog[k]?.feito; const ma = manual ? null : marcasAuto().get(`${d}:${i}`); const auto = !!ma; const f = manual || auto;
@@ -627,8 +675,8 @@ function hojeAluno(){
   const total = T.length + itensC.length;
   const MA = marcasAuto();
   const feitos = T.filter(okT).length + itensC.filter((it, i) => S.prog[`crono:${hoje}:${i}`]?.feito || MA.has(`${hoje}:${i}`)).length;
-  const grupos = grupoPeriodo(T);
-  const casa = grupos.map(([nome, L]) => `<h3>${grupos.length === 1 && nome === 'Durante o dia' ? 'Tarefas de casa' : nome}</h3>${L.map(t => linhaTarefa(t, hoje)).join('')}`).join('');
+  const casa = T.length ? `<h3>Tarefas de casa</h3>${porTarefa(T).map(g => linhaTarefa(g, hoje)).join('')}` : '';
+  agendarAbertura(T);
   const estudo = itensC.length ? `<h3>Plano de estudo</h3>${itensC.map((it, i) => linhaCrono(hoje, i, it)).join('')}` : '';
   const O = (S.tarefas[ontem] || []).filter(t => t.status === 'a_fazer' && t.pode_marcar);
   const pp = proximaProva(); const g = calcMeta();
@@ -651,7 +699,7 @@ function hojeAluno(){
       <div class="bar" style="margin:10px 0 4px"><i style="width:${total ? Math.round(100 * feitos / total) : 0}%"></i></div>
       ${total && feitos === total ? '<div class="dia-ok">Dia completo! Bom trabalho. 🎉</div>' : ''}
       ${casa}${estudo}${total ? '' : '<p class="vazio">Nada marcado para hoje.</p>'}${revTxt}</div>
-    ${O.length ? `<div class="card"><h2>Ainda dá para marcar (ontem)</h2>${O.map(t => linhaTarefa(t, ontem)).join('')}</div>` : ''}
+    ${O.length ? `<div class="card"><h2>Ainda dá para marcar (ontem)</h2>${porTarefa(O).map(g => linhaTarefa(g, ontem)).join('')}</div>` : ''}
     ${pp ? `<div class="card"><div class="row sp"><div class="grow"><small class="mut">Próxima prova</small><h2 style="margin:0">${pp.dias === 0 ? 'HOJE' : emDias(pp.dias)}</h2></div><span class="tag">${fmtData(pp.d)}</span></div>
       <div class="row" style="margin-top:10px">${pp.mats.map(m => `<button class="btn sec min" data-a="mat" data-v="${m.id}">${m.emoji} ${h(m.nome)}</button>`).join('')}</div></div>` : ''}
     ${ganhosCard}${meta}${cap}
@@ -1378,14 +1426,14 @@ const acoes = {
     if (await importar(txt)){ await contarQuestoes(); render(); }
   },
   // tarefas
-  async tMarcar(el){ const { error } = await sb.rpc('marcar_tarefa', { p_tarefa:Number(el.dataset.t), p_dia:el.dataset.d, p_status:el.dataset.s || null, p_aluno:el.dataset.al || S.aluno }); if (erro(error)) return; await carregarTarefas(); await carregarSaldos(); render(); },
+  async tMarcar(el){ const { error } = await sb.rpc('marcar_tarefa', { p_tarefa:Number(el.dataset.t), p_dia:el.dataset.d, p_status:el.dataset.s || null, p_aluno:el.dataset.al || S.aluno, p_periodo:el.dataset.p || null }); if (erro(error)) return; await carregarTarefas(); await carregarSaldos(); render(); },
   tMetade(el){ S.metadeAberta = S.metadeAberta === el.dataset.k ? null : (el.dataset.k || null); render(); },
   async tDecidir(el){ const arg = { p_tarefa:Number(el.dataset.t), p_dia:el.dataset.d, p_aluno:el.dataset.al, p_decisao:el.dataset.s };
     if (el.dataset.s === 'metade'){ arg.p_motivo = el.dataset.m; arg.p_comentario = val('metade-com').trim() || null; }
     const { error } = await sb.rpc('decidir_tarefa', arg); if (erro(error)) return;
     S.metadeAberta = null; toast(el.dataset.s === 'validado' ? 'Validada ✓' : el.dataset.s === 'metade' ? 'Validada pela metade' : 'Rejeitada'); await recarregar(); },
-  async tRecurso(el){ const c = val(`rc-${el.dataset.t}-${el.dataset.d}`).trim(); if (!c){ toast('Escreva o motivo'); return; }
-    const { error } = await sb.rpc('abrir_recurso', { p_tarefa:Number(el.dataset.t), p_dia:el.dataset.d, p_comentario:c }); if (erro(error)) return; toast('Recurso enviado'); await carregarTarefas(); render(); },
+  async tRecurso(el){ const c = val(`rc-${el.dataset.t}-${el.dataset.d}-${el.dataset.p}`).trim(); if (!c){ toast('Escreva o motivo'); return; }
+    const { error } = await sb.rpc('abrir_recurso', { p_tarefa:Number(el.dataset.t), p_dia:el.dataset.d, p_comentario:c, p_periodo:el.dataset.p || null }); if (erro(error)) return; toast('Recurso enviado'); await carregarTarefas(); render(); },
   async tResolver(el){ const arg = { p_id:Number(el.dataset.v), p_decisao:el.dataset.s, p_resposta:val(`rr-${el.dataset.v}`) || null };
     if (el.dataset.m) arg.p_motivo = el.dataset.m;
     const { error } = await sb.rpc('resolver_recurso', arg); if (erro(error)) return; S.metadeAberta = null; toast('Recurso resolvido'); await recarregar(); },
