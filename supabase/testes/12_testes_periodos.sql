@@ -115,3 +115,58 @@ select 'coluna tarefas.periodo apagada (0)', count(*) from information_schema.co
 select 'chave de tarefa_dia (tarefa, dia, aluno, periodo)', string_agg(a.attname, ', ' order by k.n)
   from pg_constraint c cross join lateral unnest(c.conkey) with ordinality k(att, n) join pg_attribute a on a.attrelid = c.conrelid and a.attnum = k.att
  where c.conrelid = 'tarefa_dia'::regclass and c.contype = 'p';
+
+\echo '--- 10. Decisão por período (relógio 19h)'
+set role authenticated;
+select t.como(pai::text) from ids;
+create function pg_temp.dec(n text, d date, s text, p text, m text default null) returns text language sql as $$
+  select t.erro(format('select decidir_tarefa(%s, %L, %L, %L, %L, null, %L)', pg_temp.tk(n), d, 'd5c2215c-797c-435b-859b-09be1fe3efbf', s, m, p)) $$;
+select 'decidir ESC sem período (ERRO Escolha o período)', pg_temp.dec('ESC', h, 'validado', null) from ids;
+select 'valida ESC manha (OK)', pg_temp.dec('ESC', h, 'validado', 'manha') from ids;
+select 'valida ESC noite (OK)', pg_temp.dec('ESC', h, 'validado', 'noite') from ids;
+select 'ESC rendeu (10)', pg_temp.rendeu('ESC', johann) from ids;
+select 'ESC refs (id:h:manha id:h:noite)', string_agg(replace(origem_ref, pg_temp.tk('ESC') || ':' || h, 'id:h'), ' ' order by origem_ref) from lancamentos, ids where origem = 'tarefa' and origem_ref like pg_temp.tk('ESC') || ':%';
+select 'ESC descrições (Tarefa: ESC (manhã)|Tarefa: ESC (noite))', string_agg(descricao, '|' order by origem_ref) from lancamentos where origem = 'tarefa' and origem_ref like pg_temp.tk('ESC') || ':%';
+select 'valida KIKA sem período (OK)', pg_temp.dec('KIKA', h, 'validado', null) from ids;
+select 'KIKA ref = id:h (true)', bool_and(origem_ref = pg_temp.tk('KIKA') || ':' || h) from lancamentos, ids where origem = 'tarefa' and origem_ref like pg_temp.tk('KIKA') || ':%';
+select 'KIKA descrição (Tarefa: KIKA)', descricao from lancamentos where origem = 'tarefa' and origem_ref like pg_temp.tk('KIKA') || ':%';
+select 'metade MESA tarde (OK)', pg_temp.dec('MESA', h, 'metade', 'tarde', 'enrolou') from ids;
+select 'MESA rendeu (10)', pg_temp.rendeu('MESA', johann) from ids;
+select 'MESA metade descrição (Tarefa (metade): MESA (tarde))', descricao from lancamentos where origem = 'tarefa' and origem_ref like pg_temp.tk('MESA') || ':%';
+select 'valida MESA noite (OK)', pg_temp.dec('MESA', h, 'validado', 'noite') from ids;
+select 'MESA rendeu (30)', pg_temp.rendeu('MESA', johann) from ids;
+select 'MESA tarde continua metade (metade)', decisao from tarefa_dia, ids where tarefa = pg_temp.tk('MESA') and dia = h and periodo = 'tarde';
+
+\echo '--- 11. Recurso por período'
+select t.como(johann::text) from ids;
+select 'recurso MESA sem período (ERRO Escolha o período)', t.erro(format('select abrir_recurso(%s, %L, %L)', pg_temp.tk('MESA'), h, 'fiz')) from ids;
+select 'recurso MESA tarde (OK)', t.erro(format('select abrir_recurso(%s, %L, %L, %L)', pg_temp.tk('MESA'), h, 'não enrolei', 'tarde')) from ids;
+select 'recurso MESA tarde de novo (ERRO)', t.erro(format('select abrir_recurso(%s, %L, %L, %L)', pg_temp.tk('MESA'), h, 'de novo', 'tarde')) from ids;
+select 'recurso MESA noite (OK)', t.erro(format('select abrir_recurso(%s, %L, %L, %L)', pg_temp.tk('MESA'), h, 'outra', 'noite')) from ids;
+select 'lista: recurso só na MESA tarde e noite (MESA:tarde:t MESA:noite:t ESC:manha:f)', string_agg(x.nome || ':' || x.periodo || ':' || (x.recurso_id is not null)::text::char, ' ' order by x.nome desc, x.periodo desc)
+  from ids, tarefas_do_dia(johann, h) x where (x.nome = 'MESA') or (x.nome = 'ESC' and x.periodo = 'manha');
+select t.como(pai::text) from ids;
+select 'resolve recurso MESA tarde: validado (OK)', t.erro(format('select resolver_recurso(%s, %L)', (select id from recursos where tarefa = pg_temp.tk('MESA') and periodo = 'tarde'), 'validado')) from ids;
+select 'MESA rendeu (40)', pg_temp.rendeu('MESA', johann) from ids;
+select 'MESA noite continua validado (validado)', decisao from tarefa_dia, ids where tarefa = pg_temp.tk('MESA') and dia = h and periodo = 'noite';
+
+\echo '--- 12. Recurso em marcação antiga (convertida) não credita de novo'
+select 'OLDM rendeu antes (5)', pg_temp.rendeu('OLDM', johann) from ids;
+select 'resolve recurso OLDM: validado (OK)', t.erro(format('select resolver_recurso(%s, %L)', (select id from recursos where tarefa = pg_temp.tk('OLDM')), 'validado')) from ids;
+select 'OLDM rendeu depois (5)', pg_temp.rendeu('OLDM', johann) from ids;
+
+\echo '--- 13. Trocar quem faz: pelo dia inteiro'
+select 'trocar ESC hoje com a manhã marcada (ERRO já foi marcada)', t.erro(format('select trocar_responsavel(%s, %L, %L, %L)', pg_temp.tk('ESC'), h, johann, juju)) from ids;
+select 'trocar ESC amanhã (OK)', t.erro(format('select trocar_responsavel(%s, %L, %L, %L)', pg_temp.tk('ESC'), h + 1, johann, juju)) from ids;
+select 'Juju faz ESC amanhã nos 2 períodos (2)', count(*) from ids, agenda_tarefas(juju, h + 1, h + 1) where nome = 'ESC';
+
+\echo '--- 14. Missão conta cada período como uma tarefa'
+reset role;
+insert into tarefas (nome, pontos, modo, alunos, base, periodos) select 'DUO', 5, 'todos', array[johann], h, '{manha,tarde}' from ids;
+update grupos set config = config || jsonb_build_object('prazo', (now() + interval '2 days')::text, 'inicio', hoje_sp()::text,
+       'materias', (select jsonb_agg(id) from (select id from materias where aluno = 'd5c2215c-797c-435b-859b-09be1fe3efbf' and ativa limit 1) s))
+ where aluno = 'd5c2215c-797c-435b-859b-09be1fe3efbf' and grupo = 'estudos';
+set role authenticated;
+select 'total da missão = linhas da lista de hoje (true)', (missao(johann)->'tarefas'->>'total')::int = (select count(*) from tarefas_do_dia(johann, h)) from ids;
+select 'pendentes da missão (feitas sem decisão + recursos abertos de hoje: 1)', missao(johann)->'tarefas'->>'pendentes' from ids;
+reset role;
