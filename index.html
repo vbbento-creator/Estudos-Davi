@@ -159,6 +159,8 @@ details summary{cursor:pointer;color:var(--ac);font-weight:700;font-size:14px;ma
 .ck input{width:22px;height:22px;accent-color:var(--ok);flex:none}
 .modal{position:fixed;inset:0;background:#0b1210a6;display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
 .modal .card{width:100%;max-width:420px}
+.motiv{text-align:center}
+.motiv p{font-size:17px;line-height:1.4;margin:8px 0 16px}
 .sheetbg{position:fixed;inset:0;background:#0b1210a6;display:flex;align-items:flex-end;justify-content:center;z-index:10}
 .sheet{background:var(--card);width:100%;max-width:520px;border-radius:24px 24px 0 0;padding:20px 18px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px}
 .sheet h2{font-size:22px;margin:0}
@@ -237,6 +239,246 @@ const GRUPO = { notas:['🏫','Médias do bimestre'], estudos:['📖','Estudos']
 const MOEDA = { reais:'R$', minutos:'minutos de tela', pontos:'pontos' };
 function fmtV(moeda, v){ return pts(v) + ' pts'; }
 function toast(msg){ const t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.append(t); setTimeout(()=>t.remove(),3000); }
+// ---- mensagens de motivação (só na visão da criança): 20 frases por situação e criança, sorteadas.
+// "{x}" vira "neste treino" ou "nesta prova"; "{nome}" vira o nome da criança.
+// A Juju (3º ano) tem frases mais simples; o banco não guarda idade, então vai pelo id.
+const CRIANCA_MENOR = new Set(['014341f0-99f3-4e14-b21d-6b4efc9bafbd']);
+const MOTIV = {
+  dia: { emoji:'☀️', titulo:'Bom dia, {nome}!',
+    maior:[
+      'Hoje é mais um dia pra somar pontos. Bora?',
+      'Um pouco de estudo hoje e a prova fica mais leve depois.',
+      'Quem faz um pouquinho todo dia chega longe. Começa pelo mais fácil.',
+      'Seu cofrinho está esperando. Escolhe uma coisa do plano e manda ver.',
+      'Dia novo, chance nova. Você dá conta!',
+      'Tarefas e estudo em dia = missão garantida. Partiu!',
+      'Vinte minutos de foco agora valem mais que duas horas de correria na véspera.',
+      'Começar é a parte mais difícil. Depois do primeiro treino, o resto anda.',
+      'Celular de lado, um treino rápido e o dia já começa ganhando.',
+      'Cada questão que você faz hoje é uma que não te pega de surpresa na prova.',
+      'Você já mostrou que consegue. Hoje é só repetir a dose.',
+      'Organiza o dia: primeiro a obrigação, depois a diversão.',
+      'Constância vence talento quando o talento não aparece. Aparece hoje!',
+      'Meta do dia: cumprir o plano e não deixar nada pra amanhã.',
+      'Ninguém fica bom em nada sem treino. Bora treinar?',
+      'Hoje pode ser o dia do seu melhor resultado.',
+      'Faz a sua parte hoje que o fim de semana fica livre.',
+      'Pequenas vitórias todo dia viram uma grande conquista.',
+      'Bora transformar esforço em pontos?',
+      'Foco, calma e uma coisa de cada vez. Você consegue.'],
+    menor:[
+      'Que bom te ver! Vamos fazer o dia de hoje brilhar? ✨',
+      'Hoje tem estrelinha pra ganhar. Bora?',
+      'Você é capaz de coisas incríveis. Vamos começar?',
+      'Um passinho de cada vez e o dia fica completo!',
+      'Seu cofrinho está com saudade de pontos novos! 🐷',
+      'Respira, sorri e vamos lá!',
+      'Hoje é dia de aprender uma coisa nova! 📚',
+      'Que tal começar pela tarefa mais fácil?',
+      'Você é muito esperta! Bora mostrar isso hoje?',
+      'Cada tarefa feita é um pontinho a mais no cofrinho!',
+      'O dia está lindo pra aprender! 🌈',
+      'Vamos ganhar muitas estrelinhas hoje? ⭐',
+      'Seu cérebro está prontinho pra aprender! 🧠',
+      'Coragem e alegria: assim começa um dia ótimo!',
+      'Bora deixar o pai e a mãe orgulhosos?',
+      'Um pouquinho de estudo hoje e você fica craque!',
+      'Com calma, você consegue tudo o que tentar.',
+      'Hora de ser uma superestudante! 🦸‍♀️',
+      'Vamos ver quantas coisas você completa hoje?',
+      'Sorria! Hoje vai ser um dia muito bom. 😊'] },
+  baixa: { emoji:'💪', titulo:'Valeu o esforço!',
+    maior:[
+      'Errar {x} é o jeito certo de aprender. Olha as explicações e tenta de novo.',
+      'Cada erro agora é um acerto na prova de verdade.',
+      'Não desanima: revisa os tópicos que pegaram e volta mais forte.',
+      'Todo mundo começa errando. O que importa é tentar de novo.',
+      'Você já sabe onde precisa melhorar. Isso já é meio caminho.',
+      'Mais uma rodada e esse número sobe. Confia!',
+      'Nota baixa não define você. O que vem depois é que conta.',
+      'Lê com calma a explicação de cada erro. É ali que mora o aprendizado.',
+      'Ninguém nasce sabendo. Respira e tenta outra vez.',
+      'Esse resultado é um mapa: ele mostra exatamente o que revisar.',
+      'Melhor errar agora, no app, do que na prova da escola.',
+      'Volta no tópico mais fraco, lê de novo e refaz. Você vai ver a diferença.',
+      'Persistência é o que separa quem desiste de quem chega lá.',
+      'Dia ruim acontece. Amanhã você tenta de novo com a cabeça fresca.',
+      'Grandes jogadores também perdem partidas. O segredo é treinar mais.',
+      'Não é sobre a nota de hoje, é sobre o quanto você vai evoluir.',
+      'Anota as dúvidas e pergunta pro pai ou pra mãe. Pedir ajuda é esperto.',
+      'Toda melhora começa com um resultado como esse. Bora pra próxima!',
+      'Você tentou, e isso já vale muito. Agora é ajustar e seguir.',
+      'Respira fundo. Com mais um treino, esse conteúdo vai ficar claro.'],
+    menor:[
+      'Errar faz parte de aprender! Vamos tentar de novo? 🌱',
+      'Você foi corajosa! Na próxima vai ser ainda melhor.',
+      'Lê as explicações com calma e tenta outra vez.',
+      'Cada tentativa deixa seu cérebro mais forte! 🧠',
+      'Não desiste! Você está aprendendo um montão.',
+      'Tá tudo bem errar. Bora treinar mais um pouquinho?',
+      'Até os maiores cientistas erram muitas vezes! 🔬',
+      'Você é capaz! Só precisa de mais um treininho.',
+      'Errou? Tudo bem! Agora você já sabe a resposta certa.',
+      'Pede ajuda pro pai ou pra mãe. Junto fica mais fácil! 🤝',
+      'Cada erro é uma pista pra você acertar depois. 🔍',
+      'Calma, respira e tenta de novo. Você consegue!',
+      'Aprender é igual andar de bicicleta: no começo a gente cai. 🚲',
+      'Você está crescendo a cada tentativa! 🌻',
+      'Amanhã você vai saber mais do que hoje. Que legal!',
+      'Não fica triste! Uma revisão e você vai melhorar.',
+      'Sua força de vontade é linda! Continua tentando. 💛',
+      'Os erros ajudam a gente a aprender de verdade.',
+      'Mais uma tentativa e você vai ver como melhora! ✨',
+      'Você foi muito bem em tentar. Bora de novo?'] },
+  boa: { emoji:'🔥', titulo:'Mandou bem!',
+    maior:[
+      'Bom resultado {x}! Mais um pouco e chega no topo.',
+      'Tá no caminho certo. Revisa o que errou e vai pra cima dos 90%.',
+      'Isso aí! Seu estudo está aparecendo.',
+      'Nota boa! Mais uma revisão e fica perfeito.',
+      'Ótimo trabalho. Continua nesse ritmo!',
+      'Você está pegando o jeito. Orgulho!',
+      'Acima de 70% já é nota de quem estudou. Agora é lapidar.',
+      'Belo resultado! Os poucos erros mostram o que falta revisar.',
+      'Bom demais! Mais um treino e você beira a perfeição.',
+      'Esforço dando resultado. Segue firme!',
+      'Você está bem preparado. Uma revisão nos erros e fica imbatível.',
+      'Mandou bem! Esse conteúdo está quase dominado.',
+      'Resultado sólido. Dá pra confiar no que você aprendeu.',
+      'Tá voando! Só uns ajustes e chega nos 100%.',
+      'Quem estuda colhe. E você está colhendo!',
+      'Bom trabalho! Lê as explicações das que errou pra fechar o conteúdo.',
+      'Ótima evolução. Continua assim que a prova da escola vai ser tranquila.',
+      'Isso é resultado de dedicação. Parabéns!',
+      'Você está no nível certo. Agora é manter.',
+      'Boa! Falta pouco pra virar especialista nesse assunto.'],
+    menor:[
+      'Muito bem! Você acertou bastante! 🌟',
+      'Que legal! Seu estudo está dando certo.',
+      'Você está ficando craque! Falta pouquinho pro máximo.',
+      'Parabéns! Continua assim que vai longe.',
+      'Arrasou! Mais um treininho e fica perfeito.',
+      'Que orgulho! Você se esforçou e deu certo.',
+      'Você acertou muitas! Bate aqui! ✋',
+      'Seu cérebro está trabalhando muito bem! 🧠',
+      'Que bonito! Você está aprendendo direitinho.',
+      'Uhul! Quase tudo certinho! 🎈',
+      'Você é uma ótima estudante! 📚',
+      'Parabéns! Olha as que errou e você fica ainda melhor.',
+      'Que resultado bom! Pode sorrir! 😊',
+      'Você estudou e funcionou! Que demais!',
+      'Está quase perfeito! Só mais um pouquinho. ✨',
+      'Muito bom! O pai e a mãe vão ficar felizes.',
+      'Você está brilhando! ⭐',
+      'Legal demais! Cada dia você sabe mais.',
+      'Que caprichada! Continua assim! 🌈',
+      'Você mandou muito bem! 🎉'] },
+  otima: { emoji:'🏆', titulo:'Incrível!',
+    maior:[
+      'Mais de 90% {x}! Você dominou esse conteúdo.',
+      'Resultado de campeão. A prova que se cuide!',
+      'Isso é o que dá estudar direitinho. Parabéns!',
+      'Quase perfeito! Você está voando.',
+      'Nota de respeito. Pode se orgulhar!',
+      'Que fera! Esse conteúdo já é seu.',
+      'Nível especialista desbloqueado! 🔓',
+      'Impressionante! Dá até pra ensinar esse assunto pra alguém.',
+      'Isso sim é preparação. A prova da escola não tem chance.',
+      'Resultado de elite. Seu esforço valeu cada minuto.',
+      'Gabaritou, ou quase! Que orgulho!',
+      'Lenda! Esse conteúdo está mais que dominado.',
+      'Você está jogando no modo difícil e ganhando.',
+      'Isso é dedicação virando resultado. Sensacional!',
+      'Top! Agora é só manter esse ritmo até a prova.',
+      'Show! Seu estudo está no nível máximo.',
+      'Que mente afiada! Parabéns pelo resultado.',
+      'Mandou muito! Pode comemorar, você mereceu.',
+      'Excelente! Esse é o padrão que você consegue alcançar.',
+      'Perfeição à vista! Continua assim que o ouro da missão vem.'],
+    menor:[
+      'Uau! Você quase acertou tudo! 🏆',
+      'Você é uma estrela! ⭐',
+      'Que incrível! Você sabe muito disso!',
+      'Nota de campeã! Parabéns!',
+      'Uhuul! Você arrasou demais!',
+      'Show de bola! Pode comemorar! 🎉',
+      'Que cabecinha brilhante! 🧠✨',
+      'Que maravilha! Quase tudo certinho!',
+      'Você merece uma dança da vitória! 💃',
+      'Nota máxima de alegria! 🥳',
+      'Você é a campeã do conhecimento! 👑',
+      'Uau, que orgulho de você!',
+      'Brilhou mais que o sol hoje! ☀️',
+      'Superestudante em ação! 🦸‍♀️',
+      'Que capricho incrível! Parabéns!',
+      'Você sabe tudo disso! Que demais!',
+      'Isso é que é estudar bem! 🌟',
+      'Pode contar pro pai e pra mãe: você arrasou!',
+      'Fantástico! Você está voando alto! 🚀',
+      'Medalha de ouro pra você! 🥇'] },
+  tarefas: { emoji:'🎉', titulo:'Tarefas do dia feitas!',
+    maior:[
+      'Marcou tudo de hoje. Agora é esperar o pai ou a mãe validar.',
+      'Casa em dia, cabeça leve. Mandou bem!',
+      'Todas as tarefas feitas. Isso conta pra missão!',
+      'Responsa total hoje. Parabéns!',
+      'Fez tudo! Seu cofrinho agradece.',
+      'Dia completo nas tarefas. Assim que se faz!',
+      'Ajudar em casa também é trabalho de equipe. Valeu!',
+      'Missão do dia cumprida. Agora é descansar com a consciência tranquila.',
+      'Tarefas zeradas! Isso é maturidade.',
+      'Quem cuida da casa cuida de todo mundo. Boa!',
+      'Nenhuma pendência hoje. Que organização!',
+      'Check em tudo! ✅ Dia bem aproveitado.',
+      'Isso é ser parte da família de verdade. Parabéns!',
+      'Tudo feito! Os pontos chegam quando forem validados.',
+      'Disciplina nas pequenas coisas leva às grandes. Mandou bem!',
+      'Tarefas concluídas! Agora o tempo livre é todo seu.',
+      'Você fez a sua parte hoje. Valeu!',
+      'Dia 100% nas tarefas. Esse é o padrão!',
+      'Mais um dia completo. Continua assim até o fim da semana!',
+      'Casa arrumada, pontos chegando. Boa!'],
+    menor:[
+      'Você fez todas as tarefas de hoje! 🎉',
+      'Que ajudante incrível você é!',
+      'Tudo feito! Agora o pai ou a mãe vão conferir.',
+      'Parabéns! Sua casa ficou mais feliz hoje. 🏠',
+      'Você completou tudo! Bate aqui! ✋',
+      'Uau, tarefas todas feitas! Você é demais!',
+      'Que menina caprichosa! 💛',
+      'Missão cumprida, superajudante! 🦸‍♀️',
+      'Sua família agradece a sua ajuda! 🥰',
+      'Tudo prontinho! Que orgulho! ✨',
+      'Você é uma ótima parceira da casa! 🏡',
+      'Todas as tarefas feitas! Hora de brincar! 🧸',
+      'Estrelinha de ouro pra você hoje! ⭐',
+      'Que capricho! Tudo feito direitinho.',
+      'Você cuidou de tudo hoje! Que legal!',
+      'Pontinhos a caminho do cofrinho! 🐷',
+      'Você é responsável e muito querida! 💕',
+      'Tarefas completas! Que dia lindo! 🌈',
+      'Parabéns, campeã das tarefas! 🏆',
+      'Viu como você consegue? Tudo feito! 🎉'] },
+};
+// faixa da nota: até 69% · de 70 a 90% · acima de 90%
+const faixaNota = pct => Number(pct) > 90 ? 'otima' : Number(pct) >= 70 ? 'boa' : 'baixa';
+function mensagemMotiv(tipo, aluno, nome, x, sorteio = Math.random()){
+  const m = MOTIV[tipo]; const L = m[CRIANCA_MENOR.has(aluno) ? 'menor' : 'maior'];
+  const troca = s => s.replaceAll('{x}', x === 'prova' ? 'nesta prova' : 'neste treino').replaceAll('{nome}', nome || '');
+  return { emoji:m.emoji, titulo:troca(m.titulo), texto:troca(L[Math.floor(sorteio * L.length) % L.length]) };
+}
+const motivar = (tipo, x) => { if (!ehResp() && S.aluno) S.motiv = mensagemMotiv(tipo, S.aluno, S.perfil?.nome, x); };
+const motivHtml = () => S.motiv ? `<div class="modal" role="dialog" aria-modal="true" aria-labelledby="motivT"><div class="card motiv"><div class="big">${S.motiv.emoji}</div>
+  <h2 id="motivT">${h(S.motiv.titulo)}</h2><p>${h(S.motiv.texto)}</p><button class="btn" data-a="fecharMotiv">Valeu!</button></div></div>` : '';
+// uma vez por dia em cada aparelho (chave "motiv-<tipo>:<criança>" com a data de hoje)
+function umaVezHoje(tipo){
+  const k = `motiv-${tipo}:${S.aluno}`, hoje = hojeISO();
+  try { if (localStorage.getItem(k) === hoje) return false; localStorage.setItem(k, hoje); } catch {}
+  return true;
+}
+function motivarDia(){ if (!ehResp() && S.aluno && umaVezHoje('dia')){ motivar('dia'); return true; } return false; }
+// todas as tarefas de casa de hoje marcadas (cada período conta; rejeitada não conta)
+const tarefasHojeFeitas = L => L.length > 0 && L.every(t => t.status === 'feito' && t.decisao !== 'rejeitado');
 // falha de rede (o pedido nem chegou ao servidor): Chrome "Failed to fetch", Firefox "NetworkError…", Safari "Load failed"
 const FALHA_REDE = /Failed to fetch|NetworkError|Load failed|Network request failed/i;
 const msgErro = e => { const m = e.message || String(e); return FALHA_REDE.test(m) ? 'Sem conexão com o servidor. Tente de novo.' : m.replace(/^.*?: /, ''); };
@@ -569,7 +811,7 @@ function render(){
   const antes = document.getElementById('tela'); const sc = antes && antes.dataset.aba === S.aba ? window.scrollY : 0;
   $app.innerHTML = `${topo}${seletor}<main id="tela" data-aba="${S.aba}">${corpo}</main>
     ${foco ? '' : `<nav aria-label="Navegação">${abas.map(([id, ic, nm]) => `<button data-a="aba" data-v="${id}" ${S.aba === id ? 'aria-current="page"' : ''}>${ico(ic)}${nm}${pais && id === 'aprovar' && nBadge ? `<span class="badge">${nBadge}</span>` : ''}</button>`).join('')}</nav>`}
-    ${S.sheet ? sheetHtml() : ''}`;
+    ${S.sheet ? sheetHtml() : ''}${motivHtml()}`;
   if (sc) window.scrollTo(0, sc);
 }
 
@@ -1428,7 +1670,7 @@ const acoes = {
       const saldoAntes = S.saldoT;
       const pct = Math.round(1000*q.acertos/q.lista.length)/10;
       const { data, error } = await sb.from('tentativas').insert({ materia:q.materia, tipo:q.modo === 'revisao' ? 'revisao' : 'treino', acertos:q.acertos, total:q.lista.length, pct, detalhes:q.det }).select().single();
-      if (error) toast('Erro ao salvar o resultado: ' + error.message); else { S.tent.unshift(data); await atualizaPontos(saldoAntes); await carregarEstadoTreino(q.materia); }
+      if (error) toast('Erro ao salvar o resultado: ' + error.message); else { S.tent.unshift(data); await atualizaPontos(saldoAntes); await carregarEstadoTreino(q.materia); if (q.modo !== 'revisao') motivar(faixaNota(pct), 'treino'); }
       q.salvando = false;
     }
     q.i++; q.resp = null; render(); window.scrollTo(0,0);
@@ -1444,8 +1686,9 @@ const acoes = {
     const { data, error } = await sb.rpc('corrigir_prova', { p_materia:p.materia, p_respostas:p.resp });
     p.enviando = false;
     if (erro(error)) return;
-    p.resultado = data; await carregar(); render(); window.scrollTo(0,0);
+    p.resultado = data; await carregar(); motivar(faixaNota(data?.pct), 'prova'); render(); window.scrollTo(0,0);
   },
+  fecharMotiv(){ S.motiv = null; render(); },
   fecharProva(){ S.prova = null; render(); },
   async relatorio(){ try { await navigator.clipboard.writeText(relatorio()); toast('Relatório copiado! Cola na conversa com o Claude.'); } catch { toast('Não consegui copiar'); } },
   async verQ(el){ await abrirQuestoes(el.dataset.v); },
@@ -1460,7 +1703,10 @@ const acoes = {
     if (await importar(txt)){ await contarQuestoes(); render(); }
   },
   // tarefas
-  async tMarcar(el){ const { error } = await sb.rpc('marcar_tarefa', { p_tarefa:Number(el.dataset.t), p_dia:el.dataset.d, p_status:el.dataset.s || null, p_aluno:el.dataset.al || S.aluno, p_periodo:el.dataset.p || null }); if (erro(error)) return; await carregarTarefas(); await carregarSaldos(); render(); },
+  async tMarcar(el){ const hoje = hojeISO(), antes = tarefasHojeFeitas(S.tarefas?.[hoje] || []);
+    const { error } = await sb.rpc('marcar_tarefa', { p_tarefa:Number(el.dataset.t), p_dia:el.dataset.d, p_status:el.dataset.s || null, p_aluno:el.dataset.al || S.aluno, p_periodo:el.dataset.p || null }); if (erro(error)) return; await carregarTarefas(); await carregarSaldos();
+    if (!ehResp() && el.dataset.d === hoje && !antes && tarefasHojeFeitas(S.tarefas[hoje] || []) && umaVezHoje('tarefas')) motivar('tarefas');
+    render(); },
   tMetade(el){ S.metadeAberta = S.metadeAberta === el.dataset.k ? null : (el.dataset.k || null); render(); },
   async tDecidir(el){ const arg = { p_tarefa:Number(el.dataset.t), p_dia:el.dataset.d, p_aluno:el.dataset.al, p_decisao:el.dataset.s, p_periodo:el.dataset.p || null };
     if (el.dataset.s === 'metade'){ arg.p_motivo = el.dataset.m; arg.p_comentario = val('metade-com').trim() || null; }
@@ -1639,7 +1885,7 @@ setInterval(() => {
 
 // ---------------- INÍCIO ----------------
 async function iniciarSessao(session){
-  S.user = session?.user || null;
+  S.user = session?.user || null; S.motiv = null;
   if (!S.user){ S.perfil = null; render(); return; }
   const { data: perfis } = await sb.from('perfis').select('*');
   const data = (perfis || []).find(p => p.user_id === S.user.id);
@@ -1649,8 +1895,11 @@ async function iniciarSessao(session){
   if (data.papel === 'aluno') S.aluno = data.user_id;
   else { let salvo = null; try { salvo = localStorage.getItem('aluno'); } catch {} S.aluno = S.alunos.some(a => a.user_id === salvo) ? salvo : S.alunos[0]?.user_id; }
   await carregar();
+  motivarDia();
   render();
 }
+// app aberto de um dia para o outro: a mensagem do dia aparece quando a criança volta para ele
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && S.user && motivarDia()) render(); });
 sb.auth.onAuthStateChange((_ev, session) => {
   const novo = session?.user?.id || null;
   if (novo === (S.user?.id || null) && S.perfil !== undefined && _ev !== 'INITIAL_SESSION') return;
