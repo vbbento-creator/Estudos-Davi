@@ -261,23 +261,62 @@ function ganhoSemana(grupo){
 const norm = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 const diaSP = iso => new Date(iso).toLocaleDateString('sv-SE', { timeZone:'America/Sao_Paulo' });
 function materiasDoTexto(t){ const n = ' ' + norm(t) + ' '; return S.mats.filter(m => [norm(m.id), norm(m.nome)].some(k => k.length >= 3 && n.includes(' ' + k + ' '))); }
-function treinoNoDia(mid, d, minPct){ return S.tent.some(t => t.materia === mid && t.tipo === 'treino' && t.total >= 5 && diaSP(t.criado) === d && Number(t.pct) >= (minPct || 0)); }
-function estudoNoDia(mid, d){
-  const m = MAT(mid); if (!m) return false;
-  return m.topicos.some(t => { const p = S.prog[chT(mid, t.idx)]; return p?.concluido_em && diaSP(p.concluido_em) === d; }) || treinoNoDia(mid, d, 0);
-}
-// Item do plano de estudo que o app reconhece sozinho: a matéria aparece no texto e a criança fez o estudo ou o treino no app naquele dia
-function autoFeito(texto, d){
-  if (ehResp()) return false;
+// O que um item do plano pede, lido do texto: prova valendo (qualquer prova no dia) ou matérias, com treino (e nota mínima) ou estudo. null = item manual
+function reqItem(texto){
   const n = norm(texto); const c = S.grupos.estudos?.config || {};
-  if (/\bprova valendo\b/.test(n)) return S.tent.some(t => t.tipo === 'prova' && diaSP(t.criado) === d);
+  if (/\bprova valendo\b/.test(n)) return { prova:true };
   const treino = /\btreinos?\b/.test(n);
   let ms = materiasDoTexto(texto);
   if (treino && !ms.length && /\bmaterias\b/.test(n)) ms = (c.materias || []).map(id => MAT(id)).filter(Boolean);
-  if (!ms.length) return false;
-  const minPct = /\b70\b/.test(n) ? (Number(c.treino_min) || 70) : 0;
-  return ms.every(m => treino ? treinoNoDia(m.id, d, minPct) : estudoNoDia(m.id, d));
+  if (!ms.length) return null;
+  return { treino, minPct:/\b70\b/.test(n) ? (Number(c.treino_min) || 70) : 0, mids:ms.map(m => m.id) };
 }
+// Treinos (5+ questões; dois iguais da mesma matéria em menos de 60 s contam como um) e tópicos concluídos, do mais antigo ao mais novo
+function atividades(){
+  const A = []; const ult = {};
+  S.tent.filter(t => t.tipo === 'treino' && t.total >= 5).map(t => ({ t, ms:new Date(t.criado).getTime() })).sort((a, b) => a.ms - b.ms).forEach(({ t, ms }) => {
+    const u = ult[t.materia]; ult[t.materia] = { ms, pct:Number(t.pct) };
+    if (u && ms - u.ms < 60000 && u.pct === Number(t.pct)) return;
+    A.push({ tipo:'treino', mid:t.materia, dia:diaSP(t.criado), pct:Number(t.pct), ms });
+  });
+  S.mats.forEach(m => m.topicos.forEach(t => { const p = S.prog[chT(m.id, t.idx)];
+    if (p?.concluido_em) A.push({ tipo:'topico', mid:m.id, dia:diaSP(p.concluido_em), ms:new Date(p.concluido_em).getTime() }); }));
+  return A.sort((a, b) => a.ms - b.ms);
+}
+// no dia: treino cumpre item de treino (com a nota mínima) e de estudo; tópico cumpre item de estudo. Adiantado: só o mesmo tipo
+const serveNoDia = (a, r) => a.tipo === 'treino' ? (!r.treino || a.pct >= r.minPct) : !r.treino;
+const serveAntes = (a, r) => r.treino ? a.tipo === 'treino' && a.pct >= r.minPct : a.tipo === 'topico';
+// Itens do plano marcados sozinhos (só na visão da criança): chave "dia:posição" → { adiantado: dia mais antigo usado ou null }.
+// No dia, como antes. Adiantado: atividade feita até 7 dias antes marca um item só (o próximo que ela cumpre); a primeira atividade
+// de cada tipo e matéria que cumpre um item do próprio dia fica com aquele dia. Item com várias matérias só gasta se todas forem cumpridas.
+function marcasAuto(){
+  const R = new Map(); if (ehResp()) return R;
+  const itens = [];
+  S.crono.forEach(c => c.itens.forEach((texto, i) => { const req = reqItem(texto); if (req) itens.push({ d:c.d, i, req, manual:!!S.prog[`crono:${c.d}:${i}`]?.feito }); }));
+  itens.sort((a, b) => a.d.localeCompare(b.d) || a.i - b.i);
+  const A = atividades(); const usada = new Set();
+  const noDia = (it, mid) => A.some(a => a.dia === it.d && a.mid === mid && serveNoDia(a, it.req));
+  for (const it of itens) if (!it.req.prova) for (const mid of it.req.mids) for (const tipo of ['treino', 'topico']){
+    const a = A.find(a => a.dia === it.d && a.mid === mid && a.tipo === tipo && serveNoDia(a, it.req)); if (a) usada.add(a);
+  }
+  for (const it of itens){
+    if (it.manual) continue;
+    const k = `${it.d}:${it.i}`;
+    if (it.req.prova){ if (S.tent.some(t => t.tipo === 'prova' && diaSP(t.criado) === it.d)) R.set(k, { adiantado:null }); continue; }
+    const ini = addDias(it.d, -7); const pega = []; let ok = true;
+    for (const mid of it.req.mids){
+      if (noDia(it, mid)) continue;
+      const a = A.find(a => !usada.has(a) && !pega.includes(a) && a.mid === mid && a.dia >= ini && a.dia < it.d && serveAntes(a, it.req));
+      if (!a){ ok = false; break; }
+      pega.push(a);
+    }
+    if (!ok) continue;
+    pega.forEach(a => usada.add(a));
+    R.set(k, { adiantado:pega.length ? pega.map(a => a.dia).sort()[0] : null });
+  }
+  return R;
+}
+const autoFeito = (d, i) => marcasAuto().has(`${d}:${i}`);
 async function carregarEstadoTreino(mid){
   const { data } = await sb.rpc('treino_estado', { p_aluno:S.aluno, p_materia:mid });
   const r = Array.isArray(data) ? data[0] : data;
@@ -555,8 +594,9 @@ function linhaTarefa(t, dia){
     <div class="tx"><b>${t.emoji} ${h(t.nome)}${tagAvulsa(t.tarefa)}</b><small>${sub}</small></div>${ptsTag(t.pontos)}${rec}</div>`;
 }
 function linhaCrono(d, i, texto){
-  const k = `crono:${d}:${i}`; const manual = !!S.prog[k]?.feito; const auto = !manual && autoFeito(texto, d); const f = manual || auto;
-  return `<div class="task ${f ? 'ok' : ''}"><button class="chk" ${auto ? 'disabled' : `data-a="cronoTg" data-k="${k}"`} aria-label="${f ? 'Feito' : 'Marcar'}: ${h(texto)}">${f ? '✓' : ''}</button><div class="tx"><b>${h(texto)}</b><small>${auto ? 'Marcado sozinho: você fez no app' : 'Plano de estudo'}</small></div></div>`;
+  const k = `crono:${d}:${i}`; const manual = !!S.prog[k]?.feito; const ma = manual ? null : marcasAuto().get(`${d}:${i}`); const auto = !!ma; const f = manual || auto;
+  const sub = !auto ? 'Plano de estudo' : ma.adiantado ? `Marcado sozinho: você adiantou em ${ma.adiantado.slice(8)}/${ma.adiantado.slice(5, 7)}` : 'Marcado sozinho: você fez no app';
+  return `<div class="task ${f ? 'ok' : ''}"><button class="chk" ${auto ? 'disabled' : `data-a="cronoTg" data-k="${k}"`} aria-label="${f ? 'Feito' : 'Marcar'}: ${h(texto)}">${f ? '✓' : ''}</button><div class="tx"><b>${h(texto)}</b><small>${sub}</small></div></div>`;
 }
 
 function oQueFalta(g){
@@ -582,7 +622,8 @@ function hojeAluno(){
   const itensC = dc ? dc.itens : [];
   const okT = t => t.status === 'feito' && t.decisao !== 'rejeitado';
   const total = T.length + itensC.length;
-  const feitos = T.filter(okT).length + itensC.filter((it, i) => S.prog[`crono:${hoje}:${i}`]?.feito || autoFeito(it, hoje)).length;
+  const MA = marcasAuto();
+  const feitos = T.filter(okT).length + itensC.filter((it, i) => S.prog[`crono:${hoje}:${i}`]?.feito || MA.has(`${hoje}:${i}`)).length;
   const grupos = grupoPeriodo(T);
   const casa = grupos.map(([nome, L]) => `<h3>${grupos.length === 1 && nome === 'Durante o dia' ? 'Tarefas de casa' : nome}</h3>${L.map(t => linhaTarefa(t, hoje)).join('')}`).join('');
   const estudo = itensC.length ? `<h3>Plano de estudo</h3>${itensC.map((it, i) => linhaCrono(hoje, i, it)).join('')}` : '';
@@ -734,7 +775,7 @@ function telaAgenda(){
       ${fimMeta ? '<div class="row" style="margin-top:8px"><span class="chip meta">Fim da missão</span><b>Prazo do bronze, prata e ouro</b></div>' : ''}
       ${blocos}
       ${ehResp() ? blocoAvulsa(sel) : ''}
-      ${!ehResp() && sel > hoje ? '<p class="mut" style="margin:8px 0 0">Você marca só hoje e ontem.</p>' : ''}</div>`;
+      ${!ehResp() && sel > hoje ? '<p class="mut" style="margin:8px 0 0">Tarefas de casa: você marca só hoje e ontem.</p>' : ''}</div>`;
 }
 
 function telaMaterias(){

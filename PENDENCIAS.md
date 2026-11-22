@@ -1,6 +1,8 @@
 # Pendências e ideias do Cofrinho (backlog)
 
-Situação conferida no banco de produção em 21/11/2026. Na próxima sessão, conferir de novo no Supabase (só lendo) o que mudou.
+Situação conferida no banco de produção em 21/11/2026 (23h40). Na próxima sessão, conferir de novo no Supabase (só lendo) o que mudou.
+
+Última conferência: a Juju já começou (1 treino de Português em 21/11, 100%, +40); nenhuma prova valendo ainda. Missões sem mudança: a Juju sem missão e a do Johann ainda é a de 19/11 (bônus bronze já lançado). Questões de treino do Johann iguais às da lista abaixo.
 
 ## 1. Pendências que dependem de você
 
@@ -34,12 +36,21 @@ Nenhuma ideia em aberto no momento.
 - **Botão "Não fiz":** foi retirado. O que não for marcado vira "não feito" sozinho.
 - **Aplicar migração pelo Claude:** a ferramenta do Supabase recusa sozinha migrações com `drop` (aconteceu com a 10). Nesses casos, aplicar pelo SQL Editor do painel.
 
+- **Plano adiantado (21/11):** item marcado sozinho não se desmarca. Com a janela de 7 dias, os tópicos do Johann de 18/11 marcam a "Revisão final: Português e Inglês" e a "Revisão Física e Biologia" de 23/11. Ver se isso atrapalha a revisão dele.
+
 ## 4. Manutenção, sem urgência
 
 - [ ] **Ligar a proteção contra senhas vazadas** no painel do Supabase (Authentication › Settings). O aviso continua aberto.
 - [ ] **Apagar as cópias antigas de 18/11** (`backup_20261118` e `backup_20261118_pre_migracao`, com 8 tabelas cada) quando não forem mais necessárias. Não tem volta. Elas também geram 16 avisos de "RLS sem política" no Supabase.
 
 ## 5. Feito
+
+### 21/11/2026: plano de estudo marca o que a criança adiantou (só `index.html`)
+Design e plano em `docs/superpowers/` (`2026-11-21-adiantar-plano`).
+- O que a criança fez **até 7 dias antes** marca sozinho o item do plano, **um item por atividade**: treino adiantado → próximo item de treino da matéria (com a nota mínima do item); tópico concluído adiantado → próximo item de estudo da matéria. No próprio dia, nada mudou. Prova valendo continua só no dia.
+- O item mostra "Marcado sozinho: você adiantou em DD/MM". Na Agenda da criança, em dia futuro, a frase virou "Tarefas de casa: você marca só hoje e ontem.".
+- Nada é gravado no banco; sem migração. Teste `testes-app/adiantar.mjs` (27 OK); `missao.mjs` e `avulsa.mjs` continuam OK.
+- Conferido com os dados reais (só lendo): Juju, treino de 21/11 → "🎯 Português: treino" de 23/11; Johann, tópicos de 18/11 → Física e Biologia de 19/11 e as duas revisões de 23/11.
 
 ### 21/11/2026: treino e prova valendo no plano da Juju (migração 23)
 - 12 itens novos no fim dos dias de 23/11 a 03/12: 6 treinos (Português 23, 24 e 26/11; Ciências 27/11; Inglês 29/11; Matemática 03/12) e 6 provas valendo, uma por matéria e no máximo uma por dia. Os itens que já existiam ficaram como estavam e nas mesmas posições.
