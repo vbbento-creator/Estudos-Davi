@@ -23,16 +23,11 @@ Situação conferida no banco de produção em 22/11/2026. Na próxima sessão, 
 
 ## 2. Ideias a desenvolver
 
-### 2.7 Tarefa que se repete no mesmo dia (próxima sessão)
-Hoje, para escovar os dentes de manhã e de noite, existem duas tarefas iguais ("Escovar os dentes (manhã)" e "(noite)"); o mesmo vale para "Tirar e limpar a mesa" se for feita em mais de uma refeição. A ideia: **uma tarefa só, com os períodos em que ela acontece** (manhã, tarde, noite ou dia todo), e cada período aparece e é marcado separado.
-- Regra pedida: não dá para adiantar um período. A da noite não pode ser marcada de manhã. "Dia todo" só deixa marcar à noite (no fim do dia).
-- Para decidir na sessão (brainstorming antes de programar):
-  - "Dia todo" quer dizer a tarefa sem período (uma vez no dia, marcada só à noite) ou manhã + tarde + noite?
-  - A partir de que hora conta cada período (ex.: manhã desde 0h, tarde desde 12h, noite desde 18h)? E ontem: continua marcando qualquer período de ontem?
-  - Pontos por período (ex.: 5 cada) ou um total dividido?
-  - Validar, ½ metade, rejeitar, recurso, Trocar quem faz e revezamento: por período ou para o dia todo?
-  - O que fazer com as duas tarefas de escovar os dentes que já existem (juntar numa só sem perder o histórico de pontos)?
-- Pontos técnicos já vistos: hoje `tarefas.periodo` guarda um período só (ou nenhum) e `tarefa_dia` tem uma linha por tarefa, dia e criança. Vai precisar de migração (período na chave de `tarefa_dia`, vários períodos na tarefa) e mexe em marcar, decidir, recurso, teto semanal, Agenda, Aprovar e na contagem de tarefas da missão. Aplicar junto com o novo `index.html`.
+### 2.7 Tarefa com vários períodos no dia: pronta, falta entrar no ar
+Programada e testada em 22/11 no ramo `varios-periodos` (design e plano em `docs/superpowers/`, `2026-11-22-tarefa-varios-periodos`). **Falta:** aplicar a migração 24 pelo SQL Editor e publicar o novo `index.html` logo em seguida (com confirmação). Depois de no ar, mudar no cadastro as tarefas que não são "Dia todo" (ex.: mesa = Tarde + Noite; arrumar o quarto de manhã = Manhã).
+- Decidido: uma tarefa com um ou mais períodos (Manhã, Tarde, Noite) ou "Dia todo" (uma vez no dia). Abrem às 0h, 12h e 18h (Dia todo também às 18h), horário de Brasília; ontem segue livre. Toda tarefa sem período vira "Dia todo".
+- Pontos por período; validar, ½, rejeitar e recurso por período; Trocar e revezamento pelo dia inteiro.
+- As duas tarefas de escovar viram uma só ("Escovar os dentes", manhã + noite); a de noite (nunca marcada) é desativada.
 
 ### Outras ideias
 - Possível depois: rotina de hora em hora (pg_cron) para fechar a missão mesmo sem ninguém abrir o app; hoje não faz falta.
