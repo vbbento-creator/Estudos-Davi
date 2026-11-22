@@ -583,6 +583,42 @@ function marcasAuto(){
   return R;
 }
 const autoFeito = (d, i) => marcasAuto().has(`${d}:${i}`);
+// Prova valendo: pai ou mãe liberam de 2 dias antes da prova da escola até 12h do dia da prova (Brasília), se a criança
+// já tem treino com o mínimo (70%) naquela matéria. Começou, tem 1 hora (iniciar_prova no banco).
+const fimJanela = prova => new Date(prova + 'T12:00:00-03:00');
+const ddmm = d => `${d.slice(8, 10)}/${d.slice(5, 7)}`;
+const diaHora = iso => new Date(iso).toLocaleString('pt-BR', { timeZone:'America/Sao_Paulo', day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }).replace(',', ' às');
+function estadoProva(mid){
+  const m = MAT(mid); const l = S.lib[mid]; const agora = new Date();
+  if (l?.iniciada_em && new Date(l.ate) > agora) return { st:'andamento', ate:l.ate };
+  const pv = melhor(mid, 'prova'); if (pv >= 0) return { st:'feita', pct:pv };
+  if (l && !l.iniciada_em && new Date(l.ate) > agora) return { st:'liberada', ate:l.ate };
+  if (!m?.prova) return { st:'semData' };
+  const ini = addDias(m.prova, -2);
+  if (hojeISO() < ini) return { st:'antes', ini };
+  if (agora >= fimJanela(m.prova)) return { st:'depois' };
+  const min = Number(S.grupos.estudos?.config?.treino_min) || 70; const tr = melhor(mid, 'treino');
+  if (tr < min) return { st:'semTreino', min, tr };
+  return { st:'pode', fim:fimJanela(m.prova).toISOString(), esgotou:!!l?.iniciada_em };
+}
+function txtProva(e){
+  return { andamento:`Fazendo agora · acaba ${e.ate && diaHora(e.ate).slice(-5)}`, feita:`Feita · ${e.pct}%`, liberada:`Liberada até ${e.ate && diaHora(e.ate)}`,
+    semData:'Sem data de prova', antes:`Abre em ${e.ini && ddmm(e.ini)}`, depois:'Prazo acabou (12h do dia da prova)',
+    semTreino:`Falta treino com ${e.min}%+ (melhor: ${e.tr >= 0 ? e.tr + '%' : 'nenhum'})`, pode:e.esgotou ? 'O tempo acabou sem entregar. Pode liberar de novo.' : `Pode liberar até ${e.fim && diaHora(e.fim)}` }[e.st];
+}
+// itens "prova valendo" gerados para o plano do dia d da criança w (do 2º dia antes até o dia da prova; some depois de feita)
+function provasJanela(w, d){
+  const lista = ehResp() ? (S.fam.provas || []).filter(p => p.aluno === w) : S.mats.filter(m => m.prova);
+  const feitas = ehResp() ? (S.fam.provasFeitas || []).filter(x => x.aluno === w) : S.tent.filter(t => t.tipo === 'prova').map(t => ({ materia:t.materia, dia:diaSP(t.criado) }));
+  return lista.filter(p => p.id !== 'redacao' && addDias(p.prova, -2) <= d && d <= p.prova)
+    .map(p => ({ p, feita:feitas.filter(x => x.materia === p.id).map(x => x.dia).sort()[0] }))
+    .filter(x => !x.feita || x.feita >= d).map(x => ({ p:x.p, ok:x.feita === d }));
+}
+function linhaProvaPlano({ p, ok }){
+  const sub = ok ? (ehResp() ? 'Fez a prova' : 'Marcado sozinho: você fez a prova') : `Com pai ou mãe · 1 hora · até ${ddmm(p.prova)} às 12h`;
+  const abre = ehResp() ? '' : `data-a="mat" data-v="${p.id}" style="cursor:pointer"`;
+  return `<div class="task ${ok ? 'ok' : ''}"><button class="chk" disabled aria-label="${ok ? 'Feito' : 'A fazer'}: prova valendo de ${h(p.nome)}">${ok ? '✓' : ''}</button><div class="tx" ${abre}><b>🏛️ ${h(p.nome)}: prova valendo</b><small>${sub}</small></div></div>`;
+}
 async function carregarEstadoTreino(mid){
   const { data } = await sb.rpc('treino_estado', { p_aluno:S.aluno, p_materia:mid });
   const r = Array.isArray(data) ? data[0] : data;
@@ -685,22 +721,23 @@ async function carregarAgenda(){
 }
 async function carregarFamilia(){
   if (!ehResp()){
-    S.fam = { crono:{ [S.aluno]:S.crono }, provas:S.mats.filter(m => m.prova).map(m => ({ aluno:S.aluno, nome:m.nome, emoji:m.emoji, prova:m.prova })), progCrono:{} };
+    S.fam = { crono:{ [S.aluno]:S.crono }, provas:S.mats.filter(m => m.prova).map(m => ({ aluno:S.aluno, id:m.id, nome:m.nome, emoji:m.emoji, prova:m.prova })), progCrono:{} };
     S.saldosFam = { [S.aluno]:S.saldoT };
     return;
   }
   const ids = S.alunos.map(a => a.user_id);
-  const [cr, mt, pg, sd, ms] = await Promise.all([
+  const [cr, mt, pg, sd, ms, pv] = await Promise.all([
     sb.from('cronograma').select('*').order('dia'),
-    sb.from('materias').select('aluno,nome,emoji,prova').eq('ativa', true).not('prova', 'is', null),
+    sb.from('materias').select('aluno,id,nome,emoji,prova').eq('ativa', true).not('prova', 'is', null),
     sb.from('progresso').select('aluno,chave,feito').like('chave', 'crono:%').eq('feito', true),
     Promise.all(ids.map(id => sb.rpc('saldo_total', { p_aluno:id }))),
     Promise.all(ids.map(id => sb.rpc('missao', { p_aluno:id }))),
+    sb.from('tentativas').select('aluno,materia,criado').eq('tipo', 'prova'),
   ]);
   S.missoesFam = Object.fromEntries(ids.map((id, i) => [id, ms[i].data ?? null]));
   const crono = {}; (cr.data || []).forEach(c => (crono[c.aluno] ||= []).push({ d:c.dia, t:c.titulo, itens:c.itens || [] }));
   const progCrono = {}; (pg.data || []).forEach(r => ((progCrono[r.aluno] ||= {})[r.chave] = true));
-  S.fam = { crono, provas:mt.data || [], progCrono };
+  S.fam = { crono, provas:mt.data || [], progCrono, provasFeitas:(pv.data || []).map(t => ({ aluno:t.aluno, materia:t.materia, dia:diaSP(t.criado) })) };
   S.saldosFam = Object.fromEntries(ids.map((id, i) => [id, Number(sd[i].data ?? 0)]));
 }
 async function carregarTarefas(){
@@ -914,12 +951,13 @@ function hojeAluno(){
   const dc = S.crono.find(d => d.d === hoje);
   const itensC = dc ? dc.itens : [];
   const okT = t => t.status === 'feito' && t.decisao !== 'rejeitado';
-  const total = T.length + itensC.length;
+  const PV = provasJanela(S.aluno, hoje);
+  const total = T.length + itensC.length + PV.length;
   const MA = marcasAuto();
-  const feitos = T.filter(okT).length + itensC.filter((it, i) => S.prog[`crono:${hoje}:${i}`]?.feito || MA.has(`${hoje}:${i}`)).length;
+  const feitos = T.filter(okT).length + itensC.filter((it, i) => S.prog[`crono:${hoje}:${i}`]?.feito || MA.has(`${hoje}:${i}`)).length + PV.filter(x => x.ok).length;
   const casa = T.length ? `<h3>Tarefas de casa</h3>${porTarefa(T).map(g => linhaTarefa(g, hoje)).join('')}` : '';
   agendarAbertura(T);
-  const estudo = itensC.length ? `<h3>Plano de estudo</h3>${itensC.map((it, i) => linhaCrono(hoje, i, it)).join('')}` : '';
+  const estudo = itensC.length + PV.length ? `<h3>Plano de estudo</h3>${itensC.map((it, i) => linhaCrono(hoje, i, it)).join('')}${PV.map(linhaProvaPlano).join('')}` : '';
   const O = (S.tarefas[ontem] || []).filter(t => t.status === 'a_fazer' && t.pode_marcar);
   const pp = proximaProva(); const g = calcMeta();
   const revTxt = S.rev.length ? `<p class="mut" style="margin:10px 0 0">${S.rev.map(r => `${r.t.emoji} hoje: <b>${h(nomeAluno(r.hoje))}</b>`).join(' · ')}</p>` : '';
@@ -1085,10 +1123,11 @@ function telaAgenda(){
   const pausa = S.pausas.find(p => sel >= p.inicio && sel <= p.fim);
   const meta = calcMeta();
   const fimMeta = meta && ws.includes(S.aluno) && meta.prazo.toLocaleDateString('sv-SE', { timeZone:'America/Sao_Paulo' }) === sel;
-  const blocos = ws.map(w => { const T = agendaItens(w, sel); const C = (S.fam.crono[w] || []).find(c => c.d === sel);
+  const blocos = ws.map(w => { const T = agendaItens(w, sel); const C = (S.fam.crono[w] || []).find(c => c.d === sel); const PV = provasJanela(w, sel);
     return `${ws.length > 1 ? `<div class="pessoa">${av(w, true)} ${h(nomeAluno(w))}</div>` : ''}${porTarefa(T).map(g => linhaAgenda(g, w)).join('')}
       ${C ? `<h3>${h(C.t)}</h3>${C.itens.map((it, i) => linhaCronoAg(w, sel, i, it)).join('')}` : ''}
-      ${!T.length && !C ? '<div class="vazio">Nada marcado.</div>' : ''}`; }).join('');
+      ${PV.length ? `${C ? '' : '<h3>Plano de estudo</h3>'}${PV.map(linhaProvaPlano).join('')}` : ''}
+      ${!T.length && !C && !PV.length ? '<div class="vazio">Nada marcado.</div>' : ''}`; }).join('');
   return `<div class="row sp">${toggle}${filtros}</div>
     <div class="card" style="padding:12px">${grade}<div class="legenda"><span><i class="dot prova"></i>prova</span><span><i class="dot casa"></i>tarefa de casa</span><span><i class="dot estudo"></i>estudo</span><span><i class="dot meta"></i>fim da missão</span></div></div>
     <div class="card"><div class="row sp"><h2 style="margin:0">${diaCurto(sel)}</h2>${sel === hoje ? '<span class="chip ok">hoje</span>' : ''}</div>
@@ -1132,15 +1171,15 @@ function telaMateria(mid){
   }
   let acoes = '';
   if (mid !== 'redacao'){
-    const l = S.lib[mid]; const aberta = l && new Date(l.ate) > new Date();
-    const tr = melhor(mid,'treino'); const pv = melhor(mid,'prova');
-    const botaoProva = pv>=0 && !aberta ? '<span class="tag ok">Prova feita ✓</span>'
-      : aberta ? (ehResp() ? '<span class="tag ok">Liberada — a criança começa no aparelho dela</span>' : `<button class="btn ok" data-a="iniciarProva" data-v="${mid}">Começar prova agora</button>`)
-      : `<button class="btn sec" data-a="liberar" data-v="${mid}">🔐 Liberar prova (pai/mãe)</button>`;
+    const tr = melhor(mid,'treino'); const pv = melhor(mid,'prova'); const e = estadoProva(mid);
+    const botaoProva = e.st === 'pode' ? `<button class="btn sec" data-a="liberar" data-v="${mid}">🔐 Liberar prova (pai/mãe)</button><p class="mut">${txtProva(e)}</p>`
+      : e.st === 'liberada' && !ehResp() ? `<button class="btn ok" data-a="iniciarProva" data-v="${mid}">Começar prova (1 hora)</button><p class="mut">${txtProva(e)}</p>`
+      : e.st === 'andamento' && !ehResp() ? `<button class="btn ok" data-a="iniciarProva" data-v="${mid}">Continuar a prova</button><p class="mut">${txtProva(e)}</p>`
+      : `<span class="tag ${['feita', 'liberada', 'andamento'].includes(e.st) ? 'ok' : ''}">${txtProva(e)}</span>`;
     acoes = `<div class="card"><h2>🎯 Treino livre</h2><p class="mut">10 questões sorteadas com gabarito comentado. Refaça quantas vezes quiser. ${tr>=0?'Melhor: <b>'+tr+'%</b>':''}</p>
       <button class="btn" data-a="treinar" data-v="${mid}">Me testa!</button></div>
       ${concluirCard(mid)}
-      <div class="card"><h2>🏛️ Prova valendo</h2><p class="mut">Só com o pai ou a mãe do lado. Tem tempo e é uma vez só. ${pv>=0?'Resultado: <b>'+pv+'%</b>':''}</p>${botaoProva}</div>`;
+      <div class="card"><h2>🏛️ Prova valendo</h2><p class="mut">Só com o pai ou a mãe do lado. É uma vez só: depois de começar, você tem 1 hora. Abre 2 dias antes da prova da escola, depois de um treino com 70%+. ${pv>=0?'Resultado: <b>'+pv+'%</b>':''}</p>${botaoProva}</div>`;
   }
   return `<button class="voltar" data-a="voltarMats">‹ Matérias</button>
     <div class="mhead" style="--c:${h(m.cor)}"><div class="row sp"><span class="em">${m.emoji}</span>${m.prova ? `<span class="tag" style="background:#ffffff33;color:#fff">Prova ${fmtData(m.prova)}</span>` : ''}</div>
@@ -1333,13 +1372,12 @@ function cardLiberarProvas(){
   const mats = S.mats.filter(m => m.id !== 'redacao');
   if (!mats.length) return '';
   const linhas = mats.map(m => {
-    const l = S.lib[m.id]; const aberta = l && new Date(l.ate) > new Date(); const pv = melhor(m.id, 'prova');
-    const acao = pv >= 0 && !aberta ? `<span class="tag ok">Feita · ${pv}%</span>`
-      : aberta ? `<span class="tag ok">Liberada até ${new Date(l.ate).toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' })}</span>`
-      : `<button class="btn sec min" data-a="liberar" data-v="${m.id}">🔐 Liberar</button>`;
-    return `<div class="row sp" style="margin-top:8px"><span>${m.emoji} ${h(m.nome)}${m.prova ? ` <small class="mut">· prova ${fmtData(m.prova)}</small>` : ''}</span>${acao}</div>`;
+    const e = estadoProva(m.id);
+    const acao = e.st === 'pode' ? `<button class="btn sec min" data-a="liberar" data-v="${m.id}">🔐 Liberar</button>`
+      : `<span class="tag ${['feita', 'liberada', 'andamento'].includes(e.st) ? 'ok' : ''}">${txtProva(e)}</span>`;
+    return `<div class="row sp" style="margin-top:8px"><span>${m.emoji} ${h(m.nome)}${m.prova ? ` <small class="mut">· prova ${fmtData(m.prova)}</small>` : ''}${e.st === 'pode' ? `<br><small class="mut">${txtProva(e)}</small>` : ''}</span>${acao}</div>`;
   }).join('');
-  return `<div class="card"><h2>🏛️ Liberar prova valendo</h2><p class="mut">Vale por 30 minutos, e a prova começa no aparelho da criança. É uma vez só por matéria.</p>${linhas}</div>`;
+  return `<div class="card"><h2>🏛️ Liberar prova valendo</h2><p class="mut">Abre 2 dias antes da prova da escola e vai até 12h do dia da prova, depois de um treino com 70% ou mais. Liberada, a criança começa no aparelho dela e tem 1 hora a partir do início. É uma vez só por matéria.</p>${linhas}</div>`;
 }
 function painelLancar(){
   const G = S.grupos; const limite = Number(G.notas?.config?.bonus_min) || 7; const g = calcMeta(); const d = calcDinheiro();
@@ -1581,10 +1619,10 @@ function cadPausas(){
 
 // ---------------- AÇÕES ----------------
 async function liberarProva(mid){
-  const min = 30;
-  if (ehResp()){ await gravarLiberacao(sb, mid, min); return; }
+  if (estadoProva(mid).st !== 'pode'){ toast(txtProva(estadoProva(mid))); return; }
+  if (ehResp()){ await gravarLiberacao(sb, mid); return; }
   const html = `<div class="modal" id="mlib"><div class="card"><h2>🔐 Liberar prova de ${h(MAT(mid).nome)}</h2>
-    <p class="mut">Pai ou mãe: entre com o seu login. Tempo de prova: ${min} minutos.</p>
+    <p class="mut">Pai ou mãe: entre com o seu login. Fica liberada até ${diaHora(fimJanela(MAT(mid).prova).toISOString())}; depois de começar, são 1 hora.</p>
     <input id="remail" type="email" placeholder="e-mail do responsável"><br><br><input id="rsenha" type="password" placeholder="senha"><br><br>
     <div class="row"><button class="btn sec" id="rcanc">Cancelar</button><button class="btn" id="rok" style="flex:1">Liberar</button></div></div></div>`;
   document.body.insertAdjacentHTML('beforeend', html);
@@ -1596,25 +1634,40 @@ async function liberarProva(mid){
     if (error){ toast('Login inválido'); return; }
     const { data: pf } = await tmp.from('perfis').select('papel').eq('user_id', data.user.id).maybeSingle();
     if (pf?.papel !== 'responsavel'){ toast('Esse login não é de responsável 😏'); await tmp.auth.signOut(); return; }
-    await gravarLiberacao(tmp, mid, min, data.user.id);
+    await gravarLiberacao(tmp, mid, data.user.id);
     await tmp.auth.signOut();
     fechar();
   };
 }
-async function gravarLiberacao(cli, mid, min, uid){
-  const ate = new Date(Date.now() + min*6e4).toISOString();
-  const { error } = await cli.from('liberacoes').upsert({ aluno:S.aluno, materia:mid, ate, liberada_por: uid || S.user.id }, { onConflict:'aluno,materia' });
+async function gravarLiberacao(cli, mid, uid){
+  const ate = fimJanela(MAT(mid).prova).toISOString();
+  const { error } = await cli.from('liberacoes').upsert({ aluno:S.aluno, materia:mid, ate, iniciada_em:null, liberada_por: uid || S.user.id }, { onConflict:'aluno,materia' });
   if (error){ toast('Erro: ' + error.message); return; }
-  S.lib[mid] = { materia:mid, ate };
-  toast('Prova liberada por ' + min + ' minutos');
+  S.lib[mid] = { materia:mid, ate, iniciada_em:null };
+  toast('Prova liberada até ' + diaHora(ate));
   render();
 }
 
+// respostas e ordem das questões guardadas no aparelho, para voltar de onde parou se o app fechar
+const chProva = mid => `prova:${S.aluno}:${mid}`;
+function guardaProva(){ const p = S.prova; if (!p || p.resultado) return;
+  try { localStorage.setItem(chProva(p.materia), JSON.stringify({ ini:p.ini, ordem:p.lista.map(q => q.id), resp:p.resp })); } catch {} }
+function lerProva(mid, ini){ try { const g = JSON.parse(localStorage.getItem(chProva(mid)) || 'null'); return g && g.ini === ini ? g : null; } catch { return null; } }
+function apagaProva(mid){ try { localStorage.removeItem(chProva(mid)); } catch {} }
 async function iniciarProva(mid){
+  const retoma = !!S.lib[mid]?.iniciada_em;
+  if (!retoma && !window.confirm(`Começar a prova de ${MAT(mid).nome}? Você terá 1 hora a partir de agora, e é uma vez só.`)) return;
+  const { data: ate, error: e1 } = await sb.rpc('iniciar_prova', { p_materia:mid });
+  if (erro(e1)) return;
+  const { data: lib } = await sb.from('liberacoes').select('*').eq('aluno', S.aluno).eq('materia', mid).maybeSingle();
+  S.lib[mid] = lib || { materia:mid, ate };
   const { data, error } = await sb.from('questoes').select('id,enunciado,alternativas,topico').eq('aluno', S.aluno).eq('materia', mid).eq('tipo','prova');
   if (error || !data?.length){ toast('Ainda não há questões de prova para essa matéria'); return; }
-  S.prova = { materia:mid, ate:S.lib[mid].ate, lista:data.sort(() => Math.random()-.5), resp:{} };
-  render();
+  const ini = S.lib[mid].iniciada_em; const g = lerProva(mid, ini);
+  const pos = g ? Object.fromEntries(g.ordem.map((id, i) => [id, i])) : null;
+  const lista = pos ? data.sort((a, b) => (pos[a.id] ?? 1e9) - (pos[b.id] ?? 1e9)) : data.sort(() => Math.random()-.5);
+  S.prova = { materia:mid, ate:S.lib[mid].ate, ini, lista, resp:g?.resp || {} };
+  guardaProva(); render(); window.scrollTo(0, 0);
 }
 
 async function treinar(mid){
@@ -1692,7 +1745,7 @@ const acoes = {
   fecharQuiz(){ S.quiz = null; render(); },
   async liberar(el){ await liberarProva(el.dataset.v); },
   async iniciarProva(el){ await iniciarProva(el.dataset.v); },
-  marcar(el){ S.prova.resp[el.dataset.q] = Number(el.dataset.v); render(); },
+  marcar(el){ S.prova.resp[el.dataset.q] = Number(el.dataset.v); guardaProva(); render(); },
   async enviarProva(){
     const p = S.prova; if (p.enviando) return;
     if (!p.auto && Object.keys(p.resp).length < p.lista.length && !window.confirm('Tem questão sem resposta. Enviar mesmo assim?')) return;
@@ -1700,7 +1753,7 @@ const acoes = {
     const { data, error } = await sb.rpc('corrigir_prova', { p_materia:p.materia, p_respostas:p.resp });
     p.enviando = false;
     if (erro(error)) return;
-    p.resultado = data; await carregar(); motivar(faixaNota(data?.pct), 'prova'); render(); window.scrollTo(0,0);
+    p.resultado = data; apagaProva(p.materia); await carregar(); motivar(faixaNota(data?.pct), 'prova'); render(); window.scrollTo(0,0);
   },
   fecharMotiv(){ S.motiv = null; render(); },
   fecharProva(){ S.prova = null; render(); },
