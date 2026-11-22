@@ -2,19 +2,16 @@
 
 Situação conferida no banco de produção em 22/11/2026. Na próxima sessão, conferir de novo no Supabase (só lendo) o que mudou.
 
-Última conferência (22/11, tarde): Juju fez 3 treinos em 22/11 (Matemática 90%, Geografia e História 100%, +40 cada); nenhuma prova valendo ainda. 6 marcações esperando validação: Johann 21/11 Escovar · Noite; Johann 22/11 Escovar · Manhã, Arrumar a lava-louças e Arrumar o quarto; Juju 22/11 Escovar · Manhã e Tirar e limpar a mesa. As de "Dia todo" de 22/11 foram marcadas entre 10h42 e 11h26, provavelmente antes da migração 24 entrar no ar (conferir se acontecer de novo). Primeira troca gravada: o Pai fez o revezamento de "Cuidar da Kika e trocar tapetes" recomeçar pela Juju desde 22/11 (`revez_inicios`). Missões sem mudança: a Juju sem missão e a do Johann ainda é a de 19/11 (bônus bronze já lançado).
+Última conferência (22/11, noite): desde a tarde, só entrou a validação do "Escovar os dentes · Manhã" de 22/11 do Johann e da Juju (16h17). Seguem 4 marcações esperando validação: Johann 21/11 Escovar · Noite, 22/11 Arrumar a lava-louças e Arrumar o quarto; Juju 22/11 Tirar e limpar a mesa (as três de 22/11 são de "Dia todo", marcadas entre 10h42 e 11h26, antes da migração 24). Nenhum treino ou prova novos depois das 11h40 (Juju: Matemática 90%, Geografia e História 100%); nenhuma prova valendo ainda; nenhum recurso aberto nem pedido da loja. Missões sem mudança: a Juju sem missão e a do Johann ainda é a de 19/11 (bônus bronze já lançado). Física, Inglês e Biologia do Johann seguiam com 37, 34 e 30 questões de treino.
 
 ## 1. Pendências que dependem de você
 
 - [ ] **Períodos das tarefas (2.7, no ar desde 22/11):** toda tarefa sem período virou "Dia todo" e só abre às 18h. Mudar no cadastro as que acontecem antes (ex.: Tirar e limpar a mesa = Tarde + Noite; Arrumar o quarto = Manhã, se for de manhã). Validar a "Escovar os dentes · Noite" do Johann de 21/11 (veio da tarefa antiga da noite).
 - [ ] **Próxima missão:** ao cadastrar, preencher "Começa em" e os mínimos de tarefas (padrão 70/80/90%).
 - [ ] **Provas valendo da Juju:** o plano pede uma por dia (25/11 Português, 28/11 Ciências, 30/11 Inglês, 01/12 História, 02/12 Geografia, 03/12 Matemática). Cada uma precisa que pai ou mãe liberem no app naquele dia.
-- [ ] **Questões que faltam do Johann:** Física, Inglês e Biologia (mandar material para completar as 50). O bônus de "Concluir treino" dele exige 50 questões de treino por matéria.
-  - Língua Portuguesa: 52; Matemática, Geografia e História: 50 cada (ok)
-  - Física: 37 (faltam 13)
-  - Inglês: 34 (faltam 16)
-  - Biologia: 30 (faltam 20)
-  - Espanhol, Química, Arte e Música: 50 cada (ok, 22/11)
+- [ ] **Revisar as questões novas** de Física, Inglês e Biologia em `docs/johann/questoes-revisao-3.md` (já no ar desde 22/11).
+- [ ] **Ver as mensagens de motivação no uso real** (no ar desde 22/11): primeiro acesso do dia, fim de treino e de prova, tarefas do dia. Anotar na seção 3 o que aparecer de estranho.
+- [x] **Questões do Johann:** todas as matérias com questões têm 50 de treino (Português 52), conferido em produção em 22/11. O bônus de "Concluir treino" dele exige 50 por matéria.
   - Redação (prova 25/11): sem questões. A prova é só sobre a leitura do livro (Quarto de Despejo) e não há material da escola (decidido em 22/11). O bônus de Concluir treino de Redação não tem como sair.
 - [ ] **Médias do bimestre.** Quando saírem, lançar em Mais › Lançar médias e pontos. Se alguma ficar abaixo de 7, decidir se usa o botão "Tirar" daquela matéria.
 - [ ] **Guardar as senhas da Brisa e da Juju** em lugar seguro. Elas ficaram no histórico de uma conversa anterior.
@@ -47,6 +44,17 @@ Situação conferida no banco de produção em 22/11/2026. Na próxima sessão, 
 - **Aviso "Signed-In Users Can Execute SECURITY DEFINER Function"** (28 funções): aceito em 22/11. É o desenho do app: o app chama as funções, e cada uma confere por dentro quem está pedindo (ex.: criança validando tarefa recebe "Sem acesso"). Não mexer; o aviso continua aparecendo.
 
 ## 5. Feito
+
+### 22/11/2026: mensagens de motivação (só `index.html`, publicado em 22/11)
+- Cartão com o botão "Valeu!", só na visão da criança: no primeiro acesso do dia, no fim de um treino ou prova valendo (até 69%, de 70 a 90% e acima de 90%) e quando ela marca a última tarefa de casa de hoje (tarefa rejeitada não conta; não espera validação).
+- 20 frases sorteadas por situação para cada criança; as da Juju são mais simples (decidido em 22/11). Primeiro acesso e tarefas: uma vez por dia em cada aparelho. As rodadas do Concluir treino ficam sem mensagem.
+- Teste `testes-app/motivacao.mjs` (50 OK); `periodos`, `missao`, `avulsa`, `adiantar` e `erro-rede` continuam sem falha.
+
+### 22/11/2026: questões de treino do Johann de Física, Inglês e Biologia (migrações 32 a 34)
+- As que faltavam para 50: Física 13 (`fis-t38` a `t50`: 6 do Módulo 10 e 7 do Módulo 11), Inglês 16 (`ing-t35` a `t50`: 3 de question tag, 7 de relative pronouns e 6 de leitura, com dois textos inventados) e Biologia 20 (`bio-t31` a `t50`: 8 de 16.1 e 12 de 16.2). Criadas do zero a partir das apostilas (PDFs do CamScanner de 17/11 em Downloads); nada copiado do livro.
+- Resposta certa nas 50 de treino, contando as antigas: Física 15/11/12/12 (a posição "a" já tinha 15), Inglês 12/13/13/12, Biologia 12/12/13/13.
+- Testadas no PGlite com todas as migrações (`15_testes_questoes_johann_3.sql`) e conferidas em produção depois de aplicar: 50 de treino e 12 de prova em cada matéria, md5 das novas igual ao do banco local, nenhum enunciado repetido, 688 questões do Johann no total. Revisão em `docs/johann/questoes-revisao-3.md`.
+- Observação: várias questões antigas de Inglês (`ing-t01` a `t09`, de 17/11) repetem frases dos exercícios da apostila. Não foram mexidas.
 
 ### 22/11/2026: questões do Johann de Espanhol, Química, Arte e Música (migrações 28 a 31)
 - 50 de treino e 12 de prova em cada matéria, criadas do zero a partir das apostilas (PDFs do CamScanner de 22/11, 13h50 a 15h38, em Downloads). O material é só inspiração; não se copiam exercícios nem textos do livro.
