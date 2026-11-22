@@ -70,10 +70,25 @@ update lancamentos l set origem_ref = l.origem_ref || ':' || td.periodo
    and l.origem_ref = td.tarefa || ':' || td.dia and td.periodo <> 'dia';
 
 -- ---------- dados de produção: uma tarefa só para escovar os dentes ----------
-update tarefas set nome = 'Escovar os dentes', periodos = '{manha,noite}'
- where id = 6 and nome = 'Escovar os dentes (manhã)';
-update tarefas set ativa = false
- where id = 7 and nome = 'Escovar os dentes (noite)' and not exists (select 1 from tarefa_dia where tarefa = 7);
+-- A 6 (manhã) vira "Escovar os dentes" com manhã + noite. As marcações da 7 (noite) passam para a 6, período noite,
+-- com os lançamentos e recursos delas; depois a 7 é desativada. Só roda se as duas estiverem como em produção.
+do $$ begin
+  if exists (select 1 from tarefas where id = 6 and nome = 'Escovar os dentes (manhã)' and periodos = '{manha}')
+     and exists (select 1 from tarefas where id = 7 and nome = 'Escovar os dentes (noite)' and periodos = '{noite}') then
+    update tarefas set nome = 'Escovar os dentes', periodos = '{manha,noite}' where id = 6;
+    insert into tarefa_dia (tarefa, dia, aluno, periodo, status, valor, marcado_por, marcado_em, decisao, decidido_por, decidido_em,
+                            lancamento, motivo, motivo_comentario)
+    select 6, dia, aluno, 'noite', status, valor, marcado_por, marcado_em, decisao, decidido_por, decidido_em,
+           lancamento, motivo, motivo_comentario
+      from tarefa_dia where tarefa = 7;
+    update recursos set tarefa = 6, periodo = 'noite' where tarefa = 7;
+    update lancamentos l set origem_ref = '6:' || td.dia || ':noite'
+      from tarefa_dia td
+     where td.tarefa = 7 and l.aluno = td.aluno and l.origem in ('tarefa','estorno') and l.origem_ref = '7:' || td.dia || ':noite';
+    delete from tarefa_dia where tarefa = 7;
+    update tarefas set ativa = false where id = 7;
+  end if;
+end $$;
 
 -- ---------- funções que mudam de assinatura ou de retorno ----------
 drop function marcar_tarefa(bigint, date, text, uuid);

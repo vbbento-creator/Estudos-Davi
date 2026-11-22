@@ -111,6 +111,11 @@ select 'OLDD marcação (dia)', periodo from tarefa_dia where tarefa = pg_temp.t
 select 'OLDM recurso (manha)', periodo from recursos where tarefa = pg_temp.tk('OLDM');
 select 'OLDM origem_ref termina em :manha (true)', bool_and(origem_ref like '%:manha') from lancamentos where descricao like '%OLDM%';
 select 'OLDD origem_ref = id:dia (true)', bool_and(origem_ref = pg_temp.tk('OLDD') || ':' || (h - 1)) from lancamentos, ids where descricao like '%OLDD%';
+select 'tarefa 6: nome e períodos (Escovar os dentes|{manha,noite}|true)', nome, periodos, ativa from tarefas where id = 6;
+select 'tarefa 7 desativada e sem marcações (false|0)', ativa, (select count(*) from tarefa_dia where tarefa = 7) from tarefas where id = 7;
+select 'marcações da 6 (-2:noite:- -1:manha:- -1:noite:validado)', string_agg((dia - hoje_sp()) || ':' || periodo || ':' || coalesce(decisao, '-'), ' ' order by dia, periodo) from tarefa_dia where tarefa = 6;
+select 'lançamento da noite levado para 6:ontem:noite (1)', count(*) from lancamentos where origem = 'tarefa' and origem_ref = '6:' || (hoje_sp() - 1) || ':noite';
+select 'nenhum lançamento com ref da 7 (0)', count(*) from lancamentos where origem in ('tarefa','estorno') and origem_ref like '7:%';
 select 'coluna tarefas.periodo apagada (0)', count(*) from information_schema.columns where table_name = 'tarefas' and column_name = 'periodo';
 select 'chave de tarefa_dia (tarefa, dia, aluno, periodo)', string_agg(a.attname, ', ' order by k.n)
   from pg_constraint c cross join lateral unnest(c.conkey) with ordinality k(att, n) join pg_attribute a on a.attrelid = c.conrelid and a.attnum = k.att
@@ -154,6 +159,12 @@ select 'MESA noite continua validado (validado)', decisao from tarefa_dia, ids w
 select 'OLDM rendeu antes (5)', pg_temp.rendeu('OLDM', johann) from ids;
 select 'resolve recurso OLDM: validado (OK)', t.erro(format('select resolver_recurso(%s, %L)', (select id from recursos where tarefa = pg_temp.tk('OLDM')), 'validado')) from ids;
 select 'OLDM rendeu depois (5)', pg_temp.rendeu('OLDM', johann) from ids;
+
+select t.como(johann::text) from ids;
+select 'recurso na noite de ontem da 6 (OK)', t.erro(format('select abrir_recurso(6, %L, %L, %L)', h - 1, 'escovei', 'noite')) from ids;
+select t.como(pai::text) from ids;
+select 'resolve: validado (OK)', t.erro(format('select resolver_recurso(%s, %L)', (select id from recursos where tarefa = 6), 'validado')) from ids;
+select 'escovar de ontem rendeu 5 (noite), sem crédito duplo', coalesce(sum(valor), 0) from lancamentos, ids where origem in ('tarefa','estorno') and aluno = johann and origem_ref like '6:' || (h - 1) || '%';
 
 \echo '--- 13. Trocar quem faz: pelo dia inteiro'
 select 'trocar ESC hoje com a manhã marcada (ERRO já foi marcada)', t.erro(format('select trocar_responsavel(%s, %L, %L, %L)', pg_temp.tk('ESC'), h, johann, juju)) from ids;
