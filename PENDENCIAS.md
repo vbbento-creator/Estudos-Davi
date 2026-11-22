@@ -2,25 +2,27 @@
 
 Situação conferida no banco de produção em 22/11/2026. Na próxima sessão, conferir de novo no Supabase (só lendo) o que mudou.
 
-Última conferência (22/11): nenhum estudo novo desde o treino de Português da Juju de 21/11 (100%, +40); nenhuma prova valendo ainda. Tarefas da Juju de 20 e 21/11 validadas em 22/11. Missões sem mudança: a Juju sem missão e a do Johann ainda é a de 19/11 (bônus bronze já lançado). Questões de treino do Johann iguais às da lista abaixo. Nenhuma troca de tarefa gravada até hoje (`trocas`, `revez_inicios` e `substituicoes` vazias).
+Última conferência (22/11, tarde): Juju fez 3 treinos em 22/11 (Matemática 90%, Geografia e História 100%, +40 cada); nenhuma prova valendo ainda. 6 marcações esperando validação: Johann 21/11 Escovar · Noite; Johann 22/11 Escovar · Manhã, Arrumar a lava-louças e Arrumar o quarto; Juju 22/11 Escovar · Manhã e Tirar e limpar a mesa. As de "Dia todo" de 22/11 foram marcadas entre 10h42 e 11h26, provavelmente antes da migração 24 entrar no ar (conferir se acontecer de novo). Primeira troca gravada: o Pai fez o revezamento de "Cuidar da Kika e trocar tapetes" recomeçar pela Juju desde 22/11 (`revez_inicios`). Missões sem mudança: a Juju sem missão e a do Johann ainda é a de 19/11 (bônus bronze já lançado).
 
 ## 1. Pendências que dependem de você
 
 - [ ] **Períodos das tarefas (2.7, no ar desde 22/11):** toda tarefa sem período virou "Dia todo" e só abre às 18h. Mudar no cadastro as que acontecem antes (ex.: Tirar e limpar a mesa = Tarde + Noite; Arrumar o quarto = Manhã, se for de manhã). Validar a "Escovar os dentes · Noite" do Johann de 21/11 (veio da tarefa antiga da noite).
 - [ ] **Próxima missão:** ao cadastrar, preencher "Começa em" e os mínimos de tarefas (padrão 70/80/90%).
 - [ ] **Provas valendo da Juju:** o plano pede uma por dia (25/11 Português, 28/11 Ciências, 30/11 Inglês, 01/12 História, 02/12 Geografia, 03/12 Matemática). Cada uma precisa que pai ou mãe liberem no app naquele dia.
-- [ ] **Fotos das questões de treino do Johann.** O bônus de "Concluir treino" dele exige 50 questões por matéria.
-  - Língua Portuguesa: 52 (ok)
+- [ ] **Questões que faltam do Johann:** Física, Inglês e Biologia (mandar material para completar as 50). O bônus de "Concluir treino" dele exige 50 questões de treino por matéria.
+  - Língua Portuguesa: 52; Matemática, Geografia e História: 50 cada (ok)
   - Física: 37 (faltam 13)
   - Inglês: 34 (faltam 16)
   - Biologia: 30 (faltam 20)
-  - Arte, Espanhol, Geografia, História, Matemática, Música, Química e Redação: 0 (faltam 50 em cada)
+  - Espanhol, Química, Arte e Música: 50 cada (ok, 22/11)
+  - Redação (prova 25/11): sem questões. A prova é só sobre a leitura do livro (Quarto de Despejo) e não há material da escola (decidido em 22/11). O bônus de Concluir treino de Redação não tem como sair.
 - [ ] **Médias do bimestre.** Quando saírem, lançar em Mais › Lançar médias e pontos. Se alguma ficar abaixo de 7, decidir se usa o botão "Tirar" daquela matéria.
 - [ ] **Guardar as senhas da Brisa e da Juju** em lugar seguro. Elas ficaram no histórico de uma conversa anterior.
 - [ ] **Telas novas no uso real.** Conferido no Chrome em 21/11/2026, logado como Pai:
   - Tarefa avulsa (criar com o filtro de uma criança, etiqueta, Trocar só "Só este dia", não aparece no dia seguinte, cadastro com Dia e sem modo, Remover) ok.
   - Painel Trocar, formulário de Compra que já aconteceu e Tema (Claro/Escuro) ok, sem gravar nada.
-  - Falta ver no uso real (gravam pontos de verdade): confirmar uma troca (a primeira tentativa, em 22/11, deu "Failed to fetch" e nada foi gravado), ½ Metade, recurso contra metade, lançar uma compra, e a visão da criança (Hoje com etiqueta "avulsa", tema no fim do Hoje). Anotar na seção 3 o que aparecer de estranho.
+  - Troca confirmada no uso real em 22/11 (revezamento de "Cuidar da Kika", ver conferência no topo).
+  - Falta ver no uso real (gravam pontos de verdade): ½ Metade, recurso contra metade, lançar uma compra, e a visão da criança (Hoje com etiqueta "avulsa", tema no fim do Hoje). Anotar na seção 3 o que aparecer de estranho.
 
 ## 2. Ideias a desenvolver
 
@@ -45,6 +47,25 @@ Situação conferida no banco de produção em 22/11/2026. Na próxima sessão, 
 - **Aviso "Signed-In Users Can Execute SECURITY DEFINER Function"** (28 funções): aceito em 22/11. É o desenho do app: o app chama as funções, e cada uma confere por dentro quem está pedindo (ex.: criança validando tarefa recebe "Sem acesso"). Não mexer; o aviso continua aparecendo.
 
 ## 5. Feito
+
+### 22/11/2026: questões do Johann de Espanhol, Química, Arte e Música (migrações 28 a 31)
+- 50 de treino e 12 de prova em cada matéria, criadas do zero a partir das apostilas (PDFs do CamScanner de 22/11, 13h50 a 15h38, em Downloads). O material é só inspiração; não se copiam exercícios nem textos do livro.
+- Espanhol (prova 25/11): Clases 4 a 6 e Cuba, nos 3 tópicos cadastrados (variantes 27, leitura 20, Cuba 15). Enunciado em espanhol e explicação em português; textos de leitura inventados. Superlativo, heterotónicos e sustantivos ficaram de fora (decidido em 22/11).
+- Química (prova 26/11): Módulos 11 e 12 (introdução, tipos de carbono e fórmulas, classificação de cadeias e aromáticos). As fórmulas vêm em texto, com a ramificação entre parênteses.
+- Arte (prova 01/12): Ciberarte, Bioarte e História da Arte, esta com a "Tabela de História da Arte" do anexo.
+- Música (prova 01/12): p. 174 a 179, nos 8 tópicos cadastrados; figuras e sinais pelo nome (sem partitura).
+- A resposta certa fica 15 ou 16 vezes em cada posição por matéria.
+- Testadas no PGlite com todas as migrações (`14_testes_questoes_johann_2.sql`) e conferidas em produção: 50 + 12 por matéria, md5 de cada matéria igual ao do banco local, todos os tópicos com questão, as 391 questões anteriores do Johann intactas.
+- Revisão em `docs/johann/questoes-revisao-2.md`.
+
+### 22/11/2026: questões do Johann de Matemática, Geografia e História (migrações 25 a 27)
+- 50 de treino e 12 de prova em cada matéria, criadas do zero a partir das apostilas (PDFs do CamScanner de 22/11 em Downloads), com níveis variados (conceito, cálculo direto e situações-problema). O material é só inspiração; não se copiam exercícios nem textos do livro.
+- Matemática (prova 26/11): Módulo 14, trigonometria no triângulo retângulo, nos 6 tópicos cadastrados. Os valores da tabela trigonométrica e de √2 e √3 vêm no enunciado.
+- Geografia (prova 27/11): Módulo 8, só Japão (36 de treino) e Antártida (14), como os tópicos cadastrados; Oceania ficou de fora (decidido em 22/11).
+- História (prova 27/11): Módulo 13, nos 6 tópicos cadastrados.
+- A resposta certa fica 15 ou 16 vezes em cada posição (a, b, c, d) por matéria.
+- Testadas no PGlite com todas as migrações (`13_testes_questoes_johann.sql`) e conferidas em produção: 50 + 12 por matéria, impressão digital (md5) de cada matéria igual à do banco local, todos os tópicos com questão, as 205 questões antigas do Johann intactas.
+- Ids `mat-`, `geo-` e `hist-` (`tNN` treino, `pNN` prova). Revisão em `docs/johann/questoes-revisao.md`.
 
 ### 22/11/2026: tarefa com vários períodos no dia (2.7, migração 24 + `index.html`)
 Design e plano em `docs/superpowers/` (`2026-11-22-tarefa-varios-periodos`).
