@@ -6,6 +6,7 @@ Situação conferida no banco de produção em 22/11/2026. Na próxima sessão, 
 
 ## 1. Pendências que dependem de você
 
+- [ ] **Períodos das tarefas (2.7, no ar desde 22/11):** toda tarefa sem período virou "Dia todo" e só abre às 18h. Mudar no cadastro as que acontecem antes (ex.: Tirar e limpar a mesa = Tarde + Noite; Arrumar o quarto = Manhã, se for de manhã). Validar a "Escovar os dentes · Noite" do Johann de 21/11 (veio da tarefa antiga da noite).
 - [ ] **Próxima missão:** ao cadastrar, preencher "Começa em" e os mínimos de tarefas (padrão 70/80/90%).
 - [ ] **Provas valendo da Juju:** o plano pede uma por dia (25/11 Português, 28/11 Ciências, 30/11 Inglês, 01/12 História, 02/12 Geografia, 03/12 Matemática). Cada uma precisa que pai ou mãe liberem no app naquele dia.
 - [ ] **Fotos das questões de treino do Johann.** O bônus de "Concluir treino" dele exige 50 questões por matéria.
@@ -22,12 +23,6 @@ Situação conferida no banco de produção em 22/11/2026. Na próxima sessão, 
   - Falta ver no uso real (gravam pontos de verdade): confirmar uma troca (a primeira tentativa, em 22/11, deu "Failed to fetch" e nada foi gravado), ½ Metade, recurso contra metade, lançar uma compra, e a visão da criança (Hoje com etiqueta "avulsa", tema no fim do Hoje). Anotar na seção 3 o que aparecer de estranho.
 
 ## 2. Ideias a desenvolver
-
-### 2.7 Tarefa com vários períodos no dia: pronta, falta entrar no ar
-Programada e testada em 22/11 no ramo `varios-periodos` (design e plano em `docs/superpowers/`, `2026-11-22-tarefa-varios-periodos`). **Falta:** aplicar a migração 24 pelo SQL Editor e publicar o novo `index.html` logo em seguida (com confirmação). Depois de no ar, mudar no cadastro as tarefas que não são "Dia todo" (ex.: mesa = Tarde + Noite; arrumar o quarto de manhã = Manhã).
-- Decidido: uma tarefa com um ou mais períodos (Manhã, Tarde, Noite) ou "Dia todo" (uma vez no dia). Abrem às 0h, 12h e 18h (Dia todo também às 18h), horário de Brasília; ontem segue livre. Toda tarefa sem período vira "Dia todo".
-- Pontos por período; validar, ½, rejeitar e recurso por período; Trocar e revezamento pelo dia inteiro.
-- As duas tarefas de escovar viram uma só ("Escovar os dentes", manhã + noite); a de noite (nunca marcada) é desativada.
 
 ### Outras ideias
 - Possível depois: rotina de hora em hora (pg_cron) para fechar a missão mesmo sem ninguém abrir o app; hoje não faz falta.
@@ -50,6 +45,15 @@ Programada e testada em 22/11 no ramo `varios-periodos` (design e plano em `docs
 - **Aviso "Signed-In Users Can Execute SECURITY DEFINER Function"** (28 funções): aceito em 22/11. É o desenho do app: o app chama as funções, e cada uma confere por dentro quem está pedindo (ex.: criança validando tarefa recebe "Sem acesso"). Não mexer; o aviso continua aparecendo.
 
 ## 5. Feito
+
+### 22/11/2026: tarefa com vários períodos no dia (2.7, migração 24 + `index.html`)
+Design e plano em `docs/superpowers/` (`2026-11-22-tarefa-varios-periodos`).
+- Uma tarefa tem um ou mais períodos (Manhã, Tarde, Noite) ou "Dia todo". Cada período é marcado, validado (inteira, ½, rejeitar) e contestado separado e vale os pontos da tarefa. A lista mostra uma linha por tarefa, com um botão por período.
+- Não dá para adiantar: no dia de hoje, tarde abre às 12h, noite e Dia todo às 18h (Brasília), e o banco recusa antes. Ontem continua livre. Trocar quem faz vale para o dia inteiro. Na missão, cada período conta como uma tarefa.
+- "Escovar os dentes (manhã)" virou "Escovar os dentes" (manhã + noite); a de noite foi desativada e a marcação dela (Johann, 21/11) passou para a noite da nova. Lançamentos antigos de escovar de manhã ganharam o período na referência (3).
+- Testes: `12_testes_periodos.sql` (todas as linhas como o esperado), 05 a 11 com a mesma saída de antes (com `00_relogio_noite.sql`), telas `periodos.mjs` (40 OK) e as outras sem falha.
+- Aplicada pelo SQL Editor e conferida lendo: coluna antiga apagada, chave nova, 24 marcações e 17 lançamentos de tarefa como antes. App publicado logo em seguida.
+- Para ficar de olho: na Agenda dos pais, "Marcar como feita" num período de hoje ainda fechado dá o aviso "abre às 18h"; aba antiga do app aberta precisa ser recarregada; o primeiro recurso de verdade num período (confirmar que os botões mostram a decisão daquele período).
 
 ### 22/11/2026: faxina e avisos do Supabase (sem código)
 - Cópias `backup_20261118` e `backup_20261118_pre_migracao` apagadas pelo SQL Editor (avaliado antes: idênticas e com tudo presente nas tabelas atuais). Saíram os 16 avisos de "RLS sem política".
