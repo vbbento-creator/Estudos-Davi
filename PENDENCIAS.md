@@ -1,8 +1,8 @@
 # Pendências e ideias do Cofrinho (backlog)
 
-Situação conferida no banco de produção em 21/11/2026 (23h40). Na próxima sessão, conferir de novo no Supabase (só lendo) o que mudou.
+Situação conferida no banco de produção em 22/11/2026. Na próxima sessão, conferir de novo no Supabase (só lendo) o que mudou.
 
-Última conferência: a Juju já começou (1 treino de Português em 21/11, 100%, +40); nenhuma prova valendo ainda. Missões sem mudança: a Juju sem missão e a do Johann ainda é a de 19/11 (bônus bronze já lançado). Questões de treino do Johann iguais às da lista abaixo.
+Última conferência (22/11): nenhum estudo novo desde o treino de Português da Juju de 21/11 (100%, +40); nenhuma prova valendo ainda. Tarefas da Juju de 20 e 21/11 validadas em 22/11. Missões sem mudança: a Juju sem missão e a do Johann ainda é a de 19/11 (bônus bronze já lançado). Questões de treino do Johann iguais às da lista abaixo. Nenhuma troca de tarefa gravada até hoje (`trocas`, `revez_inicios` e `substituicoes` vazias).
 
 ## 1. Pendências que dependem de você
 
@@ -19,11 +19,22 @@ Situação conferida no banco de produção em 21/11/2026 (23h40). Na próxima s
 - [ ] **Telas novas no uso real.** Conferido no Chrome em 21/11/2026, logado como Pai:
   - Tarefa avulsa (criar com o filtro de uma criança, etiqueta, Trocar só "Só este dia", não aparece no dia seguinte, cadastro com Dia e sem modo, Remover) ok.
   - Painel Trocar, formulário de Compra que já aconteceu e Tema (Claro/Escuro) ok, sem gravar nada.
-  - Falta ver no uso real (gravam pontos de verdade): confirmar uma troca, ½ Metade, recurso contra metade, lançar uma compra, e a visão da criança (Hoje com etiqueta "avulsa", tema no fim do Hoje). Anotar na seção 3 o que aparecer de estranho.
+  - Falta ver no uso real (gravam pontos de verdade): confirmar uma troca (a primeira tentativa, em 22/11, deu "Failed to fetch" e nada foi gravado), ½ Metade, recurso contra metade, lançar uma compra, e a visão da criança (Hoje com etiqueta "avulsa", tema no fim do Hoje). Anotar na seção 3 o que aparecer de estranho.
 
 ## 2. Ideias a desenvolver
 
-Nenhuma ideia em aberto no momento.
+### 2.7 Tarefa que se repete no mesmo dia (próxima sessão)
+Hoje, para escovar os dentes de manhã e de noite, existem duas tarefas iguais ("Escovar os dentes (manhã)" e "(noite)"); o mesmo vale para "Tirar e limpar a mesa" se for feita em mais de uma refeição. A ideia: **uma tarefa só, com os períodos em que ela acontece** (manhã, tarde, noite ou dia todo), e cada período aparece e é marcado separado.
+- Regra pedida: não dá para adiantar um período. A da noite não pode ser marcada de manhã. "Dia todo" só deixa marcar à noite (no fim do dia).
+- Para decidir na sessão (brainstorming antes de programar):
+  - "Dia todo" quer dizer a tarefa sem período (uma vez no dia, marcada só à noite) ou manhã + tarde + noite?
+  - A partir de que hora conta cada período (ex.: manhã desde 0h, tarde desde 12h, noite desde 18h)? E ontem: continua marcando qualquer período de ontem?
+  - Pontos por período (ex.: 5 cada) ou um total dividido?
+  - Validar, ½ metade, rejeitar, recurso, Trocar quem faz e revezamento: por período ou para o dia todo?
+  - O que fazer com as duas tarefas de escovar os dentes que já existem (juntar numa só sem perder o histórico de pontos)?
+- Pontos técnicos já vistos: hoje `tarefas.periodo` guarda um período só (ou nenhum) e `tarefa_dia` tem uma linha por tarefa, dia e criança. Vai precisar de migração (período na chave de `tarefa_dia`, vários períodos na tarefa) e mexe em marcar, decidir, recurso, teto semanal, Agenda, Aprovar e na contagem de tarefas da missão. Aplicar junto com o novo `index.html`.
+
+### Outras ideias
 - Possível depois: rotina de hora em hora (pg_cron) para fechar a missão mesmo sem ninguém abrir o app; hoje não faz falta.
 
 ### Testes que ficaram por fazer
@@ -36,14 +47,20 @@ Nenhuma ideia em aberto no momento.
 - **Botão "Não fiz":** foi retirado. O que não for marcado vira "não feito" sozinho.
 - **Aplicar migração pelo Claude:** a ferramenta do Supabase recusa sozinha migrações com `drop` (aconteceu com a 10). Nesses casos, aplicar pelo SQL Editor do painel.
 
-- **Plano adiantado (21/11):** item marcado sozinho não se desmarca. Com a janela de 7 dias, os tópicos do Johann de 18/11 marcam a "Revisão final: Português e Inglês" e a "Revisão Física e Biologia" de 23/11. Ver se isso atrapalha a revisão dele.
+- **Plano adiantado (21/11):** item marcado sozinho não se desmarca. Com a janela de 7 dias, os tópicos do Johann de 18/11 marcam a "Revisão final: Português e Inglês" e a "Revisão Física e Biologia" de 23/11. Decidido em 22/11: deixar como está.
 
 ## 4. Manutenção, sem urgência
 
-- [ ] **Ligar a proteção contra senhas vazadas** no painel do Supabase (Authentication › Settings). O aviso continua aberto.
-- [ ] **Apagar as cópias antigas de 18/11** (`backup_20261118` e `backup_20261118_pre_migracao`, com 8 tabelas cada) quando não forem mais necessárias. Não tem volta. Elas também geram 16 avisos de "RLS sem política" no Supabase.
+- **Proteção contra senhas vazadas:** só existe no plano Pro do Supabase; o projeto está no plano gratuito (conferido em 22/11). Não dá para ligar; o aviso vai continuar aberto.
+- **Aviso "Signed-In Users Can Execute SECURITY DEFINER Function"** (28 funções): aceito em 22/11. É o desenho do app: o app chama as funções, e cada uma confere por dentro quem está pedindo (ex.: criança validando tarefa recebe "Sem acesso"). Não mexer; o aviso continua aparecendo.
 
 ## 5. Feito
+
+### 22/11/2026: faxina e avisos do Supabase (sem código)
+- Cópias `backup_20261118` e `backup_20261118_pre_migracao` apagadas pelo SQL Editor (avaliado antes: idênticas e com tudo presente nas tabelas atuais). Saíram os 16 avisos de "RLS sem política".
+- Proteção contra senhas vazadas: só no plano Pro; o projeto está no gratuito. Fica sem ligar.
+- Aviso das 28 funções `SECURITY DEFINER`: aceito (ver seção 4).
+- Plano adiantado do Johann (revisões de 23/11): fica como está.
 
 ### 22/11/2026: erro de conexão em português (só `index.html`)
 - Quando o pedido nem chega ao servidor, o aviso dizia "Failed to fetch" (aconteceu ao trocar uma tarefa; o pedido não chegou ao Supabase e nada foi gravado). Agora diz "Sem conexão com o servidor. Tente de novo." (vale para Chrome, Firefox e Safari). Erros do banco continuam como antes.
