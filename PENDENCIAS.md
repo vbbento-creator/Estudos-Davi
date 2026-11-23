@@ -9,7 +9,7 @@ Situação conferida no banco de produção em 22/11/2026. Na próxima sessão, 
 - [ ] **Períodos das tarefas (2.7, no ar desde 22/11):** toda tarefa sem período virou "Dia todo" e só abre às 18h. Mudar no cadastro as que acontecem antes (ex.: Tirar e limpar a mesa = Tarde + Noite; Arrumar o quarto = Manhã, se for de manhã). Validar a "Escovar os dentes · Noite" do Johann de 21/11 (veio da tarefa antiga da noite).
 - [ ] **Próxima missão:** ao cadastrar, preencher "Começa em" e os mínimos de tarefas (padrão 70/80/90%).
 - [ ] **Provas valendo (as duas crianças):** cada uma abre 2 dias antes da prova da escola e vai até 12h do dia da prova, depois de um treino daquela matéria com 70%+. Pai ou mãe liberam em Alunos › "🏛️ Liberar prova valendo"; começou, são 1 hora. Johann: Inglês e Português (23/11) já estão na janela, até amanhã às 12h. Juju: Português 27/11 (abre 25/11), Ciências 01/12, Inglês 02/12, História e Geografia 03/12, Matemática 04/12.
-- [ ] **Ver no uso real a prova com 1 hora (migrações 35 e 36, de 22/11):** liberar, começar, fechar o app no meio e voltar (tem que voltar com as respostas e o tempo que sobrou), e o item "prova valendo" no Hoje e na Agenda.
+- [ ] **Ver no uso real a prova com 1 hora (migrações 35 e 36, de 22/11):** liberar, começar, fechar o app no meio e voltar (tem que voltar com as respostas e o tempo que sobrou), os avisos de 30, 15 e 5 minutos, e o item "prova valendo" no Hoje e na Agenda.
 - [ ] **Revisar as questões novas** de Física, Inglês e Biologia em `docs/johann/questoes-revisao-3.md` (já no ar desde 22/11).
 - [ ] **Ver as mensagens de motivação no uso real** (no ar desde 22/11): primeiro acesso do dia, fim de treino e de prova, tarefas do dia. Anotar na seção 3 o que aparecer de estranho.
 - [x] **Questões do Johann:** todas as matérias com questões têm 50 de treino (Português 52), conferido em produção em 22/11. O bônus de "Concluir treino" dele exige 50 por matéria.
@@ -45,6 +45,13 @@ Situação conferida no banco de produção em 22/11/2026. Na próxima sessão, 
 - **Aviso "Signed-In Users Can Execute SECURITY DEFINER Function"** (28 funções): aceito em 22/11. É o desenho do app: o app chama as funções, e cada uma confere por dentro quem está pedindo (ex.: criança validando tarefa recebe "Sem acesso"). Não mexer; o aviso continua aparecendo.
 
 ## 5. Feito
+
+### 22/11/2026: prova valendo sem cronômetro, com avisos; treino só vale com 10 questões (migração 37 aplicada e `index.html` publicado em 22/11)
+- A tela da prova não mostra mais o tempo (decidido em 22/11: nada de tempo no topo). Quando faltam 30, 15 e 5 minutos aparece uma faixa vermelha no topo ("⏰ Faltam 15 minutos!"; a dos 5 lembra de conferir e enviar) que só some no OK. Se o app voltar com menos tempo, aparece um aviso só, com o que falta. No fim da hora, envia sozinha, como antes.
+- Na matéria, a criança vê "Fazendo agora", sem a hora de término; pai e mãe continuam vendo "acaba HH:MM".
+- Botão Liberar: confirmado que só aparece com treino da matéria com 70%+ e dentro da janela; antes disso aparece "Falta treino com 70%+ (melhor: X%)". A regra fica só no app (decidido em 22/11: não travar no banco).
+- Treino só vale com **10 questões ou mais** (antes, 5), decidido em 22/11, nos quatro lugares: liberar a prova valendo e o plano do dia (app), os +40 pontos de treino e o nível prata da missão (banco, migração 37). Em 22/11 nenhum treino tinha de 5 a 9 questões e toda matéria tinha 10+ questões de treino: nada já feito muda. As funções da 37 foram conferidas iguais às de produção, só com 5 trocado por 10. Depois de aplicada, conferido em produção: as duas funções com 10, permissões iguais e o gatilho de `tentativas` ligado. Teste `17_testes_treino_dez.sql` (falha sem a 37); os testes 03, 05, 10 e 16 dão a mesma saída com e sem ela.
+- Teste `testes-app/avisos-prova.mjs` (22 OK); os outros testes do app continuam sem falha.
 
 ### 22/11/2026: mensagens de motivação (só `index.html`, publicado em 22/11)
 - Cartão com o botão "Valeu!", só na visão da criança: no primeiro acesso do dia, no fim de um treino ou prova valendo (até 69%, de 70 a 90% e acima de 90%) e quando ela marca a última tarefa de casa de hoje (tarefa rejeitada não conta; não espera validação).

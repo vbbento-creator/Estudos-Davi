@@ -70,6 +70,9 @@ textarea{min-height:70px;resize:vertical}
 .dia-ok{background:var(--okbg);color:var(--ok);border-radius:14px;padding:10px 12px;font-weight:800;margin-top:10px}
 .hero{background:var(--ac);color:var(--ac-ink)}
 .hero .mut{color:inherit;opacity:.85}
+.aviso-prova{position:fixed;top:10px;left:50%;transform:translateX(-50%);width:min(440px,calc(100vw - 32px));background:#d93025;color:#fff;padding:14px 16px;border-radius:14px;z-index:30;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.aviso-prova b{font-size:1.1em;flex:1 1 100%}
+.aviso-prova .btn{margin-left:auto;background:#fff;color:#d93025}
 .big{font-family:var(--font-display);font-size:30px;font-weight:800;line-height:1.1}
 /* tarefas */
 .task{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line);flex-wrap:wrap}
@@ -537,10 +540,10 @@ function reqItem(texto){
   if (!ms.length) return null;
   return { treino, minPct:/\b70\b/.test(n) ? (Number(c.treino_min) || 70) : 0, mids:ms.map(m => m.id) };
 }
-// Treinos (5+ questões; dois iguais da mesma matéria em menos de 60 s contam como um) e tópicos concluídos, do mais antigo ao mais novo
+// Treinos (10+ questões; dois iguais da mesma matéria em menos de 60 s contam como um) e tópicos concluídos, do mais antigo ao mais novo
 function atividades(){
   const A = []; const ult = {};
-  S.tent.filter(t => t.tipo === 'treino' && t.total >= 5).map(t => ({ t, ms:new Date(t.criado).getTime() })).sort((a, b) => a.ms - b.ms).forEach(({ t, ms }) => {
+  S.tent.filter(t => t.tipo === 'treino' && t.total >= TREINO_MIN_Q).map(t => ({ t, ms:new Date(t.criado).getTime() })).sort((a, b) => a.ms - b.ms).forEach(({ t, ms }) => {
     const u = ult[t.materia]; ult[t.materia] = { ms, pct:Number(t.pct) };
     if (u && ms - u.ms < 60000 && u.pct === Number(t.pct)) return;
     A.push({ tipo:'treino', mid:t.materia, dia:diaSP(t.criado), pct:Number(t.pct), ms });
@@ -602,7 +605,7 @@ function estadoProva(mid){
   return { st:'pode', fim:fimJanela(m.prova).toISOString(), esgotou:!!l?.iniciada_em };
 }
 function txtProva(e){
-  return { andamento:`Fazendo agora · acaba ${e.ate && diaHora(e.ate).slice(-5)}`, feita:`Feita · ${e.pct}%`, liberada:`Liberada até ${e.ate && diaHora(e.ate)}`,
+  return { andamento:ehResp() ? `Fazendo agora · acaba ${e.ate && diaHora(e.ate).slice(-5)}` : 'Fazendo agora', feita:`Feita · ${e.pct}%`, liberada:`Liberada até ${e.ate && diaHora(e.ate)}`,
     semData:'Sem data de prova', antes:`Abre em ${e.ini && ddmm(e.ini)}`, depois:'Prazo acabou (12h do dia da prova)',
     semTreino:`Falta treino com ${e.min}%+ (melhor: ${e.tr >= 0 ? e.tr + '%' : 'nenhum'})`, pode:e.esgotou ? 'O tempo acabou sem entregar. Pode liberar de novo.' : `Pode liberar até ${e.fim && diaHora(e.fim)}` }[e.st];
 }
@@ -783,8 +786,10 @@ function progMat(mid){
   m.topicos.forEach(t => { const p = S.prog[chT(mid, t.idx)]; if (p?.estudou && p?.exercicios) ok++; });
   return { ok, total:m.topicos.length };
 }
+// treino só vale (prova valendo, plano do dia, pontos e missão) com 10 questões ou mais; o banco usa o mesmo número (migração 37)
+const TREINO_MIN_Q = 10;
 function melhor(mid, tipo, ateData){
-  return S.tent.filter(t => t.materia===mid && t.tipo===tipo && (!ateData || new Date(t.criado) <= ateData) && (tipo!=='treino' || t.total>=5))
+  return S.tent.filter(t => t.materia===mid && t.tipo===tipo && (!ateData || new Date(t.criado) <= ateData) && (tipo!=='treino' || t.total>=TREINO_MIN_Q))
     .reduce((mx, t) => Math.max(mx, Number(t.pct)), -1);
 }
 // Missão (bronze/prata/ouro): calculada no banco (missao), regras em grupos.estudos.config
@@ -1226,8 +1231,7 @@ function telaProva(){
         <p class="mut">${h(d.explicacao||'')}</p></div>`).join('')}
       <button class="btn" data-a="fecharProva">Voltar</button>`;
   }
-  const falta = Math.max(0, new Date(p.ate) - new Date());
-  return `<div class="card hero" style="position:sticky;top:8px;z-index:3"><div class="row sp"><b>🏛️ Prova · ${h(MAT(p.materia).nome)}</b><span class="big" id="relogio">${Math.floor(falta/6e4)}:${String(Math.floor(falta%6e4/1e3)).padStart(2,'0')}</span></div>
+  return `<div class="card hero" style="position:sticky;top:8px;z-index:3"><b>🏛️ Prova · ${h(MAT(p.materia).nome)}</b>
     <div class="mut">${Object.keys(p.resp).length} de ${p.lista.length} respondidas · sem consulta 👀</div></div>
     ${p.lista.map((q, n) => `<div class="card"><p class="enun">${n+1}. ${h(q.enunciado)}</p>
       ${q.alternativas.map((a, i) => `<button class="alt ${p.resp[q.id]===i?'sel':''}" data-a="marcar" data-q="${h(q.id)}" data-v="${i}"><b>${'ABCDE'[i]})</b> ${h(a)}</button>`).join('')}</div>`).join('')}
@@ -1656,7 +1660,7 @@ function lerProva(mid, ini){ try { const g = JSON.parse(localStorage.getItem(chP
 function apagaProva(mid){ try { localStorage.removeItem(chProva(mid)); } catch {} }
 async function iniciarProva(mid){
   const retoma = !!S.lib[mid]?.iniciada_em;
-  if (!retoma && !window.confirm(`Começar a prova de ${MAT(mid).nome}? Você terá 1 hora a partir de agora, e é uma vez só.`)) return;
+  if (!retoma && !window.confirm(`Começar a prova de ${MAT(mid).nome}? Você terá 1 hora a partir de agora, e é uma vez só. O app avisa quando faltarem 30, 15 e 5 minutos.`)) return;
   const { data: ate, error: e1 } = await sb.rpc('iniciar_prova', { p_materia:mid });
   if (erro(e1)) return;
   const { data: lib } = await sb.from('liberacoes').select('*').eq('aluno', S.aluno).eq('materia', mid).maybeSingle();
@@ -1941,13 +1945,23 @@ async function contarQuestoes(){
   S.qtd = {}; (data||[]).forEach(q => { const k = S.qtd[q.materia] ||= { treino:0, prova:0 }; k[q.tipo]++; });
 }
 
-// Relógio da prova
+// Prova sem cronômetro na tela: avisos quando faltam 30, 15 e 5 minutos (faixa no topo que só some no OK).
+// Se o app voltar com menos tempo, avisa uma vez quanto falta. No fim da hora, envia sozinha.
+const AVISOS_PROVA = [30, 15, 5];
+function avisoProva(min){
+  fechaAvisoProva();
+  const fim = min <= 5 ? ' Confira as respostas e envie a prova.' : '';
+  document.body.insertAdjacentHTML('beforeend', `<div class="aviso-prova" id="avprova" role="alert"><b>⏰ Faltam ${min} minuto${min === 1 ? '' : 's'}!</b>${fim}<button class="btn min" id="avok">OK</button></div>`);
+  document.getElementById('avok').onclick = fechaAvisoProva;
+}
+const fechaAvisoProva = () => document.getElementById('avprova')?.remove();
 setInterval(() => {
-  if (!S.prova || S.prova.resultado) return;
-  const r = document.getElementById('relogio'); if (!r) return;
-  const falta = Math.max(0, new Date(S.prova.ate) - new Date());
-  r.textContent = `${Math.floor(falta/6e4)}:${String(Math.floor(falta%6e4/1e3)).padStart(2,'0')}`;
-  if (falta === 0 && !S.prova.auto){ S.prova.auto = true; acoes.enviarProva(); }
+  const p = S.prova;
+  if (!p || p.resultado){ fechaAvisoProva(); return; }
+  const falta = Math.max(0, new Date(p.ate) - new Date());
+  if (falta === 0){ if (!p.auto){ p.auto = true; fechaAvisoProva(); acoes.enviarProva(); } return; }
+  const passou = AVISOS_PROVA.filter(m => falta <= m * 6e4 && !(p.avisos ||= []).includes(m));
+  if (passou.length){ p.avisos.push(...passou); avisoProva(Math.ceil(falta / 6e4)); }
 }, 1000);
 
 // ---------------- INÍCIO ----------------
